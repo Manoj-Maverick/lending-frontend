@@ -1,0 +1,52 @@
+.login-bg {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* Layered gradients */
+  background: linear-gradient(-45deg, #4f46e5, #9333ea, #ec4899, #f59e0b);
+  background-size: 400% 400%;
+  animation: gradientWave 25s ease-in-out infinite;
+}
+
+@keyframes gradientWave {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Optional: add a subtle overlay for depth */
+.login-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(
+      circle at 30% 30%,
+      rgba(255, 255, 255, 0.1),
+      transparent 70%
+    ),
+    radial-gradient(circle at 70% 70%, rgba(0, 0, 0, 0.1), transparent 70%);
+  mix-blend-mode: overlay;
+  animation: overlayWave 40s linear infinite;
+}
+
+@keyframes overlayWave {
+  0% {
+    transform: translateX(0) translateY(0);
+  }
+  50% {
+    transform: translateX(20px) translateY(-20px);
+  }
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+}
