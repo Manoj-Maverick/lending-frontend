@@ -22,6 +22,7 @@ const Select = React.forwardRef(
       searchable = false,
       clearable = false,
       loading = false,
+      dropdownPlacement = "bottom", // ✅ NEW: "bottom" | "top" (default: bottom)
       id,
       name,
       onChange,
@@ -119,7 +120,7 @@ const Select = React.forwardRef(
         )}
 
         <div className="relative">
-          {/* TRIGGER BUTTON – EXACT SAME THEME AS BRANCH SELECTOR */}
+          {/* TRIGGER BUTTON */}
           <button
             ref={ref}
             id={selectId}
@@ -202,15 +203,15 @@ const Select = React.forwardRef(
             ))}
           </select>
 
-          {/* DROPDOWN – THEME MATCHED */}
+          {/* DROPDOWN */}
           {isOpen && (
             <div
-              className="
-                absolute z-50 w-full mt-1 
-                bg-popover text-popover-foreground 
-                border border-border 
-                rounded-md shadow-md
-              "
+              className={cn(
+                "absolute z-50 w-full bg-popover text-popover-foreground border border-border rounded-md shadow-md",
+                dropdownPlacement === "bottom"
+                  ? "mt-1 top-full"
+                  : "mb-1 bottom-full",
+              )}
             >
               {searchable && (
                 <div className="p-2 border-b border-border bg-card">

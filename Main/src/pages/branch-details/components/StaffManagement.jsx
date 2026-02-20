@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Image from "../../../components/AppImage";
-import { useFetchBranchStaffListById } from "hooks/branch.deatils.page.hooks/useGetBranchStaffList";
+import { useFetchBranchStaffListById } from "hooks/branch.details.page.hooks/useGetBranchStaffList";
 const StaffManagement = ({
   branchId,
   staff,

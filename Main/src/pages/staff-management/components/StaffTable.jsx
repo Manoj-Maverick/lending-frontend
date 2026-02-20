@@ -25,6 +25,25 @@ const StaffTable = ({
     actions: true,
   });
 
+  const getAvatarUrl = (staffMember) => {
+    const id = staffMember?.id;
+    const gender =
+      staffMember?.gender ?? ["male", "female"][Math.floor(Math.random() * 2)];
+
+    if (!id) return "/images/avatar-placeholder.png";
+
+    const seed = Number(id) % 100 || 1;
+
+    if (gender?.toLowerCase() === "male") {
+      return `https://randomuser.me/api/portraits/men/${seed}.jpg`;
+    }
+
+    if (gender?.toLowerCase() === "female") {
+      return `https://randomuser.me/api/portraits/women/${seed}.jpg`;
+    }
+
+    return "/images/avatar-placeholder.png";
+  };
   const getStatusColor = (status) => {
     const colors = {
       Active: "bg-success/10 text-success dark:bg-success/20 dark:text-success",
@@ -32,25 +51,19 @@ const StaffTable = ({
         "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
       Inactive: "bg-error/10 text-error dark:bg-error/20 dark:text-error",
     };
-    return colors?.[status] || colors?.["Active"];
+    return (
+      colors?.[status == true ? "Active" : "Inactive"] || colors?.["Inactive"]
+    );
   };
 
   const getRoleColor = (role) => {
     const colors = {
-      "Branch Manager":
-        "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary",
-      "Loan Officer":
+      ACCOUNTANT:
         "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
-      "Finance Manager":
+      STAFF:
         "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
-      "Customer Service Executive":
+      BRANCH_MANAGER:
         "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
-      "HR Executive":
-        "bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400",
-      "IT Manager":
-        "bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400",
-      "Audit Officer":
-        "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400",
     };
     return colors?.[role] || colors?.["Loan Officer"];
   };
@@ -68,8 +81,7 @@ const StaffTable = ({
     setVisibleColumns((prev) => ({ ...prev, [column]: !prev?.[column] }));
   };
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const displayedStaff = staff?.slice(startIndex, startIndex + itemsPerPage);
+  const displayedStaff = staff ?? [];
 
   return (
     <div className="bg-card rounded-lg border border-border overflow-hidden mb-6">
@@ -199,7 +211,7 @@ const StaffTable = ({
                 {visibleColumns?.photo && (
                   <td className="px-4 py-3">
                     <Image
-                      src={staffMember?.photo}
+                      src={staffMember?.photo ?? getAvatarUrl(staffMember)}
                       alt={staffMember?.photoAlt}
                       className="w-10 h-10 rounded-lg object-cover"
                     />
@@ -256,7 +268,7 @@ const StaffTable = ({
                         staffMember?.status,
                       )}`}
                     >
-                      {staffMember?.status}
+                      {staffMember?.status === true ? "Active" : "Inactive"}
                     </span>
                   </td>
                 )}
@@ -307,7 +319,7 @@ const StaffTable = ({
           >
             <div className="flex gap-4 mb-3">
               <Image
-                src={staffMember?.photo}
+                src={staffMember?.photo ?? getAvatarUrl(staffMember)}
                 alt={staffMember?.photoAlt}
                 className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
               />
@@ -326,7 +338,7 @@ const StaffTable = ({
                       staffMember?.status,
                     )}`}
                   >
-                    {staffMember?.status}
+                    {staffMember?.status === true ? "Active" : "Inactive"}
                   </span>
                 </div>
                 <p className="text-sm text-muted-foreground truncate mb-2">

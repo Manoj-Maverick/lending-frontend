@@ -2,26 +2,63 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
+import { useCustomerLoans } from "hooks/clients.profile.page.hooks/useGetClientLoans";
 
-const LoansTab = ({ loans, onCreateLoan }) => {
+const LoansTab = ({ customerId, onCreateLoan }) => {
   const navigate = useNavigate();
+
+  // 🔌 Fetch loans + stats using hook
+  const { data, isLoading, isError, error } = useCustomerLoans(customerId);
+
+  if (isLoading) {
+    return <div className="p-6 text-muted-foreground">Loading loans...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 text-destructive">
+        Failed to load loans: {error.message}
+      </div>
+    );
+  }
+
+  // API returns: { loans, stats }
+  const rawLoans = data?.loans || [];
+  const stats = data?.stats || {
+    totalLoans: 0,
+    activeLoans: 0,
+    totalDisbursed: 0,
+    totalOutstanding: 0,
+  };
+
+  // 🧱 Map backend fields to UI-friendly shape
+  const loans = rawLoans.map((l) => ({
+    id: l.id,
+    loanCode: l.loan_code,
+    principal: Number(l.principal_amount),
+    interestRate: Number(l.interest_amount), // or compute % if needed
+    totalPayable: Number(l.total_payable),
+    outstanding: Number(l.outstanding),
+    status: l.status, // 'ACTIVE', 'CLOSED', 'FORECLOSED'
+    startDate: l.start_date,
+  }));
 
   const getStatusColor = (status) => {
     const colors = {
-      Active: "bg-success/10 text-success",
-      Closed: "bg-primary/10 text-primary",
-      Delayed: "bg-warning/10 text-warning",
-      Foreclosed: "bg-destructive/10 text-destructive",
+      ACTIVE: "bg-success/10 text-success",
+      CLOSED: "bg-primary/10 text-primary",
+      DELAYED: "bg-warning/10 text-warning",
+      FORECLOSED: "bg-destructive/10 text-destructive",
     };
     return colors?.[status] || "bg-muted/10 text-muted-foreground";
   };
 
   const getStatusIcon = (status) => {
     const icons = {
-      Active: "CheckCircle",
-      Closed: "Lock",
-      Delayed: "AlertCircle",
-      Foreclosed: "XCircle",
+      ACTIVE: "CheckCircle",
+      CLOSED: "Lock",
+      DELAYED: "AlertCircle",
+      FORECLOSED: "XCircle",
     };
     return icons?.[status] || "Circle";
   };
@@ -47,7 +84,8 @@ const LoansTab = ({ loans, onCreateLoan }) => {
           Create New Loan
         </Button>
       </div>
-      {/* Loan Statistics */}
+
+      {/* 📊 Loan Statistics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-card rounded-lg p-4 md:p-6 shadow-elevation-sm">
           <div className="flex items-center gap-3 mb-2">
@@ -59,7 +97,7 @@ const LoansTab = ({ loans, onCreateLoan }) => {
             </p>
           </div>
           <p className="text-2xl md:text-3xl font-semibold text-foreground">
-            {loans?.length}
+            {stats.totalLoans}
           </p>
         </div>
 
@@ -73,7 +111,7 @@ const LoansTab = ({ loans, onCreateLoan }) => {
             </p>
           </div>
           <p className="text-2xl md:text-3xl font-semibold text-foreground">
-            {loans?.filter((l) => l?.status === "Active")?.length}
+            {stats.activeLoans}
           </p>
         </div>
 
@@ -87,10 +125,7 @@ const LoansTab = ({ loans, onCreateLoan }) => {
             </p>
           </div>
           <p className="text-2xl md:text-3xl font-semibold text-foreground">
-            $
-            {loans
-              ?.reduce((sum, loan) => sum + loan?.principal, 0)
-              ?.toLocaleString()}
+            ₹{stats.totalDisbursed.toLocaleString()}
           </p>
         </div>
 
@@ -104,15 +139,13 @@ const LoansTab = ({ loans, onCreateLoan }) => {
             </p>
           </div>
           <p className="text-2xl md:text-3xl font-semibold text-foreground">
-            $
-            {loans
-              ?.reduce((sum, loan) => sum + loan?.outstanding, 0)
-              ?.toLocaleString()}
+            ₹{stats.totalOutstanding.toLocaleString()}
           </p>
         </div>
       </div>
-      {/* Loans List */}
-      {loans?.length === 0 ? (
+
+      {/* 📋 Loans List */}
+      {loans.length === 0 ? (
         <div className="bg-card rounded-lg p-8 md:p-12 text-center shadow-elevation-sm">
           <div className="w-16 h-16 md:w-20 md:h-20 mx-auto bg-muted/30 rounded-full flex items-center justify-center mb-4">
             <Icon name="Wallet" size={32} className="text-muted-foreground" />
@@ -138,82 +171,69 @@ const LoansTab = ({ loans, onCreateLoan }) => {
             <table className="w-full">
               <thead className="bg-muted/30 border-b border-border">
                 <tr>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                     Loan Code
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                     Principal
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                     Interest
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                     Total Payable
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                     Outstanding
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                     Status
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                     Start Date
                   </th>
-                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  <th className="px-4 md:px-6 py-3 md:py-4 text-right text-xs md:text-sm font-medium text-muted-foreground">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {loans?.map((loan) => (
-                  <tr
-                    key={loan?.id}
-                    className="hover:bg-muted/10 transition-colors duration-250"
-                  >
-                    <td className="px-4 md:px-6 py-3 md:py-4">
-                      <span className="text-sm md:text-base font-medium text-primary whitespace-nowrap">
-                        {loan?.loanCode}
-                      </span>
+                {loans.map((loan) => (
+                  <tr key={loan.id} className="hover:bg-muted/10">
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-primary font-medium">
+                      {loan.loanCode}
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4">
-                      <span className="text-sm md:text-base text-foreground whitespace-nowrap">
-                        ${loan?.principal?.toLocaleString()}
-                      </span>
+                      ₹{loan.principal.toLocaleString()}
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4">
-                      <span className="text-sm md:text-base text-foreground whitespace-nowrap">
-                        {loan?.interestRate}%
-                      </span>
+                      {loan.interestRate}
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4">
-                      <span className="text-sm md:text-base font-medium text-foreground whitespace-nowrap">
-                        ${loan?.totalPayable?.toLocaleString()}
-                      </span>
+                    <td className="px-4 md:px-6 py-3 md:py-4 font-medium">
+                      ₹{loan.totalPayable.toLocaleString()}
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4">
-                      <span className="text-sm md:text-base font-medium text-warning whitespace-nowrap">
-                        ${loan?.outstanding?.toLocaleString()}
-                      </span>
+                    <td className="px-4 md:px-6 py-3 md:py-4 font-medium text-warning">
+                      ₹{loan.outstanding.toLocaleString()}
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4">
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs md:text-sm font-medium whitespace-nowrap ${getStatusColor(loan?.status)}`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          loan.status,
+                        )}`}
                       >
-                        <Icon name={getStatusIcon(loan?.status)} size={14} />
-                        {loan?.status}
+                        <Icon name={getStatusIcon(loan.status)} size={14} />
+                        {loan.status}
                       </span>
                     </td>
-                    <td className="px-4 md:px-6 py-3 md:py-4">
-                      <span className="text-sm md:text-base text-muted-foreground whitespace-nowrap">
-                        {loan?.startDate}
-                      </span>
+                    <td className="px-4 md:px-6 py-3 md:py-4 text-muted-foreground">
+                      {loan.startDate}
                     </td>
                     <td className="px-4 md:px-6 py-3 md:py-4 text-right">
                       <Button
                         variant="ghost"
                         size="sm"
                         iconName="Eye"
-                        onClick={() => navigate("/loan-details")}
+                        onClick={() => navigate(`/loan-details/${loan.id}`)}
                       >
                         View
                       </Button>

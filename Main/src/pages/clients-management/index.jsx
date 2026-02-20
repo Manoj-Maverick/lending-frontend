@@ -1,15 +1,9 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../../components/navigation/Sidebar";
-import Breadcrumb from "../../components/navigation/Breadcrumb";
-import BranchSelector from "../../components/navigation/BranchSelector";
-import UserProfileMenu from "../../components/navigation/UserProfileMenu";
 import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
-import ClientFilters from "./components/ClientFilters";
-import ClientsTable from "./components/ClientsTable";
+import ClientsListPage from "./components/clientsListPage";
 import AddClientModal from "./components/AddClientModal";
 import BlocklistModal from "./components/BlocklistModal";
-import Pagination from "./components/Pagination";
 
 const ClientsManagement = () => {
   const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
@@ -428,38 +422,7 @@ const ClientsManagement = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <ClientFilters
-        filters={filters}
-        onFilterChange={handleFilterChange}
-        totalClients={mockClients?.length}
-        filteredCount={sortedClients?.length}
-      />
-
-      {/* Clients Table */}
-      <ClientsTable
-        clients={sortedClients}
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-        onSort={handleSort}
-        sortConfig={sortConfig}
-        onBlockStatusChange={handleBlockStatusChange}
-      />
-
-      {/* Pagination */}
-      {sortedClients?.length > 0 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          itemsPerPage={itemsPerPage}
-          totalItems={sortedClients?.length}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={(value) => {
-            setItemsPerPage(value);
-            setCurrentPage(1);
-          }}
-        />
-      )}
+      <ClientsListPage />
       {/* Add Client Modal */}
       <AddClientModal
         isOpen={isAddClientModalOpen}

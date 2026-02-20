@@ -18,6 +18,7 @@ import Reports from "pages/reports";
 import PaymentsManagement from "pages/payments-management";
 import Login from "pages/login";
 import ProtectedRoute from "auth/ProtectedRoute";
+import TodaysCollection from "pages/todays-collection/TodaysCollection";
 import { useAuth } from "auth/AuthContext";
 import { Navigate } from "react-router-dom";
 const Routes = () => {
@@ -43,11 +44,12 @@ const Routes = () => {
           <Route path="/branches-management" element={<BranchesManagement />} />
           <Route path="/branch-details/:branchId" element={<BranchDetails />} />
           <Route path="/clients-management" element={<ClientsManagement />} />
-          <Route path="/client-profile" element={<ClientProfile />} />
+          <Route path="/client-profile/:clientId" element={<ClientProfile />} />
           <Route path="/loans-management" element={<LoansManagement />} />
-          <Route path="/loan-details" element={<LoanDetails />} />
+          <Route path="/loan-details/:loanId" element={<LoanDetails />} />
           <Route path="/staff-management" element={<StaffManagement />} />
-          <Route path="/staff-profile" element={<StaffProfile />} />
+          <Route path="/todays-collection" element={<TodaysCollection />} />
+          <Route path="/staff-profile/:staffId" element={<StaffProfile />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/reports" element={<Reports />} />
           <Route path="/payments-management" element={<PaymentsManagement />} />

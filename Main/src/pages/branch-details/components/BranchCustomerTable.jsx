@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
@@ -7,66 +7,15 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 
-/* =========================
-   DUMMY DATA (BRANCH ONLY)
-========================= */
-const DUMMY_CLIENTS = [
-  {
-    id: 1,
-    name: "Ravi Kumar",
-    phone: "9876543210",
-    code: "C-001",
-    photo: "https://i.pravatar.cc/150?img=1",
-    loanStatus: "Active",
-    isBlocked: false,
-  },
-  {
-    id: 2,
-    name: "Suresh Patel",
-    phone: "9123456780",
-    code: "C-002",
-    photo: "https://i.pravatar.cc/150?img=2",
-    loanStatus: "Closed",
-    isBlocked: false,
-  },
-  {
-    id: 3,
-    name: "Anita Sharma",
-    phone: "9988776655",
-    code: "C-003",
-    photo: "https://i.pravatar.cc/150?img=3",
-    loanStatus: "Delayed",
-    isBlocked: true,
-  },
-  {
-    id: 4,
-    name: "Mohammed Ali",
-    phone: "9090909090",
-    code: "C-004",
-    photo: "https://i.pravatar.cc/150?img=4",
-    loanStatus: "No Loan",
-    isBlocked: false,
-  },
-  {
-    id: 5,
-    name: "Priya Nair",
-    phone: "9012345678",
-    code: "C-005",
-    photo: "https://i.pravatar.cc/150?img=5",
-    loanStatus: "Active",
-    isBlocked: false,
-  },
-];
+import { useFetchBranchCustomers as useBranchClients } from "../../../hooks/branch.details.page.hooks/useGetBranchCustomers";
 
 /* =========================
    OPTIONS
 ========================= */
 const statusOptions = [
   { value: "all", label: "All Statuses" },
-  { value: "Active", label: "Active Loans" },
-  { value: "Closed", label: "Closed Loans" },
-  { value: "Delayed", label: "Delayed Payments" },
-  { value: "No Loan", label: "No Active Loan" },
+  { value: "ACTIVE", label: "Active Loans" },
+  { value: "No Loans", label: "No Active Loan" },
 ];
 
 const customerStatusOptions = [
@@ -86,8 +35,7 @@ const pageSizeOptions = [
 ========================= */
 const BranchClients = () => {
   const navigate = useNavigate();
-
-  const [clients, setClients] = useState(DUMMY_CLIENTS);
+  const { branchId } = useParams();
 
   const [filters, setFilters] = useState({
     search: "",
@@ -122,70 +70,38 @@ const BranchClients = () => {
     return sortConfig.direction === "asc" ? "ChevronUp" : "ChevronDown";
   };
 
+  // ✅ SAME color schema as v1
   const getStatusColor = (status) => {
     const colors = {
       Active: "bg-blue-500/10 text-blue-600",
-      Closed: "bg-emerald-500/10 text-emerald-600",
       "No Loan": "bg-gray-500/10 text-gray-600",
-      Delayed: "bg-amber-500/10 text-amber-600",
     };
     return colors[status] || colors["No Loan"];
   };
 
-  const onBlockStatusChange = (client) => {
-    setClients((prev) =>
-      prev.map((c) =>
-        c.id === client.id ? { ...c, isBlocked: !c.isBlocked } : c,
-      ),
-    );
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.trim().split(" ");
+    if (parts.length === 1) return parts[0][0].toUpperCase();
+    return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-  /* =========================
-     FILTER + SORT
-  ========================= */
-  const filteredClients = useMemo(() => {
-    let data = [...clients];
+  // 🔌 Call backend via React Query hook
+  const { data, isLoading, isFetching, isError } = useBranchClients({
+    branchId,
+    search: filters.search,
+    status: filters.status,
+    sortKey: sortConfig.key === "loanStatus" ? "loan_status" : sortConfig.key,
+    sortDir: sortConfig.direction,
+    page: currentPage,
+    pageSize: itemsPerPage,
+  });
 
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      data = data.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.phone.includes(q) ||
-          c.code.toLowerCase().includes(q),
-      );
-    }
-
-    if (filters.status !== "all") {
-      data = data.filter((c) => c.loanStatus === filters.status);
-    }
-
-    if (filters.blockStatus !== "all") {
-      data =
-        filters.blockStatus === "blocked"
-          ? data.filter((c) => c.isBlocked)
-          : data.filter((c) => !c.isBlocked);
-    }
-
-    data.sort((a, b) => {
-      const aVal = a[sortConfig.key];
-      const bVal = b[sortConfig.key];
-      if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-      if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return data;
-  }, [clients, filters, sortConfig]);
-
-  const totalItems = filteredClients.length;
+  const clients = data?.data || [];
+  const totalItems = data?.total || 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const displayedClients = filteredClients.slice(
-    startIndex,
-    startIndex + itemsPerPage,
-  );
 
+  const startIndex = (currentPage - 1) * itemsPerPage;
   const startItem = totalItems === 0 ? 0 : startIndex + 1;
   const endItem = Math.min(startIndex + itemsPerPage, totalItems);
 
@@ -200,13 +116,9 @@ const BranchClients = () => {
           </div>
           <div className="text-sm text-muted-foreground">
             Showing{" "}
-            <span className="font-semibold text-accent">
-              {filteredClients.length}
-            </span>{" "}
+            <span className="font-semibold text-accent">{clients.length}</span>{" "}
             of{" "}
-            <span className="font-semibold text-foreground">
-              {clients.length}
-            </span>
+            <span className="font-semibold text-foreground">{totalItems}</span>
           </div>
         </div>
 
@@ -230,6 +142,12 @@ const BranchClients = () => {
             onChange={(v) => onFilterChange("blockStatus", v)}
           />
         </div>
+
+        {isFetching && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Updating results...
+          </div>
+        )}
       </div>
 
       {/* TABLE */}
@@ -278,11 +196,17 @@ const BranchClients = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {displayedClients.map((client) => (
+              {clients.map((client) => (
                 <tr key={client.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted">
-                      <Image src={client.photo} alt={client.name} />
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
+                      {client.photo ? (
+                        <Image src={client.photo} alt={client.name} />
+                      ) : (
+                        <span className="text-sm font-semibold text-foreground">
+                          {getInitials(client.name)}
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3 font-medium">{client.name}</td>
@@ -292,7 +216,11 @@ const BranchClients = () => {
                   <td className="px-4 py-3 font-mono text-sm">{client.code}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`px-2 py-1 rounded text-xs ${getStatusColor(client.loanStatus)}`}
+                      className={`px-2 py-1 rounded text-xs whitespace-nowrap inline-block ${getStatusColor(
+                        client.loanStatus === "ACTIVE"
+                          ? "Active"
+                          : client.loanStatus,
+                      )}`}
                     >
                       {client.loanStatus}
                     </span>
@@ -310,11 +238,7 @@ const BranchClients = () => {
                         variant="ghost"
                         size="sm"
                         iconName="Eye"
-                        onClick={() =>
-                          navigate("/client-profile", {
-                            state: { clientData: client },
-                          })
-                        }
+                        onClick={() => navigate(`/client-profile/${client.id}`)}
                       >
                         View
                       </Button>
@@ -322,7 +246,6 @@ const BranchClients = () => {
                         variant={client.isBlocked ? "default" : "destructive"}
                         size="sm"
                         iconName={client.isBlocked ? "CheckCircle2" : "Ban"}
-                        onClick={() => onBlockStatusChange(client)}
                       >
                         {client.isBlocked ? "Unblock" : "Block"}
                       </Button>
@@ -333,9 +256,15 @@ const BranchClients = () => {
             </tbody>
           </table>
 
-          {displayedClients.length === 0 && (
+          {!isLoading && clients.length === 0 && (
             <div className="p-10 text-center text-muted-foreground">
               No clients found
+            </div>
+          )}
+
+          {isError && (
+            <div className="p-10 text-center text-red-600">
+              Failed to load clients
             </div>
           )}
         </div>
@@ -343,14 +272,12 @@ const BranchClients = () => {
 
       {/* PAGINATION */}
       <div className="bg-card border border-border rounded-b-lg p-4 flex flex-col md:flex-row items-center gap-4 mb-5">
-        {/* LEFT */}
         <div className="text-sm text-muted-foreground">
           Showing <span className="font-semibold">{startItem}</span> to{" "}
           <span className="font-semibold">{endItem}</span> of{" "}
           <span className="font-semibold">{totalItems}</span>
         </div>
 
-        {/* RIGHT GROUP */}
         <div className="flex items-center gap-4 md:ml-auto">
           <Select
             options={pageSizeOptions}

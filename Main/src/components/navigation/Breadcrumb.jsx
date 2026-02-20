@@ -15,6 +15,7 @@ const Breadcrumb = () => {
     "/loans-management": "Loans",
     "/loan-details": "Loan Details",
     "/payments-management": "Payments",
+    "/todays-collection": "Today's Collection",
     "/staff-management": "Staff",
     "/staff-profile": "Staff Profile",
     "/reports": "Reports",

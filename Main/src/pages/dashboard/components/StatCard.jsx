@@ -24,7 +24,7 @@ const StatCard = ({ title, value, icon, color, navigateTo }) => {
 
   return (
     <div
-      className={`bg-card border border-border rounded-lg p-4 md:p-5 lg:p-6 transition-all duration-250 hover:shadow-elevation-md ${
+      className={`group rounded-xl border border-border/70 bg-card p-3.5 sm:p-4 lg:p-5 shadow-sm transition-all duration-250 hover:-translate-y-0.5 hover:shadow-elevation-md ${
         navigateTo ? "cursor-pointer" : ""
       }`}
       onClick={handleClick}
@@ -36,49 +36,24 @@ const StatCard = ({ title, value, icon, color, navigateTo }) => {
         }
       }}
     >
-      <div className="flex items-start justify-between mb-3 md:mb-4">
-        <div className="flex-1">
-          <p className="text-xs md:text-sm text-muted-foreground font-medium mb-1 md:mb-2">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground sm:text-xs">
             {title}
           </p>
-          <h3 className="text-xl md:text-2xl lg:text-3xl font-semibold text-foreground">
+          <h3 className="break-words text-lg font-semibold leading-tight text-foreground sm:text-xl lg:text-2xl">
             {value}
           </h3>
-          {/* {subtitle && (
-            <p className="text-xs md:text-sm text-muted-foreground mt-1 md:mt-2">
-              {subtitle}
-            </p>
-          )} */}
         </div>
+
         <div
-          className={`w-10 h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-lg flex items-center justify-center ${
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-10 sm:w-10 ${
             colorClasses?.[color] || colorClasses?.blue
           }`}
         >
-          <Icon name={icon} size={20} className="md:w-6 md:h-6 lg:w-7 lg:h-7" />
+          <Icon name={icon} size={18} className="sm:h-5 sm:w-5" />
         </div>
       </div>
-      {/* {trend && (
-        <div className="flex items-center gap-1 md:gap-2">
-          <Icon
-            name={trend === "up" ? "TrendingUp" : "TrendingDown"}
-            size={14}
-            className={`md:w-4 md:h-4 ${
-              trend === "up" ? "text-emerald-600" : "text-red-600"
-            }`}
-          />
-          <span
-            className={`text-xs md:text-sm font-medium ${
-              trend === "up" ? "text-emerald-600" : "text-red-600"
-            }`}
-          >
-            {trendValue}
-          </span>
-          <span className="text-xs md:text-sm text-muted-foreground">
-            vs last month
-          </span>
-        </div>
-      )} */}
     </div>
   );
 };

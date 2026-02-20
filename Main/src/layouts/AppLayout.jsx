@@ -5,8 +5,10 @@ import { useUIContext } from "context/UIContext";
 import { useEffect } from "react";
 import { useBranches } from "hooks/usebranches";
 import { useAuth } from "auth/AuthContext";
+
 const AppLayout = () => {
   const {
+    setBranches,
     isSidebarCollapsed,
     setIsSidebarCollapsed,
     isMobileSidebarOpen,
@@ -48,6 +50,11 @@ const AppLayout = () => {
     return () => window.removeEventListener("resize", handler);
   }, []);
 
+  useEffect(() => {
+    if (branches?.length) {
+      setBranches(branches);
+    }
+  }, [branches]);
   return (
     <div className="min-h-screen bg-background">
       <Sidebar

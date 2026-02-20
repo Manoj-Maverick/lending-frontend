@@ -1,6 +1,6 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
-import { useFetchBranchPerformanceMetricsByID } from "hooks/branch.deatils.page.hooks/useGetSpecificBranchPerformanceMetrics";
+import { useFetchBranchPerformanceMetricsByID } from "hooks/branch.details.page.hooks/useGetSpecificBranchPerformanceMetrics";
 
 const PerformanceMetrics = ({ branchId, metrics }) => {
   const { data, isLoading } = useFetchBranchPerformanceMetricsByID(branchId);

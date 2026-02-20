@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Icon from "../../../components/AppIcon";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
+import { useUIContext } from "context/UIContext";
 
 const StaffFilters = ({
   filters,
@@ -9,20 +10,16 @@ const StaffFilters = ({
   totalStaff,
   filteredCount,
 }) => {
+  const { branches } = useUIContext();
   const branchOptions = [
     { value: "all", label: "All Branches" },
-    { value: "Main Branch", label: "Main Branch" },
-    { value: "North Branch", label: "North Branch" },
-    { value: "South Branch", label: "South Branch" },
-    { value: "East Branch", label: "East Branch" },
-    { value: "West Branch", label: "West Branch" },
+    ...branches?.map((b) => ({ value: b?.id, label: b?.branch_name })),
   ];
-
   const roleOptions = [
     { value: "all", label: "All Roles" },
-    { value: "Branch Manager", label: "Branch Manager" },
-    { value: "Loan Officer", label: "Loan Officer" },
-    { value: "Finance Manager", label: "Finance Manager" },
+    { value: "BRANCH_MANAGER", label: "Branch Manager" },
+    { value: "ACCOUNTANT", label: "Accountant" },
+    { value: "STAFF", label: "Staff" },
     {
       value: "Customer Service Executive",
       label: "Customer Service Executive",

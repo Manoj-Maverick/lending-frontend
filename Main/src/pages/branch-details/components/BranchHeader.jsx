@@ -1,7 +1,7 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
-import { useFetchBranchById } from "hooks/branch.deatils.page.hooks/useGetSpecificBranch";
+import { useFetchBranchById } from "hooks/branch.details.page.hooks/useGetSpecificBranch";
 const BranchHeader = ({ branchId, branch, onEdit, onStatusToggle }) => {
   const getStatusColor = (status) => {
     const normalizedStatus = status?.toLowerCase();

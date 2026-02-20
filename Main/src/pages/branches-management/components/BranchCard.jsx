@@ -1,8 +1,18 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 
 const BranchCard = ({ branch, onClick }) => {
+  const [expanded, setExpanded] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const checkScreen = () => setIsDesktop(window.innerWidth >= 768);
+    checkScreen();
+    window.addEventListener("resize", checkScreen);
+    return () => window.removeEventListener("resize", checkScreen);
+  }, []);
+
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
@@ -22,6 +32,11 @@ const BranchCard = ({ branch, onClick }) => {
     return "text-destructive";
   };
 
+  const formatNumber = (num) => Math.floor(Number(num)).toLocaleString("en-IN");
+
+  const formatPercentage = (num) =>
+    typeof num === "number" ? `${Math.round(num)}%` : num;
+
   return (
     <div
       className="bg-card border border-border rounded-lg p-4 md:p-6 hover:shadow-elevation-md transition-all duration-250 cursor-pointer group"
@@ -34,6 +49,7 @@ const BranchCard = ({ branch, onClick }) => {
         }
       }}
     >
+      {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 md:w-14 md:h-14 bg-primary/10 rounded-lg flex items-center justify-center group-hover:bg-primary/15 transition-colors duration-250">
@@ -57,9 +73,11 @@ const BranchCard = ({ branch, onClick }) => {
           {branch?.is_active ? "Active" : "Inactive"}
         </span>
       </div>
+
+      {/* Manager Section */}
       {branch?.is_manager_assigned ? (
         <div className="mb-4 pb-4 border-b border-border">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0">
               <Image
                 src={
@@ -70,27 +88,28 @@ const BranchCard = ({ branch, onClick }) => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted-foreground">Branch Manager</p>
+            <div className="flex items-center justify-between min-w-0 flex-1">
               <p className="text-sm font-medium text-foreground truncate">
                 {branch?.mgr_name}
               </p>
+              <span className="text-xs text-muted-foreground flex items-center gap-2">
+                <Icon name="Phone" size={12} /> {branch?.mgr_phone}
+              </span>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground flex items-center gap-1">
-            <Icon name="Phone" size={12} />
-            {branch?.mgr_phone}
-          </p>
         </div>
       ) : (
-        <div className="bg-warning/10 border border-warning/20 rounded-md p-2 flex items-center gap-2">
-          <Icon name="AlertCircle" size={14} className="text-warning" />
-          <span className="text-sm text-warning font-medium">
-            Manager Not Assigned
-          </span>
+        <div className="mb-4 pb-4 border-b border-border">
+          <div className=" bg-warning/10 border border-warning/20 rounded-md p-2 flex items-center gap-2">
+            <Icon name="AlertCircle" size={14} className="text-warning" />
+            <span className="text-sm text-warning font-medium">
+              Manager Not Assigned
+            </span>
+          </div>
         </div>
       )}
 
+      {/* Always visible stats */}
       <div className="grid grid-cols-2 gap-3 md:gap-4 mb-4">
         <div className="bg-muted/30 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-1">
@@ -98,7 +117,7 @@ const BranchCard = ({ branch, onClick }) => {
             <p className="text-xs text-muted-foreground">Clients</p>
           </div>
           <p className="text-lg md:text-xl font-semibold text-foreground">
-            {branch?.total_clients}
+            {formatNumber(branch?.total_clients)}
           </p>
         </div>
         <div className="bg-muted/30 rounded-lg p-3">
@@ -107,50 +126,74 @@ const BranchCard = ({ branch, onClick }) => {
             <p className="text-xs text-muted-foreground">Active Loans</p>
           </div>
           <p className="text-lg md:text-xl font-semibold text-foreground">
-            {branch?.active_loans}
+            {formatNumber(branch?.active_loans)}
           </p>
         </div>
       </div>
-      <div className="space-y-2 md:space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs md:text-sm text-muted-foreground">
-            Total Disbursed
-          </span>
-          <span className="text-sm md:text-base font-semibold text-foreground">
-            ₹{branch?.total_disbursed.toLocaleString()}
-          </span>
+
+      {/* Collapsible section (always visible on desktop, toggle on mobile) */}
+      {(isDesktop || expanded) && (
+        <div className="space-y-2 md:space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs md:text-sm text-muted-foreground">
+              Total Disbursed
+            </span>
+            <span className="text-sm md:text-base font-semibold text-foreground">
+              ₹{formatNumber(branch?.total_disbursed)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs md:text-sm text-muted-foreground">
+              Outstanding
+            </span>
+            <span className="text-sm md:text-base font-semibold text-foreground">
+              ₹{formatNumber(branch?.outstanding)}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-xs md:text-sm text-muted-foreground">
+              Collection Rate
+            </span>
+            <span
+              className={`text-sm md:text-base font-semibold ${getPerformanceColor(
+                branch?.statistics?.collectionRate,
+              )}`}
+            >
+              {formatPercentage(
+                (branch?.total_collected / branch?.total_disbursed) * 100,
+              )}
+            </span>
+          </div>
+          <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              Staff: {formatNumber(branch?.staff_count)}
+            </span>
+            <Icon
+              name="ChevronRight"
+              size={18}
+              className="text-muted-foreground group-hover:text-accent transition-colors duration-250"
+            />
+          </div>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs md:text-sm text-muted-foreground">
-            Outstanding
-          </span>
-          <span className="text-sm md:text-base font-semibold text-foreground">
-            ₹{branch.outstanding.toLocaleString()}
-          </span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-xs md:text-sm text-muted-foreground">
-            Collection Rate
-          </span>
-          <span
-            className={`text-sm md:text-base font-semibold ₹{getPerformanceColor(
-              branch?.statistics?.collectionRate,
-            )}`}
-          >
-            {(branch?.total_collected / branch?.total_disbursed) * 100}%
-          </span>
-        </div>
-      </div>
-      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          Staff: {branch?.staff_count}
-        </span>
-        <Icon
-          name="ChevronRight"
-          size={18}
-          className="text-muted-foreground group-hover:text-accent transition-colors duration-250"
-        />
-      </div>
+      )}
+
+      {/* Toggle button only for mobile */}
+      {!isDesktop && (
+        <button
+          className="mt-2 w-full text-xs md:hidden text-accent font-medium flex items-center justify-center gap-1"
+          onClick={(e) => {
+            e.stopPropagation();
+            setExpanded(!expanded);
+          }}
+        >
+          {expanded ? "Hide Details" : "Show Details"}
+          <Icon
+            name={expanded ? "ChevronUp" : "ChevronDown"}
+            size={14}
+            className="text-accent"
+          />
+        </button>
+      )}
     </div>
   );
 };

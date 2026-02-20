@@ -3,8 +3,10 @@ import Select from "../../../components/ui/Select";
 import Input from "../../../components/ui/Input";
 import Icon from "../../../components/AppIcon";
 
-const LoanFilters = ({ filters, onFilterChange }) => {
+const LoanFilters = ({ filters, branches, onFilterChange }) => {
   const handleChange = (field, value) => {
+    console.log(`Filters - `, filters);
+    console.log(`Filter change - ${field}:`, value);
     onFilterChange({ ...filters, [field]: value });
   };
 
@@ -14,31 +16,36 @@ const LoanFilters = ({ filters, onFilterChange }) => {
         <Select
           label="Status"
           value={filters?.status}
-          onChange={(e) => handleChange("status", e?.target?.value)}
+          onChange={(value) => handleChange("status", value)}
           options={[
             { value: "all", label: "All Status" },
-            { value: "active", label: "Active" },
-            { value: "overdue", label: "Overdue" },
-            { value: "closed", label: "Closed" },
-            { value: "pending", label: "Pending Approval" },
+            { value: "ACTIVE", label: "Active" },
+            { value: "OVERDUE", label: "Overdue" },
+            { value: "CLOSED", label: "Closed" },
+            { value: "PENDING", label: "Pending Approval" },
           ]}
         />
+
         <Select
           label="Branch"
           value={filters?.branch}
-          onChange={(e) => handleChange("branch", e?.target?.value)}
+          onChange={(value) => {
+            handleChange("branch", value);
+            console.log("Selected branch:", value);
+          }}
           options={[
             { value: "all", label: "All Branches" },
-            { value: "main", label: "Main Branch" },
-            { value: "east", label: "East Branch" },
-            { value: "west", label: "West Branch" },
-            { value: "north", label: "North Branch" },
+            ...(branches || []).map((branch) => ({
+              value: branch?.id,
+              label: branch?.branch_name,
+            })),
           ]}
         />
+
         <Select
           label="Loan Type"
           value={filters?.loanType}
-          onChange={(e) => handleChange("loanType", e?.target?.value)}
+          onChange={(value) => handleChange("loanType", value)}
           options={[
             { value: "all", label: "All Types" },
             { value: "personal", label: "Personal Loan" },
@@ -47,6 +54,7 @@ const LoanFilters = ({ filters, onFilterChange }) => {
             { value: "vehicle", label: "Vehicle Loan" },
           ]}
         />
+
         <div className="flex items-end">
           <button
             onClick={() =>
@@ -64,6 +72,7 @@ const LoanFilters = ({ filters, onFilterChange }) => {
           </button>
         </div>
       </div>
+
       <div className="relative">
         <Icon
           name="Search"

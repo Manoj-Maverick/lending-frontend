@@ -1,51 +1,20 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
+import { useGetLoanSchedule } from "hooks/loans.details.page/useGetLoanSchedule";
 
-const PaymentScheduleTab = ({ loanData }) => {
-  const generatePaymentSchedule = () => {
-    const schedule = [];
-    const startDate = new Date(loanData?.disbursedDate);
-    const monthlyEMI = loanData?.monthlyEMI;
-    const monthlyInterestRate = loanData?.interestRate / 12 / 100;
-    let remainingPrincipal = loanData?.loanAmount;
-
-    for (let i = 1; i <= loanData?.tenure; i++) {
-      const dueDate = new Date(startDate);
-      dueDate?.setMonth(dueDate?.getMonth() + i);
-
-      const interestAmount = remainingPrincipal * monthlyInterestRate;
-      const principalAmount = monthlyEMI - interestAmount;
-      remainingPrincipal -= principalAmount;
-
-      const isPaid = i <= 5;
-      const isOverdue = !isPaid && dueDate < new Date();
-
-      schedule?.push({
-        installmentNo: i,
-        dueDate: dueDate?.toISOString()?.split("T")?.[0],
-        emiAmount: monthlyEMI,
-        principalAmount: principalAmount,
-        interestAmount: interestAmount,
-        remainingBalance: Math.max(0, remainingPrincipal),
-        status: isPaid ? "Paid" : isOverdue ? "Overdue" : "Pending",
-      });
-    }
-
-    return schedule;
-  };
-
-  const schedule = generatePaymentSchedule();
+const PaymentScheduleTab = ({ loanId }) => {
+  const { data, isLoading, isError, error } = useGetLoanSchedule(loanId);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {
       style: "currency",
       currency: "INR",
       maximumFractionDigits: 0,
-    })?.format(amount);
+    }).format(amount || 0);
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString)?.toLocaleDateString("en-IN", {
+    return new Date(dateString).toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
       year: "numeric",
@@ -54,22 +23,36 @@ const PaymentScheduleTab = ({ loanData }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      Paid: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
-      Pending:
+      PAID: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400",
+      PENDING:
         "bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400",
-      Overdue: "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
+      DELAYED: "bg-red-100 text-red-700 dark:bg-red-950/30 dark:text-red-400",
     };
-    return colors?.[status] || colors?.Pending;
+    return colors[status] || colors.PENDING;
   };
 
   const getStatusIcon = (status) => {
     const icons = {
-      Paid: "CheckCircle",
-      Pending: "Clock",
-      Overdue: "AlertCircle",
+      PAID: "CheckCircle",
+      PENDING: "Clock",
+      DELAYED: "AlertCircle",
     };
-    return icons?.[status] || "Clock";
+    return icons[status] || "Clock";
   };
+
+  if (isLoading) {
+    return <div className="p-4 text-muted-foreground">Loading schedule...</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="p-4 text-destructive">
+        Failed to load schedule: {error.message}
+      </div>
+    );
+  }
+
+  const schedule = data || [];
 
   return (
     <div className="space-y-4">
@@ -78,18 +61,9 @@ const PaymentScheduleTab = ({ loanData }) => {
           Payment Schedule
         </h3>
         <div className="flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-            <span className="text-muted-foreground">Paid</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
-            <span className="text-muted-foreground">Pending</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <span className="text-muted-foreground">Overdue</span>
-          </div>
+          <Legend color="bg-emerald-500" label="Paid" />
+          <Legend color="bg-orange-500" label="Pending" />
+          <Legend color="bg-red-500" label="Overdue" />
         </div>
       </div>
 
@@ -97,68 +71,77 @@ const PaymentScheduleTab = ({ loanData }) => {
         <table className="w-full">
           <thead className="bg-muted/50 border-b border-border">
             <tr>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
-                Installment
-              </th>
-              <th className="text-left px-4 py-3 text-sm font-semibold text-foreground">
-                Due Date
-              </th>
-              <th className="text-right px-4 py-3 text-sm font-semibold text-foreground">
-                EMI Amount
-              </th>
-              <th className="text-right px-4 py-3 text-sm font-semibold text-foreground">
-                Principal
-              </th>
-              <th className="text-right px-4 py-3 text-sm font-semibold text-foreground">
-                Interest
-              </th>
-              <th className="text-right px-4 py-3 text-sm font-semibold text-foreground">
-                Balance
-              </th>
-              <th className="text-center px-4 py-3 text-sm font-semibold text-foreground">
-                Status
-              </th>
+              <Th>Installment</Th>
+              <Th>Due Date</Th>
+              <Th align="right">EMI Amount</Th>
+              <Th align="right">Fine</Th>
+              <Th align="right">Total Due</Th>
+              <Th align="center">Status</Th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {schedule?.map((item) => (
-              <tr
-                key={item?.installmentNo}
-                className="hover:bg-muted/30 transition-colors"
-              >
+            {schedule.map((item) => (
+              <tr key={item.id} className="hover:bg-muted/30 transition-colors">
                 <td className="px-4 py-3 text-sm font-medium text-foreground">
-                  #{item?.installmentNo}
+                  #{item.installment_no}
                 </td>
                 <td className="px-4 py-3 text-sm text-foreground">
-                  {formatDate(item?.dueDate)}
+                  {formatDate(item.due_date)}
                 </td>
-                <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
-                  {formatCurrency(item?.emiAmount)}
+                <td className="px-4 py-3 text-sm text-right font-medium">
+                  {formatCurrency(item.due_amount)}
                 </td>
-                <td className="px-4 py-3 text-sm text-foreground text-right">
-                  {formatCurrency(item?.principalAmount)}
+                <td className="px-4 py-3 text-sm text-right">
+                  {formatCurrency(item.fine_amount)}
                 </td>
-                <td className="px-4 py-3 text-sm text-foreground text-right">
-                  {formatCurrency(item?.interestAmount)}
-                </td>
-                <td className="px-4 py-3 text-sm text-foreground text-right font-medium">
-                  {formatCurrency(item?.remainingBalance)}
+                <td className="px-4 py-3 text-sm text-right font-medium">
+                  {formatCurrency(
+                    Number(item.due_amount) + Number(item.fine_amount || 0),
+                  )}
                 </td>
                 <td className="px-4 py-3 text-center">
                   <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item?.status)}`}
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                      item.status,
+                    )}`}
                   >
-                    <Icon name={getStatusIcon(item?.status)} size={12} />
-                    {item?.status}
+                    <Icon name={getStatusIcon(item.status)} size={12} />
+                    {item.status}
                   </span>
                 </td>
               </tr>
             ))}
+
+            {schedule.length === 0 && (
+              <tr>
+                <td
+                  colSpan={6}
+                  className="px-4 py-6 text-center text-muted-foreground"
+                >
+                  No schedule found for this loan.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
 };
+
+const Th = ({ children, align = "left" }) => (
+  <th
+    className={`text-${align} px-4 py-3 text-sm font-semibold text-foreground`}
+  >
+    {children}
+  </th>
+);
+
+const Legend = ({ color, label }) => (
+  <div className="flex items-center gap-2">
+    <div className={`w-3 h-3 rounded-full ${color}`} />
+    <span className="text-muted-foreground">{label}</span>
+  </div>
+);
 
 export default PaymentScheduleTab;

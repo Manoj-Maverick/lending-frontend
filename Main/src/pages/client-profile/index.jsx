@@ -1,17 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import Sidebar from "../../components/navigation/Sidebar";
-import Breadcrumb from "../../components/navigation/Breadcrumb";
-import BranchSelector from "../../components/navigation/BranchSelector";
-import UserProfileMenu from "../../components/navigation/UserProfileMenu";
 import Icon from "../../components/AppIcon";
 import PersonalInfoTab from "./components/PersonalInfoTab";
 import GuarantorsTab from "./components/GuarantorsTab";
 import DocumentsTab from "./components/DocumentsTab";
 import LoansTab from "./components/LoansTab";
-
+import { useParams } from "react-router-dom";
 const ClientProfile = () => {
   const navigate = useNavigate();
+  const { clientId } = useParams();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("personal");
 
@@ -225,11 +222,11 @@ const ClientProfile = () => {
       {/* Tab Content */}
       <div className="transition-opacity duration-250">
         {activeTab === "personal" && (
-          <PersonalInfoTab client={clientData} onEdit={handleEdit} />
+          <PersonalInfoTab customerId={clientId} onEdit={handleEdit} />
         )}
         {activeTab === "guarantors" && (
           <GuarantorsTab
-            guarantors={mockGuarantors}
+            customerId={clientId}
             onAddGuarantor={handleAddGuarantor}
           />
         )}
@@ -242,7 +239,7 @@ const ClientProfile = () => {
           />
         )}
         {activeTab === "loans" && (
-          <LoansTab loans={mockLoans} onCreateLoan={handleCreateLoan} />
+          <LoansTab customerId={clientId} onCreateLoan={handleCreateLoan} />
         )}
       </div>
     </>
