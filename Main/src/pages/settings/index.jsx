@@ -3,10 +3,10 @@ import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
-import { useSettings } from "hooks/useSettings";
-import { useSaveSettings } from "hooks/useSaveSettings";
-import { useUsers } from "hooks/useUser";
-import { useCreateUser } from "hooks/useSaveUser";
+import { useSettings } from "hooks/settings.page.hooks/useSettings";
+import { useSaveSettings } from "hooks/settings.page.hooks/useSaveSettings";
+import { useUsers } from "hooks/auth.page.hooks/useUser";
+import { useCreateUser } from "hooks/auth.page.hooks/useSaveUser";
 import { useToast } from "context/ToastContext";
 
 const Settings = () => {

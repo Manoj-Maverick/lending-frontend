@@ -3,7 +3,7 @@ import Sidebar from "components/navigation/Sidebar";
 import Header from "components/navigation/Header";
 import { useUIContext } from "context/UIContext";
 import { useEffect } from "react";
-import { useBranches } from "hooks/usebranches";
+import { useBranches } from "hooks/branches.management.page.hooks/usebranches";
 import { useAuth } from "auth/AuthContext";
 
 const AppLayout = () => {

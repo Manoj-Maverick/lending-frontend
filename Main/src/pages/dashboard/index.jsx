@@ -7,7 +7,7 @@ import LoanStatusChart from "./components/LoanStatusChart";
 import MonthlyCollectionChart from "./components/MonthlyCollectionChart";
 import BranchComparisonChart from "./components/BranchComparisonChart";
 import NoBranchAssigned from "components/NoBranchAssigned";
-import { useDashboardSummary } from "hooks/useDashboardSummary";
+import { useDashboardSummary } from "hooks/dashboard.page.hooks/useDashboardSummary";
 import { useUIContext } from "context/UIContext";
 import { useAuth } from "auth/AuthContext";
 
@@ -46,8 +46,8 @@ const Dashboard = () => {
             : "Branch Overview"}
         </h1>
         <p className="text-sm text-muted-foreground md:text-base">
-          Welcome back! Here&apos;s what&apos;s happening with your lending operations
-          today.
+          Welcome back! Here&apos;s what&apos;s happening with your lending
+          operations today.
         </p>
       </div>
 
