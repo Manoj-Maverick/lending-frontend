@@ -38,12 +38,29 @@ const getInitials = (name) => {
   return (parts[0][0] + parts[1][0]).toUpperCase();
 };
 
+const hashString = (value = "") => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = value.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash);
+};
+
+const getClientAvatar = (client) => {
+  if (client?.photo || client?.avatar) return client?.photo || client?.avatar;
+
+  const base = `${client?.id || ""}-${client?.name || client?.client_name || ""}`;
+  const seed = (hashString(base) % 70) + 1;
+  return `https://i.pravatar.cc/150?img=${seed}`;
+};
+
 /* =========================
    COMPONENT
 ========================= */
 const ClientsListPage = () => {
   const navigate = useNavigate();
   const { branches } = useUIContext();
+
   const branchOptions = useMemo(() => {
     const base = [{ value: "all", label: "All Branches" }];
 
@@ -57,7 +74,7 @@ const ClientsListPage = () => {
       })),
     ];
   }, [branches]);
-  console.log("Branch Options for Filter:", branches);
+
   const [filters, setFilters] = useState({
     search: "",
     branch: "all",
@@ -153,9 +170,7 @@ const ClientsListPage = () => {
             </h2>
           </div>
           <div className="text-xs md:text-sm text-muted-foreground">
-            Showing{" "}
-            <span className="font-semibold text-accent">{clients.length}</span>{" "}
-            of{" "}
+            Showing <span className="font-semibold text-accent">{clients.length}</span> of{" "}
             <span className="font-semibold text-foreground">{totalItems}</span>
           </div>
         </div>
@@ -190,33 +205,31 @@ const ClientsListPage = () => {
         </div>
 
         {isFetching && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Updating results…
-          </div>
+          <div className="mt-2 text-xs text-muted-foreground">Updating results...</div>
         )}
       </div>
 
       {/* ================= TABLE ================= */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
+      <div className="overflow-x-auto px-2 pb-2">
+        <table className="w-full min-w-[760px] border-separate border-spacing-y-2">
           <thead className="bg-muted/50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Photo
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold cursor-pointer"
+                className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer"
                 onClick={() => handleSort("name")}
               >
                 <div className="flex items-center gap-2">
                   Name <Icon name={getSortIcon("name")} size={14} />
                 </div>
               </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Phone
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold cursor-pointer"
+                className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer"
                 onClick={() => handleSort("code")}
               >
                 <div className="flex items-center gap-2">
@@ -224,73 +237,85 @@ const ClientsListPage = () => {
                 </div>
               </th>
               <th
-                className="px-4 py-3 text-left text-xs font-semibold cursor-pointer"
+                className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer"
                 onClick={() => handleSort("loanStatus")}
               >
                 <div className="flex items-center gap-2">
-                  Loan Status{" "}
-                  <Icon name={getSortIcon("loanStatus")} size={14} />
+                  Loan Status <Icon name={getSortIcon("loanStatus")} size={14} />
                 </div>
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold">
+              <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-border">
-            {clients.map((client) => (
-              <tr key={client.id} className="hover:bg-muted/30">
-                <td className="px-4 py-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                    {client.photo ? (
-                      <Image src={client.photo} alt={client.name} />
-                    ) : (
-                      <span className="text-sm font-semibold text-foreground">
-                        {getInitials(client.name)}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 font-medium">{client.name}</td>
-                <td className="px-4 py-3 text-sm text-muted-foreground">
-                  {client.phone}
-                </td>
-                <td className="px-4 py-3 font-mono text-sm">{client.code}</td>
-                <td className="px-4 py-3">
-                  <span
-                    className={`px-2 py-1 rounded text-xs whitespace-nowrap ${getStatusColor(
-                      client.loan_status,
-                    )}`}
-                  >
-                    {client.loan_status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    iconName="Eye"
-                    onClick={() => navigate(`/client-profile/${client.id}`)}
-                  >
-                    View
-                  </Button>
-                </td>
-              </tr>
-            ))}
+          <tbody>
+            {clients.map((client) => {
+              const displayName = client.name || client.client_name || "-";
+              const displayStatus = client.loan_status || client.loanStatus || "No Loans";
+
+              return (
+                <tr
+                  key={client.id}
+                  className="bg-background border border-border shadow-sm hover:shadow-md hover:bg-muted/20 transition-all"
+                >
+                  <td className="px-4 py-3 rounded-l-lg">
+                    <div className="w-11 h-11 rounded-full overflow-hidden bg-muted flex items-center justify-center ring-2 ring-background border border-border">
+                      <Image
+                        src={getClientAvatar(client)}
+                        alt={displayName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <div className="font-semibold text-foreground">{displayName}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {getInitials(displayName)} profile
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {client.phone || client.mobile || "-"}
+                  </td>
+
+                  <td className="px-4 py-3 font-mono text-sm">
+                    {client.code || client.client_code || client.id || "-"}
+                  </td>
+
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getStatusColor(
+                        displayStatus,
+                      )}`}
+                    >
+                      <Icon name={displayStatus === "ACTIVE" ? "CircleDot" : "Circle"} size={12} />
+                      {displayStatus}
+                    </span>
+                  </td>
+
+                  <td className="px-4 py-3 text-right rounded-r-lg">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      iconName="Eye"
+                      onClick={() => navigate(`/client-profile/${client.id}`)}
+                    >
+                      View
+                    </Button>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 
         {!isLoading && clients.length === 0 && (
-          <div className="p-10 text-center text-muted-foreground">
-            No clients found
-          </div>
+          <div className="p-10 text-center text-muted-foreground">No clients found</div>
         )}
 
-        {isError && (
-          <div className="p-10 text-center text-red-600">
-            Failed to load clients
-          </div>
-        )}
+        {isError && <div className="p-10 text-center text-red-600">Failed to load clients</div>}
       </div>
 
       {/* ================= PAGINATION ================= */}

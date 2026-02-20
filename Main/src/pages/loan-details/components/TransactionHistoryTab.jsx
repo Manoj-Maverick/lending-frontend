@@ -94,11 +94,11 @@ const TransactionHistoryTab = ({ loanId }) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h3 className="text-lg font-semibold text-foreground">
           Transaction History
         </h3>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">
           <Icon name="Download" size={16} className="mr-2" />
           Export All
         </Button>
@@ -133,7 +133,7 @@ const TransactionHistoryTab = ({ loanId }) => {
                     </p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 ml-13">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground">Date</p>
                     <p className="text-sm font-medium text-foreground">

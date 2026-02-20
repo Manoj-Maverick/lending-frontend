@@ -147,7 +147,7 @@ const PersonalInfoTab = ({ customerId: clientId, onEdit }) => {
           label="Monthly Income"
           value={
             monthlyIncome != null
-              ? `₹ ${Number(monthlyIncome).toLocaleString()}`
+              ? `Rs ${Number(monthlyIncome).toLocaleString()}`
               : "-"
           }
         />
@@ -254,7 +254,7 @@ const InfoItem = ({ icon, color, bg, label, value }) => (
 );
 
 const StatCard = ({ label, value, color }) => (
-  <div className={`bg-${color}/5 rounded-lg p-4 min-w-[160px]`}>
+  <div className={`bg-${color}/5 rounded-lg p-4 min-w-0`}>
     <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
     <p className={`text-2xl md:text-3xl font-semibold text-${color} mt-2`}>
       {value}
@@ -263,15 +263,17 @@ const StatCard = ({ label, value, color }) => (
 );
 
 const StatMoneyCard = ({ label, amount, color }) => (
-  <div className={`bg-${color}/5 rounded-lg p-4 min-w-[160px]`}>
+  <div className={`bg-${color}/5 rounded-lg p-4 min-w-0`}>
     <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
     <div
-      className={`mt-2 text-${color} text-2xl md:text-3xl font-semibold inline-flex items-baseline gap-1 whitespace-nowrap`}
+      className={`mt-2 text-${color} text-2xl md:text-3xl font-semibold inline-flex items-baseline gap-1 flex-wrap`}
     >
-      <span>₹</span>
+      <span>Rs</span>
       <span>{Number(amount).toLocaleString()}</span>
     </div>
   </div>
 );
 
 export default PersonalInfoTab;
+
+

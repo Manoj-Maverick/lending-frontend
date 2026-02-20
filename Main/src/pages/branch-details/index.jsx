@@ -226,12 +226,12 @@ const BranchDetails = () => {
   };
 
   return (
-    <>
+    <div className="space-y-5 md:space-y-6">
       {user?.role == "ADMIN" ? (
-        <div className="mb-4 md:mb-6">
+        <div>
           <button
             onClick={() => navigate("/branches-management")}
-            className="inline-flex items-center gap-2 text-sm md:text-base text-muted-foreground hover:text-foreground transition-colors duration-250"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-border bg-card text-sm md:text-base text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors duration-250"
           >
             <Icon name="ArrowLeft" size={20} />
             <span>Back to Branches Management</span>
@@ -274,7 +274,7 @@ const BranchDetails = () => {
         onClose={() => setIsAddStaffModalOpen(false)}
         onSubmit={(data) => console.log("New staff data:", data)}
       />
-    </>
+    </div>
   );
 };
 

@@ -5,7 +5,6 @@ import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 import AddPaymentModal from "pages/loan-details/components/QuickPaymentModal";
 
-/* ---------- Contacts Popup (Portal) ---------- */
 const ContactsPopup = ({ anchorRect, contacts, onClose }) => {
   const popupRef = useRef(null);
 
@@ -34,9 +33,7 @@ const ContactsPopup = ({ anchorRect, contacts, onClose }) => {
       style={style}
       className="bg-card border border-border rounded-lg shadow-lg p-2 w-64"
     >
-      <p className="text-xs font-semibold text-muted-foreground px-2 py-1">
-        Contacts
-      </p>
+      <p className="text-xs font-semibold text-muted-foreground px-2 py-1">Contacts</p>
       {contacts.map((c, i) => (
         <a
           key={i}
@@ -56,19 +53,17 @@ const ContactsPopup = ({ anchorRect, contacts, onClose }) => {
   );
 };
 
-/* ---------- Main Component ---------- */
 const BranchTodayPaymentsTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
-  const [contactsPopup, setContactsPopup] = useState(null); // { rect, contacts }
+  const [contactsPopup, setContactsPopup] = useState(null);
 
   const todayPayments = [
     {
       id: "LN-2024-001",
       clientName: "Sarah Johnson",
       clientCode: "CLI-1024",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_1456eb2f9-1763294356174.png",
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1456eb2f9-1763294356174.png",
       loanCode: "LN-2024-001",
       dueAmount: 2500,
       status: "pending",
@@ -82,8 +77,7 @@ const BranchTodayPaymentsTable = () => {
       id: "LN-2024-002",
       clientName: "Michael Chen",
       clientCode: "CLI-1025",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_1a75f5670-1763292878816.png",
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_1a75f5670-1763292878816.png",
       loanCode: "LN-2024-002",
       dueAmount: 1800,
       status: "paid",
@@ -96,8 +90,7 @@ const BranchTodayPaymentsTable = () => {
       id: "LN-2024-003",
       clientName: "Emily Rodriguez",
       clientCode: "CLI-1026",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_13817b13e-1763295856027.png",
+      avatar: "https://img.rocket.new/generatedImages/rocket_gen_img_13817b13e-1763295856027.png",
       loanCode: "LN-2024-003",
       dueAmount: 3200,
       status: "overdue",
@@ -109,9 +102,7 @@ const BranchTodayPaymentsTable = () => {
   ];
 
   const openCollectModal = (payment) => {
-    const primary =
-      payment.contacts.find((c) => c.primary) || payment.contacts[0];
-
+    const primary = payment.contacts.find((c) => c.primary) || payment.contacts[0];
     setSelectedLoan({
       id: payment.loanCode,
       clientName: payment.clientName,
@@ -124,14 +115,12 @@ const BranchTodayPaymentsTable = () => {
 
   const getStatusBadge = (status) => {
     const map = {
-      paid: "bg-emerald-100 text-emerald-700",
-      pending: "bg-orange-100 text-orange-700",
-      overdue: "bg-red-100 text-red-700",
+      paid: "bg-emerald-500/10 text-emerald-600",
+      pending: "bg-amber-500/10 text-amber-600",
+      overdue: "bg-red-500/10 text-red-600",
     };
     return (
-      <span
-        className={`px-2 py-1 rounded-md text-xs font-medium ${map[status]}`}
-      >
+      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${map[status]}`}>
         {status.toUpperCase()}
       </span>
     );
@@ -139,96 +128,52 @@ const BranchTodayPaymentsTable = () => {
 
   return (
     <>
-      <div className="bg-card border border-border rounded-xl overflow-hidden mb-5">
-        {/* Header */}
-        <div className="p-4 border-b border-border">
-          <h2 className="text-lg font-semibold text-foreground">
-            Today's Collections
-          </h2>
-          <p className="text-sm text-muted-foreground">
-            {todayPayments.length} payments scheduled today
-          </p>
+      <div className="bg-card border border-border rounded-2xl overflow-hidden mb-5">
+        <div className="p-4 md:p-5 border-b border-border">
+          <h2 className="text-lg font-semibold text-foreground">Today&apos;s Collections</h2>
+          <p className="text-sm text-muted-foreground">{todayPayments.length} payments scheduled today</p>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="hidden md:block overflow-x-auto px-2 pb-2">
+          <table className="w-full min-w-[760px] border-separate border-spacing-y-2">
             <thead className="bg-muted/30">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Client
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Phone
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground">
-                  Loan
-                </th>
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground">
-                  Due
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-muted-foreground">
-                  Status
-                </th>
-                <th className="px-4 py-3 text-center text-xs font-medium text-muted-foreground">
-                  Actions
-                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Client</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Phone</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Loan</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Due</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Status</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
-
             <tbody>
-              {todayPayments.map((p, index) => {
-                const primary =
-                  p.contacts.find((c) => c.primary) || p.contacts[0];
-
+              {todayPayments.map((p) => {
+                const primary = p.contacts.find((c) => c.primary) || p.contacts[0];
                 return (
                   <tr
                     key={p.id}
-                    className={`border-b border-border hover:bg-muted/20 transition ${
-                      index === todayPayments.length - 1 ? "border-b-0" : ""
-                    }`}
+                    className="bg-background border border-border shadow-sm hover:bg-muted/20 hover:shadow-md transition-all"
                   >
-                    {/* Client */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 rounded-l-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full overflow-hidden">
-                          <Image
-                            src={p.avatar}
-                            alt={p.clientName}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                        <Image src={p.avatar} alt={p.clientName} className="w-9 h-9 rounded-full object-cover border border-border" />
                         <div>
-                          <p className="text-sm font-medium text-foreground">
-                            {p.clientName}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {p.clientCode}
-                          </p>
+                          <p className="text-sm font-medium text-foreground">{p.clientName}</p>
+                          <p className="text-xs text-muted-foreground">{p.clientCode}</p>
                         </div>
                       </div>
                     </td>
-
-                    {/* Phone */}
                     <td className="px-4 py-3 text-sm">
                       <div className="flex items-center gap-2">
-                        <a
-                          href={`tel:${primary?.phone}`}
-                          className="inline-flex items-center gap-2 text-primary hover:underline"
-                        >
+                        <a href={`tel:${primary?.phone}`} className="inline-flex items-center gap-2 text-primary hover:underline">
                           <Icon name="Phone" size={14} />
                           {primary?.phone}
                         </a>
-
                         {p.contacts.length > 1 && (
                           <button
                             onClick={(e) => {
-                              const rect =
-                                e.currentTarget.getBoundingClientRect();
-                              setContactsPopup({
-                                rect,
-                                contacts: p.contacts,
-                              });
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setContactsPopup({ rect, contacts: p.contacts });
                             }}
                             className="text-muted-foreground hover:text-foreground"
                             title="View all contacts"
@@ -238,31 +183,14 @@ const BranchTodayPaymentsTable = () => {
                         )}
                       </div>
                     </td>
-
-                    {/* Loan */}
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {p.loanCode}
-                    </td>
-
-                    {/* Due */}
-                    <td className="px-4 py-3 text-right text-sm font-semibold">
-                      ₹{p.dueAmount.toLocaleString("en-IN")}
-                    </td>
-
-                    {/* Status */}
-                    <td className="px-4 py-3 text-center">
-                      {getStatusBadge(p.status)}
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{p.loanCode}</td>
+                    <td className="px-4 py-3 text-right text-sm font-semibold">Rs {p.dueAmount.toLocaleString("en-IN")}</td>
+                    <td className="px-4 py-3 text-center">{getStatusBadge(p.status)}</td>
+                    <td className="px-4 py-3 rounded-r-lg">
                       <div className="flex items-center justify-center gap-2">
-                        {/* Quick Call */}
                         <a href={`tel:${primary?.phone}`}>
                           <Button variant="ghost" size="sm" iconName="Phone" />
                         </a>
-
-                        {/* Collect */}
                         {p.status !== "paid" && (
                           <Button
                             size="sm"
@@ -273,9 +201,7 @@ const BranchTodayPaymentsTable = () => {
                             Collect
                           </Button>
                         )}
-
-                        {/* View */}
-                        <Button variant="ghost" size="sm" iconName="Eye" />
+                        <Button variant="outline" size="sm" iconName="Eye" />
                       </div>
                     </td>
                   </tr>
@@ -284,9 +210,55 @@ const BranchTodayPaymentsTable = () => {
             </tbody>
           </table>
         </div>
+
+        <div className="md:hidden p-3 space-y-3">
+          {todayPayments.map((p) => {
+            const primary = p.contacts.find((c) => c.primary) || p.contacts[0];
+            return (
+              <div key={p.id} className="bg-background rounded-xl border border-border p-3 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <Image src={p.avatar} alt={p.clientName} className="w-10 h-10 rounded-full object-cover border border-border" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground truncate">{p.clientName}</p>
+                    <p className="text-xs text-muted-foreground">{p.clientCode}</p>
+                  </div>
+                  {getStatusBadge(p.status)}
+                </div>
+                <div className="mt-2 text-sm text-muted-foreground">{p.loanCode}</div>
+                <div className="mt-1 text-sm font-semibold text-foreground">Rs {p.dueAmount.toLocaleString("en-IN")}</div>
+                <div className="mt-2 flex items-center gap-2 text-sm">
+                  <a href={`tel:${primary?.phone}`} className="inline-flex items-center gap-1 text-primary">
+                    <Icon name="Phone" size={14} />
+                    {primary?.phone}
+                  </a>
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2">
+                  <a href={`tel:${primary?.phone}`}>
+                    <Button variant="outline" size="sm" iconName="Phone" fullWidth />
+                  </a>
+                  {p.status !== "paid" ? (
+                    <Button
+                      size="sm"
+                      className="bg-gradient-to-r from-primary to-accent text-white"
+                      iconName="Wallet"
+                      fullWidth
+                      onClick={() => openCollectModal(p)}
+                    >
+                      Collect
+                    </Button>
+                  ) : (
+                    <Button size="sm" variant="outline" disabled fullWidth>
+                      Paid
+                    </Button>
+                  )}
+                  <Button variant="outline" size="sm" iconName="Eye" fullWidth />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Contacts Popup (Portal) */}
       {contactsPopup && (
         <ContactsPopup
           anchorRect={contactsPopup.rect}
@@ -295,7 +267,6 @@ const BranchTodayPaymentsTable = () => {
         />
       )}
 
-      {/* Add Payment Modal */}
       <AddPaymentModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

@@ -56,7 +56,7 @@ const AppLayout = () => {
     }
   }, [branches]);
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Sidebar
         user={user}
         isCollapsed={isSidebarCollapsed}
@@ -70,7 +70,7 @@ const AppLayout = () => {
       <div
         className={`transition-all duration-250 ${
           isSidebarCollapsed ? "lg:ml-20" : "lg:ml-[280px]"
-        }`}
+        } min-w-0`}
       >
         <Header
           user={user}
@@ -82,7 +82,7 @@ const AppLayout = () => {
           isMobileOpen={isMobileSidebarOpen}
           setIsMobileOpen={setIsMobileSidebarOpen}
         />
-        <main className="mt-5 px-4 md:px-6 lg:px-8">
+        <main className="mt-5 px-4 md:px-6 lg:px-8 pb-6 min-w-0 overflow-x-hidden">
           <Outlet />
         </main>
       </div>

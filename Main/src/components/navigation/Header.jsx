@@ -15,10 +15,10 @@ export default function Header({
   setIsMobileOpen,
 }) {
   return (
-    <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm">
+    <header className="sticky top-0 z-40 bg-card border-b border-border shadow-sm overflow-x-clip">
       <div className="flex items-center h-16 md:h-20 px-4 md:px-6 lg:px-8">
         {/* LEFT SECTION */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           <button
             className="mobile-menu-button lg:hidden"
             onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -26,11 +26,13 @@ export default function Header({
           >
             <Icon name={isMobileOpen ? "X" : "Menu"} size={20} />
           </button>
-          <Breadcrumb />
+          <div className="hidden sm:block min-w-0">
+            <Breadcrumb />
+          </div>
         </div>
 
         {/* RIGHT SECTION */}
-        <div className="ml-auto flex items-center gap-2 md:gap-4">
+        <div className="ml-auto flex items-center gap-2 md:gap-4 min-w-0">
           <div className="hidden md:block ">
             {user?.role == "ADMIN" ? (
               <BranchSelector

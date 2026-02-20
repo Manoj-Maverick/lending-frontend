@@ -8,31 +8,30 @@ import PaymentScheduleTab from "./components/PaymentScheduleTab";
 import TransactionHistoryTab from "./components/TransactionHistoryTab";
 import DocumentsTab from "./components/DocumentsTab";
 import { useGetLoanDetails } from "hooks/loans.details.page/useGetLoanProfileInfo";
+
 function capitalizeFirst(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+
 const LoanDetails = () => {
   const { loanId } = useParams();
   const navigate = useNavigate();
-
   const [activeTab, setActiveTab] = useState("info");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const { data, isLoading, isError, error } = useGetLoanDetails(loanId);
 
-  // ⏳ Loading
   if (isLoading) {
     return (
       <div className="p-4 text-muted-foreground">Loading loan info...</div>
     );
   }
 
-  // ❌ Error
   if (isError) {
     return (
       <div className="p-4 text-destructive">
-        Failed to load loan info: {error.message}
+        Failed to load loan info: {error?.message}
       </div>
     );
   }
@@ -41,22 +40,19 @@ const LoanDetails = () => {
     return <div className="p-4 text-muted-foreground">No loan found.</div>;
   }
 
-  // 🧱 Map backend → UI shape used by this page
   const loanData = {
     id: data.loan_code,
     status: data.status,
     branch: data.branch_name,
-
     clientName: data.client_name,
     clientCode: data.customer_code,
-
     loanAmount: Number(data.principal_amount),
     disbursedAmount: Number(data.principal_amount),
     remainingBalance: Number(data.remaining_balance),
     interestRate: Number(data.interest_rate),
     tenure: `${data.tenure_value} ${data.tenure_unit}`,
     monthlyEMI: Number(data.installment_amount),
-    repayment_type: data.repayment_type,
+    repaymentType: data.repayment_type,
     purpose: data.purpose || "-",
     disbursedDate: data.start_date,
     maturityDate: data.last_due_date,
@@ -71,7 +67,6 @@ const LoanDetails = () => {
 
   return (
     <>
-      {/* Back */}
       <div className="mb-4 md:mb-6">
         <button
           onClick={() => navigate("/loans-management")}
@@ -82,12 +77,11 @@ const LoanDetails = () => {
         </button>
       </div>
 
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Loan summary */}
+      <div className="max-w-7xl mx-auto space-y-6 min-w-0">
         <div className="bg-card border border-border rounded-lg p-4 md:p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <div className="flex items-center gap-3">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
                 <Icon name="Wallet" size={28} className="text-primary" />
                 <h1 className="text-2xl md:text-3xl font-bold text-foreground">
                   Loan {loanData.id}
@@ -102,7 +96,7 @@ const LoanDetails = () => {
                   {loanData.status}
                 </span>
               </div>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-2 break-words">
                 Client: {loanData.clientName} ({loanData.clientCode})
               </p>
             </div>
@@ -119,19 +113,17 @@ const LoanDetails = () => {
             </div>
           </div>
 
-          {/* Quick stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
             <Stat label="Loan Amount" value={loanData.loanAmount} />
             <Stat label="Remaining Balance" value={loanData.remainingBalance} />
             <Stat
-              label={`${capitalizeFirst(loanData.repayment_type)} Installment`}
+              label={`${capitalizeFirst(loanData.repaymentType)} Installment`}
               value={loanData.monthlyEMI}
             />
             <Stat label="Interest Rate" value={`${loanData.interestRate}%`} />
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="bg-card border border-border rounded-lg overflow-hidden">
           <div className="border-b border-border">
             <div className="flex overflow-x-auto">
@@ -152,7 +144,7 @@ const LoanDetails = () => {
             </div>
           </div>
 
-          <div className="p-4 md:p-6">
+          <div className="p-4 md:p-6 min-w-0">
             {activeTab === "info" && <LoanInfoTab data={data} />}
             {activeTab === "schedule" && <PaymentScheduleTab loanId={loanId} />}
             {activeTab === "transactions" && (
@@ -163,7 +155,6 @@ const LoanDetails = () => {
         </div>
       </div>
 
-      {/* Add Payment Modal */}
       <AddPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
@@ -176,8 +167,8 @@ const LoanDetails = () => {
 const Stat = ({ label, value }) => (
   <div className="bg-muted/50 rounded-lg p-4">
     <p className="text-xs text-muted-foreground mb-1">{label}</p>
-    <p className="text-xl font-semibold text-foreground">
-      {typeof value === "number" ? `₹${value.toLocaleString("en-IN")}` : value}
+    <p className="text-xl font-semibold text-foreground break-words">
+      {typeof value === "number" ? `Rs ${value.toLocaleString("en-IN")}` : value}
     </p>
   </div>
 );

@@ -1,17 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-
 import { useFetchBranchCustomers as useBranchClients } from "../../../hooks/branch.details.page.hooks/useGetBranchCustomers";
 
-/* =========================
-   OPTIONS
-========================= */
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "ACTIVE", label: "Active Loans" },
@@ -30,9 +25,36 @@ const pageSizeOptions = [
   { value: "25", label: "25 per page" },
 ];
 
-/* =========================
-   COMPONENT
-========================= */
+const hashString = (value = "") => {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = value.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return Math.abs(hash);
+};
+
+const getClientAvatar = (client) => {
+  if (client?.photo || client?.avatar) return client?.photo || client?.avatar;
+  const base = `${client?.id || ""}-${client?.name || ""}`;
+  const seed = (hashString(base) % 70) + 1;
+  return `https://i.pravatar.cc/150?img=${seed}`;
+};
+
+const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ");
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[1][0]).toUpperCase();
+};
+
+const getLoanStatusColor = (status) => {
+  const colors = {
+    ACTIVE: "bg-blue-500/10 text-blue-600",
+    "No Loans": "bg-gray-500/10 text-gray-600",
+  };
+  return colors[status] || colors["No Loans"];
+};
+
 const BranchClients = () => {
   const navigate = useNavigate();
   const { branchId } = useParams();
@@ -70,23 +92,6 @@ const BranchClients = () => {
     return sortConfig.direction === "asc" ? "ChevronUp" : "ChevronDown";
   };
 
-  // ✅ SAME color schema as v1
-  const getStatusColor = (status) => {
-    const colors = {
-      Active: "bg-blue-500/10 text-blue-600",
-      "No Loan": "bg-gray-500/10 text-gray-600",
-    };
-    return colors[status] || colors["No Loan"];
-  };
-
-  const getInitials = (name) => {
-    if (!name) return "?";
-    const parts = name.trim().split(" ");
-    if (parts.length === 1) return parts[0][0].toUpperCase();
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  };
-
-  // 🔌 Call backend via React Query hook
   const { data, isLoading, isFetching, isError } = useBranchClients({
     branchId,
     search: filters.search,
@@ -100,24 +105,20 @@ const BranchClients = () => {
   const clients = data?.data || [];
   const totalItems = data?.total || 0;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
-
   const startIndex = (currentPage - 1) * itemsPerPage;
   const startItem = totalItems === 0 ? 0 : startIndex + 1;
   const endItem = Math.min(startIndex + itemsPerPage, totalItems);
 
   return (
-    <div className="space-y-0 mb-4">
-      {/* FILTERS */}
-      <div className="bg-card border border-border rounded-t-lg rounded-b-none p-4">
+    <div className="space-y-0 mb-5">
+      <div className="bg-card border border-border rounded-t-xl rounded-b-none p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Icon name="Filter" size={18} className="text-muted-foreground" />
             <h2 className="font-semibold text-foreground">Filter Clients</h2>
           </div>
           <div className="text-sm text-muted-foreground">
-            Showing{" "}
-            <span className="font-semibold text-accent">{clients.length}</span>{" "}
-            of{" "}
+            Showing <span className="font-semibold text-accent">{clients.length}</span> of{" "}
             <span className="font-semibold text-foreground">{totalItems}</span>
           </div>
         </div>
@@ -129,13 +130,11 @@ const BranchClients = () => {
             value={filters.search}
             onChange={(e) => onFilterChange("search", e.target.value)}
           />
-
           <Select
             options={statusOptions}
             value={filters.status}
             onChange={(v) => onFilterChange("status", v)}
           />
-
           <Select
             options={customerStatusOptions}
             value={filters.blockStatus}
@@ -143,35 +142,30 @@ const BranchClients = () => {
           />
         </div>
 
-        {isFetching && (
-          <div className="mt-2 text-xs text-muted-foreground">
-            Updating results...
-          </div>
-        )}
+        {isFetching && <div className="mt-2 text-xs text-muted-foreground">Updating results...</div>}
       </div>
 
-      {/* TABLE */}
-      <div className="bg-card border-x border-border border-t-0 border-b-0 rounded-none">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <div className="bg-card border-x border-border border-t-0 border-b-0">
+        <div className="hidden md:block overflow-x-auto px-2 pb-2">
+          <table className="w-full min-w-[840px] border-separate border-spacing-y-2">
             <thead className="bg-muted/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Photo
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold cursor-pointer"
+                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort("name")}
                 >
                   <div className="flex items-center gap-2">
                     Name <Icon name={getSortIcon("name")} size={14} />
                   </div>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Phone
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold cursor-pointer"
+                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort("code")}
                 >
                   <div className="flex items-center gap-2">
@@ -179,47 +173,42 @@ const BranchClients = () => {
                   </div>
                 </th>
                 <th
-                  className="px-4 py-3 text-left text-xs font-semibold cursor-pointer"
+                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer"
                   onClick={() => handleSort("loanStatus")}
                 >
                   <div className="flex items-center gap-2">
-                    Loan Status{" "}
-                    <Icon name={getSortIcon("loanStatus")} size={14} />
+                    Loan Status <Icon name={getSortIcon("loanStatus")} size={14} />
                   </div>
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold">
+                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Customer Status
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border">
+            <tbody>
               {clients.map((client) => (
-                <tr key={client.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3">
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center">
-                      {client.photo ? (
-                        <Image src={client.photo} alt={client.name} />
-                      ) : (
-                        <span className="text-sm font-semibold text-foreground">
-                          {getInitials(client.name)}
-                        </span>
-                      )}
+                <tr
+                  key={client.id}
+                  className="bg-background border border-border shadow-sm hover:shadow-md hover:bg-muted/20 transition-all"
+                >
+                  <td className="px-4 py-3 rounded-l-lg">
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted ring-2 ring-background border border-border">
+                      <Image src={getClientAvatar(client)} alt={client.name} className="w-full h-full object-cover" />
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-medium">{client.name}</td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">
-                    {client.phone}
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-foreground">{client.name}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{getInitials(client.name)} profile</p>
                   </td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">{client.phone}</td>
                   <td className="px-4 py-3 font-mono text-sm">{client.code}</td>
                   <td className="px-4 py-3">
                     <span
-                      className={`px-2 py-1 rounded text-xs whitespace-nowrap inline-block ${getStatusColor(
-                        client.loanStatus === "ACTIVE"
-                          ? "Active"
-                          : client.loanStatus,
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs ${getLoanStatusColor(
+                        client.loanStatus,
                       )}`}
                     >
                       {client.loanStatus}
@@ -227,15 +216,21 @@ const BranchClients = () => {
                   </td>
                   <td className="px-4 py-3">
                     {client.isBlocked ? (
-                      <span className="text-red-600 text-sm">Blocked</span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-red-600 bg-red-500/10 text-xs font-medium">
+                        <Icon name="Ban" size={12} />
+                        Blocked
+                      </span>
                     ) : (
-                      <span className="text-emerald-600 text-sm">Active</span>
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-emerald-600 bg-emerald-500/10 text-xs font-medium">
+                        <Icon name="CheckCircle2" size={12} />
+                        Active
+                      </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-4 py-3 text-right rounded-r-lg">
                     <div className="flex justify-end gap-2">
                       <Button
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
                         iconName="Eye"
                         onClick={() => navigate(`/client-profile/${client.id}`)}
@@ -255,23 +250,72 @@ const BranchClients = () => {
               ))}
             </tbody>
           </table>
-
-          {!isLoading && clients.length === 0 && (
-            <div className="p-10 text-center text-muted-foreground">
-              No clients found
-            </div>
-          )}
-
-          {isError && (
-            <div className="p-10 text-center text-red-600">
-              Failed to load clients
-            </div>
-          )}
         </div>
+
+        <div className="md:hidden p-3 space-y-3">
+          {clients.map((client) => (
+            <div key={client.id} className="bg-background rounded-xl border border-border p-3 shadow-sm">
+              <div className="flex items-start gap-3">
+                <Image
+                  src={getClientAvatar(client)}
+                  alt={client.name}
+                  className="w-11 h-11 rounded-full object-cover border border-border"
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-foreground truncate">{client.name}</p>
+                  <p className="text-xs text-muted-foreground">{client.code}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    <span
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs ${getLoanStatusColor(
+                        client.loanStatus,
+                      )}`}
+                    >
+                      {client.loanStatus}
+                    </span>
+                    {client.isBlocked ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-red-600 bg-red-500/10 text-xs">
+                        <Icon name="Ban" size={11} />
+                        Blocked
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-emerald-600 bg-emerald-500/10 text-xs">
+                        <Icon name="CheckCircle2" size={11} />
+                        Active
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 text-sm text-muted-foreground">{client.phone}</div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  iconName="Eye"
+                  onClick={() => navigate(`/client-profile/${client.id}`)}
+                >
+                  View
+                </Button>
+                <Button
+                  variant={client.isBlocked ? "default" : "destructive"}
+                  size="sm"
+                  iconName={client.isBlocked ? "CheckCircle2" : "Ban"}
+                >
+                  {client.isBlocked ? "Unblock" : "Block"}
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {!isLoading && clients.length === 0 && (
+          <div className="p-10 text-center text-muted-foreground">No clients found</div>
+        )}
+
+        {isError && <div className="p-10 text-center text-red-600">Failed to load clients</div>}
       </div>
 
-      {/* PAGINATION */}
-      <div className="bg-card border border-border rounded-b-lg p-4 flex flex-col md:flex-row items-center gap-4 mb-5">
+      <div className="bg-card border border-border rounded-b-xl p-4 flex flex-col md:flex-row items-center gap-4 mb-5">
         <div className="text-sm text-muted-foreground">
           Showing <span className="font-semibold">{startItem}</span> to{" "}
           <span className="font-semibold">{endItem}</span> of{" "}
@@ -283,7 +327,7 @@ const BranchClients = () => {
             options={pageSizeOptions}
             value={itemsPerPage.toString()}
             onChange={(v) => {
-              setItemsPerPage(parseInt(v));
+              setItemsPerPage(parseInt(v, 10));
               setCurrentPage(1);
             }}
           />

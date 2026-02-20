@@ -4,11 +4,36 @@ body {
   font-family: Inter;
 }
 
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 * {
   box-sizing: border-box;
   line-height: normal;
   font-family: inherit;
   margin: unset;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 1024px) {
+  .overflow-x-auto > table {
+    min-width: 720px;
+  }
 }
 
 @keyframes toast-enter {
