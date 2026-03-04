@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 export const useCreateLoan = () => {
@@ -7,15 +7,11 @@ export const useCreateLoan = () => {
 
   return useMutation({
     mutationFn: async (formData) => {
-      const res = await axios.post(
-        "http://localhost:3001/api/loans/create",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      const res = await api.post("/api/loans/create", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
       return res.data;
     },
 

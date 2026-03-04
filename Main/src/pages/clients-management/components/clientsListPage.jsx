@@ -7,6 +7,7 @@ import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
+import { API_BASE_URL } from "api/client";
 
 /* =========================
    OPTIONS
@@ -46,8 +47,14 @@ const hashString = (value = "") => {
   return Math.abs(hash);
 };
 
+const toApiAssetUrl = (path) => {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
+};
+
 const getClientAvatar = (client) => {
-  if (client?.photo_url) return "http://localhost:3001" + client?.photo_url;
+  if (client?.photo_url) return toApiAssetUrl(client.photo_url);
   const base = `${client?.id || ""}-${client?.name || client?.client_name || ""}`;
   const seed = (hashString(base) % 70) + 1;
   return `https://i.pravatar.cc/150?img=${seed}`;

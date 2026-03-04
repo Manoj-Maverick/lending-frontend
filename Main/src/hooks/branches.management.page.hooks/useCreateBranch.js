@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 export const useCreateBranch = () => {
@@ -7,10 +7,7 @@ export const useCreateBranch = () => {
 
   return useMutation({
     mutationFn: async (data) => {
-      const res = await axios.post(
-        "http://localhost:3001/api/create-new-branch",
-        data,
-      );
+      const res = await api.post("/api/create-new-branch", data);
       return res.data;
     },
 

@@ -1,6 +1,6 @@
 // hooks/branches/useUpdateBranch.js
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 
 export function useUpdateBranch() {
   const queryClient = useQueryClient();
@@ -8,9 +8,7 @@ export function useUpdateBranch() {
   return useMutation({
     mutationFn: async (payload) => {
       const { id, ...data } = payload;
-      await axios.put(`http://localhost:3001/api/update-branch/${id}`, data, {
-        withCredentials: true,
-      });
+      await api.put(`/api/update-branch/${id}`, data);
     },
     onSuccess: (_, variables) => {
       // Refresh this branch everywhere

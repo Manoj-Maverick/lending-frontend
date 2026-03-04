@@ -1,17 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 async function fetchBranches(branchId) {
-  const url =
-    branchId == null
-      ? "http://localhost:3001/api/branches"
-      : `http://localhost:3001/api/branches?branch=${branchId}`;
+  const res = await api.get("/api/branches", {
+    params: branchId == null ? undefined : { branch: branchId },
+  });
 
-  const res = await fetch(url);
-  if (!res.ok) {
+  if (res.status !== 200) {
     throw new Error("Failed to load branches");
   }
-  return res.json();
+
+  return res.data;
 }
 
 export function useBranches(user, authLoading) {

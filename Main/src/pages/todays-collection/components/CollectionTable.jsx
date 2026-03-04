@@ -1,6 +1,7 @@
 import React from "react";
 import Button from "../../../components/ui/Button";
 import Icon from "../../../components/AppIcon";
+import { API_BASE_URL } from "api/client";
 
 const statusBadgeClass = (status) => {
   const map = {
@@ -9,6 +10,12 @@ const statusBadgeClass = (status) => {
     Overdue: "bg-error/10 text-error",
   };
   return map[status] || "bg-muted/10 text-muted-foreground";
+};
+
+const toApiAssetUrl = (path) => {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
 };
 
 const CollectionTable = ({
@@ -60,7 +67,7 @@ const CollectionTable = ({
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <img
-                      src={row.avatar}
+                      src={toApiAssetUrl(row.profile_pic)}
                       alt={row.clientName}
                       className="w-10 h-10 rounded-full object-cover border shrink-0"
                     />
@@ -94,7 +101,7 @@ const CollectionTable = ({
                 </td>
 
                 <td className="px-4 py-3 text-sm text-muted-foreground">
-                  {row.dueDate}
+                  {row.due_date.split("T")[0]}
                 </td>
 
                 <td className="px-4 py-3">

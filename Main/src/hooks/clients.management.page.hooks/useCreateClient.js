@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 /**
@@ -9,16 +9,11 @@ import { queryKeys } from "queries/queryKeys";
  */
 export async function createClient(formData) {
   try {
-    const res = await axios.post(
-      "http://localhost:3001/api/clients/create",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        withCredentials: true, // if you use cookies/auth
+    const res = await api.post("/api/clients/create", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
-    );
+    });
 
     return res.data;
   } catch (error) {

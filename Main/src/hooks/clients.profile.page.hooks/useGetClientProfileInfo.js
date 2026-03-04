@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 /**
@@ -14,18 +15,16 @@ async function fetchCustomerProfile(customerId) {
     throw new Error("Customer ID is required");
   }
 
-  const res = await fetch(
-    `http://localhost:3001/api/client-profile/${customerId}/profile`,
-  );
-
-  if (!res.ok) {
-    if (res.status === 404) {
+  try {
+    const { data } = await api.get(`/api/client-profile/${customerId}/profile`);
+    return data;
+  } catch (error) {
+    if (error?.response?.status === 404) {
       throw new Error("Customer not found");
     }
+
     throw new Error("Failed to load customer profile");
   }
-
-  return res.json();
 }
 
 /**

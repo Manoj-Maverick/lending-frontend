@@ -53,7 +53,7 @@ const AddClientModal = ({ isOpen, onClose }) => {
     idProof: null,
     addressProof: null,
     incomeProof: null,
-    branch: "BR001",
+    branch: null,
     customerCode: "",
   });
   const { branches } = useUIContext();
@@ -208,7 +208,6 @@ const AddClientModal = ({ isOpen, onClose }) => {
       if (formData.addressProof)
         fd.append("addressProof", formData.addressProof);
       if (formData.incomeProof) fd.append("incomeProof", formData.incomeProof);
-
       createClient(fd, {
         onSuccess: () => {
           showToast("Client created successfully", "success");

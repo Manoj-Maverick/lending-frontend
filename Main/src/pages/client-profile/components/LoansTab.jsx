@@ -42,7 +42,7 @@ const LoansTab = ({ customerId }) => {
     totalPayable: Number(l.total_payable),
     outstanding: Number(l.outstanding),
     status: l.status, // 'ACTIVE', 'CLOSED', 'FORECLOSED'
-    startDate: l.start_date,
+    startDate: l.start_date.split("T")[0], // format as YYYY-MM-DD
   }));
 
   const getStatusColor = (status) => {

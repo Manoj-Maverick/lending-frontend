@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 /**
@@ -12,10 +12,7 @@ export async function fetchLoansManagementStats({ branch }) {
   };
 
   try {
-    const res = await axios.get(
-      "http://localhost:3001/api/loans-management/stats",
-      { params },
-    );
+    const res = await api.get("/api/loans-management/stats", { params });
 
     if (!res.data || res.data.success !== true) {
       throw new Error(res.data?.message || "Invalid API response");

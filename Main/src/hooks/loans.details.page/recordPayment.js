@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 export const useAddPayment = () => {
@@ -7,10 +7,7 @@ export const useAddPayment = () => {
 
   return useMutation({
     mutationFn: async (payload) => {
-      const { data } = await axios.post(
-        "http://localhost:3001/api/loans/record-payment",
-        payload,
-      );
+      const { data } = await api.post("/api/loans/record-payment", payload);
       return data;
     },
 

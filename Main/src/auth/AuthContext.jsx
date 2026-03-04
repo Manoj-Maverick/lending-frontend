@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import api from "api/client";
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
@@ -9,9 +9,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const fetchMe = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/auth/me", {
-          withCredentials: true,
-        });
+        const res = await api.get("/api/auth/me");
         setUser(res.data);
         console.log("Fetched user:", res.data);
       } catch (err) {
@@ -29,16 +27,10 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     // 1. Login and receive cookie
-    await axios.post(
-      "http://localhost:3001/api/auth/login",
-      { username, password },
-      { withCredentials: true },
-    );
+    await api.post("/api/auth/login", { username, password });
 
     // 2. Immediately ask backend "Who am I?"
-    const res = await axios.get("http://localhost:3001/api/auth/me", {
-      withCredentials: true,
-    });
+    const res = await api.get("/api/auth/me");
 
     // 3. Update user in AuthContext
     setUser(res.data);
@@ -46,11 +38,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await axios.post(
-        "http://localhost:3001/api/auth/logout",
-        {},
-        { withCredentials: true },
-      );
+      await api.post("/api/auth/logout", {});
     } catch {
       // even if backend fails, proceed
     } finally {

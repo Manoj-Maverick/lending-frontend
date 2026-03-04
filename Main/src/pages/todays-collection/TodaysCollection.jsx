@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
 import { useUIContext } from "context/UIContext";
+
 import CollectionDateScope from "./components/CollectionDateScope";
 import CollectionFilters from "./components/CollectionFilters";
 import CollectionStats from "./components/CollectionStats";
@@ -10,15 +11,23 @@ import CollectionTabs from "./components/CollectionTabs";
 import CollectionTable from "./components/CollectionTable";
 import ContactPopover from "./components/ContactPopover";
 
-const todayStr = () => new Date().toISOString().split("T")[0];
+import { useCollections } from "hooks/todayCollections.page.hooks/useGetTodayCollections";
+
+const getIndianDate = (date = new Date()) =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+
+const todayStr = () => getIndianDate();
 
 const addDays = (date, days) => {
-  const dateValue = new Date(date);
-  dateValue.setDate(dateValue.getDate() + days);
-  return dateValue.toISOString().split("T")[0];
+  const base = new Date(date);
+  base.setDate(base.getDate() + days);
+  return getIndianDate(base);
 };
-
-const isBetween = (date, start, end) => date >= start && date <= end;
 
 const TodaysCollection = () => {
   const navigate = useNavigate();
@@ -29,7 +38,7 @@ const TodaysCollection = () => {
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [branch, setBranch] = useState("all");
-  const [isCollecting, setIsCollecting] = useState(null);
+
   const [openContact, setOpenContact] = useState(null);
   const [openContactsData, setOpenContactsData] = useState(null);
 
@@ -41,54 +50,11 @@ const TodaysCollection = () => {
     })) || []),
   ];
 
-  const [rows, setRows] = useState([
-    {
-      id: "SCH-001",
-      clientName: "Vikram Singh",
-      clientCode: "LN-005",
-      avatar: "https://i.pravatar.cc/150?img=12",
-      phone: "91234 56783",
-      amount: 14340,
-      dueDate: "2026-02-20",
-      status: "Overdue",
-      branch: "1",
-      contacts: [
-        { label: "Customer", phone: "+919123456783" },
-        { label: "Guarantor", phone: "+919888777666" },
-        { label: "Office", phone: "+919777666555" },
-      ],
-    },
-    {
-      id: "SCH-002",
-      clientName: "Anita Desai",
-      clientCode: "LN-006",
-      avatar: "https://i.pravatar.cc/150?img=32",
-      phone: "91234 56784",
-      amount: 18080,
-      dueDate: "2026-02-20",
-      status: "Pending",
-      branch: "2",
-      contacts: [
-        { label: "Customer", phone: "+919123456784" },
-        { label: "Guarantor", phone: "+919888777111" },
-      ],
-    },
-    {
-      id: "SCH-003",
-      clientName: "Priya Sharma",
-      clientCode: "LN-002",
-      avatar: "https://i.pravatar.cc/150?img=47",
-      phone: "91234 56780",
-      amount: 8900,
-      dueDate: "2026-02-19",
-      status: "Paid",
-      branch: "1",
-      contacts: [
-        { label: "Customer", phone: "+919123456780" },
-        { label: "Office", phone: "+919700000000" },
-      ],
-    },
-  ]);
+  /*
+  --------------------------------------------------
+  Date range calculation
+  --------------------------------------------------
+  */
 
   const { startDate, endDate } = useMemo(() => {
     if (range === "today") {
@@ -107,16 +73,38 @@ const TodaysCollection = () => {
     return { startDate: customDate, endDate: customDate };
   }, [range, customDate]);
 
-  const filteredRows = useMemo(() => {
-    return rows.filter((row) => {
-      const inRange = isBetween(row.dueDate, startDate, endDate);
-      const query = search.toLowerCase().trim();
-      const matchesSearch =
-        row.clientName.toLowerCase().includes(query) ||
-        row.id.toLowerCase().includes(query) ||
-        row.phone.replace(/\s/g, "").includes(query.replace(/\s/g, ""));
+  /*
+  --------------------------------------------------
+  Fetch collections from backend
+  --------------------------------------------------
+  */
 
-      const matchesBranch = branch === "all" || row.branch === branch;
+  const { data: rows = [], isLoading } = useCollections({
+    start_date: startDate,
+    end_date: endDate,
+    branch_id: branch === "all" ? null : branch,
+  });
+
+  console.log("Fetched collections:", rows, "with params:", {
+    start_date: startDate,
+    end_date: endDate,
+    branch_id: branch === "all" ? null : branch,
+  });
+
+  /*
+  --------------------------------------------------
+  Local filtering (search + tabs)
+  --------------------------------------------------
+  */
+
+  const filteredRows = useMemo(() => {
+    const query = search.toLowerCase().trim();
+
+    return rows.filter((row) => {
+      const matchesSearch =
+        row.clientName?.toLowerCase().includes(query) ||
+        row.clientCode?.toLowerCase().includes(query) ||
+        row.phone?.replace(/\s/g, "").includes(query.replace(/\s/g, ""));
 
       const matchesTab =
         activeTab === "all" ||
@@ -124,21 +112,33 @@ const TodaysCollection = () => {
         (activeTab === "pending" && row.status === "Pending") ||
         (activeTab === "overdue" && row.status === "Overdue");
 
-      return inRange && matchesSearch && matchesBranch && matchesTab;
+      return matchesSearch && matchesTab;
     });
-  }, [rows, startDate, endDate, search, branch, activeTab]);
+  }, [rows, search, activeTab]);
+
+  /*
+  --------------------------------------------------
+  Stats calculation
+  --------------------------------------------------
+  */
 
   const stats = useMemo(() => {
-    const target = filteredRows.reduce((sum, row) => sum + row.amount, 0);
+    const target = filteredRows.reduce(
+      (sum, row) => sum + Number(row.amount),
+      0,
+    );
+
     const collected = filteredRows
       .filter((row) => row.status === "Paid")
-      .reduce((sum, row) => sum + row.amount, 0);
+      .reduce((sum, row) => sum + Number(row.amount), 0);
+
     const pending = filteredRows
       .filter((row) => row.status === "Pending")
-      .reduce((sum, row) => sum + row.amount, 0);
+      .reduce((sum, row) => sum + Number(row.amount), 0);
+
     const overdue = filteredRows
       .filter((row) => row.status === "Overdue")
-      .reduce((sum, row) => sum + row.amount, 0);
+      .reduce((sum, row) => sum + Number(row.amount), 0);
 
     return [
       { title: "Target", value: target, icon: "Target" },
@@ -148,16 +148,14 @@ const TodaysCollection = () => {
     ];
   }, [filteredRows]);
 
+  /*
+  --------------------------------------------------
+  Handlers
+  --------------------------------------------------
+  */
+
   const handleCollect = (row) => {
-    setIsCollecting(row.id);
-    setTimeout(() => {
-      setRows((prevRows) =>
-        prevRows.map((item) =>
-          item.id === row.id ? { ...item, status: "Paid" } : item,
-        ),
-      );
-      setIsCollecting(null);
-    }, 700);
+    navigate(`/loan-details/${row.loanId}`);
   };
 
   const handleRemind = (row) => {
@@ -166,8 +164,10 @@ const TodaysCollection = () => {
 
   const handleOpenContacts = (event, row) => {
     const rect = event.currentTarget.getBoundingClientRect();
+
     setOpenContact({ id: row.id, rect });
-    setOpenContactsData(row.contacts);
+
+    setOpenContactsData([{ label: "Customer", phone: row.phone }]);
   };
 
   const handleReset = () => {
@@ -175,6 +175,12 @@ const TodaysCollection = () => {
     setBranch("all");
     setActiveTab("all");
   };
+
+  /*
+  --------------------------------------------------
+  UI
+  --------------------------------------------------
+  */
 
   return (
     <>
@@ -184,14 +190,17 @@ const TodaysCollection = () => {
             <Icon name="Calendar" size={32} className="text-primary" />
             Today's Collection
           </h1>
+
           <p className="text-muted-foreground mt-2">
             Plan and track loan collections
           </p>
         </div>
+
         <div className="flex gap-2">
           <Button variant="outline" iconName="Download">
             Export
           </Button>
+
           <Button variant="outline" iconName="Printer">
             Print
           </Button>
@@ -225,11 +234,11 @@ const TodaysCollection = () => {
 
       <CollectionTable
         rows={filteredRows}
+        loading={isLoading}
         onCollect={handleCollect}
         onRemind={handleRemind}
         onViewLoan={(loanId) => navigate(`/loan-details/${loanId}`)}
         onOpenContacts={handleOpenContacts}
-        isCollecting={isCollecting}
       />
 
       {openContact && (

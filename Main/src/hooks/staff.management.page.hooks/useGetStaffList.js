@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 /**
@@ -27,20 +27,17 @@ export async function fetchStaffList(params) {
   } = params || {};
 
   try {
-    const res = await axios.get(
-      "http://localhost:3001/api/staffs-management/staffs-list",
-      {
-        params: {
-          search,
-          branch,
-          role,
-          sortKey,
-          sortDir,
-          page,
-          pageSize,
-        },
+    const res = await api.get("/api/staffs-management/staffs-list", {
+      params: {
+        search,
+        branch,
+        role,
+        sortKey,
+        sortDir,
+        page,
+        pageSize,
       },
-    );
+    });
 
     if (!res.data || res.data.success !== true) {
       throw new Error(res.data?.message || "Invalid API response");

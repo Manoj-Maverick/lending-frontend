@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 async function fetchClientsList({
@@ -12,21 +12,18 @@ async function fetchClientsList({
   page = 1,
   pageSize = 10,
 }) {
-  const res = await axios.get(
-    "http://localhost:3001/api/clients-management/clients-list",
-    {
-      params: {
-        search,
-        branchId,
-        status,
-        blockStatus,
-        sortKey,
-        sortDir,
-        page,
-        pageSize,
-      },
+  const res = await api.get("/api/clients-management/clients-list", {
+    params: {
+      search,
+      branchId,
+      status,
+      blockStatus,
+      sortKey,
+      sortDir,
+      page,
+      pageSize,
     },
-  );
+  });
 
   if (res.status !== 200) {
     throw new Error("Failed to load clients list");

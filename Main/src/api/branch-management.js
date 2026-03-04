@@ -1,4 +1,4 @@
-import axios from "axios";
+import api from "api/client";
 export async function fetchBranchesList({
   page,
   limit,
@@ -7,18 +7,15 @@ export async function fetchBranchesList({
   sortBy,
 }) {
   try {
-    const { data } = await axios.get(
-      "http://localhost:3001/api/branch-management/list",
-      {
-        params: {
-          page,
-          limit,
-          search: search || undefined,
-          status,
-          sortBy,
-        },
+    const { data } = await api.get("/api/branch-management/list", {
+      params: {
+        page,
+        limit,
+        search: search || undefined,
+        status,
+        sortBy,
       },
-    );
+    });
     console.log("paarms", { page, limit, search, status, sortBy });
     console.log("data", data);
     return data;

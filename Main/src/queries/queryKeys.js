@@ -11,7 +11,11 @@ export const queryKeys = {
   },
   dashboard: {
     all: ["dashboard"],
-    summary: (branchId) => ["dashboard", "summary", normalizeBranchId(branchId)],
+    summary: (branchId) => [
+      "dashboard",
+      "summary",
+      normalizeBranchId(branchId),
+    ],
   },
   branches: {
     all: ["branches"],
@@ -53,5 +57,14 @@ export const queryKeys = {
     all: ["staff"],
     lists: () => ["staff", "list"],
     list: (filters = {}) => ["staff", "list", filters],
+  },
+  TodaysCollection: {
+    all: ["todaysCollection"],
+    data: (startDate, endDate, branchId) => [
+      "todaysCollection",
+      startDate,
+      endDate,
+      normalizeBranchId(branchId),
+    ],
   },
 };

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 /**
@@ -17,9 +17,7 @@ const fetchGuarantors = async (customerId) => {
     throw new Error("customerId is required to fetch guarantors");
   }
 
-  const res = await axios.get(
-    `http://localhost:3001/api/client-profile/${customerId}/guarantors`,
-  );
+  const res = await api.get(`/api/client-profile/${customerId}/guarantors`);
 
   // Backend format: { success: boolean, data: [...] }
   if (!res.data || res.data.success !== true) {

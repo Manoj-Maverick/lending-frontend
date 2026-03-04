@@ -1,67 +1,31 @@
+import api from "api/client";
+
 export async function fetchSettings() {
-  const res = await fetch("http://localhost:3001/api/settings", {
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch settings");
-  }
-
-  return res.json();
+  const { data } = await api.get("/api/settings");
+  return data;
 }
 
 export async function saveSettings(payload) {
-  const res = await fetch("http://localhost:3001/api/settings", {
-    method: "POST",
+  const { data } = await api.post("/api/settings", payload, {
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(payload),
   });
-
-  if (!res.ok) {
-    throw new Error("Failed to save settings");
-  }
-
-  return res.json();
+  return data;
 }
 
 export async function fetchUsers() {
-  const res = await fetch("http://localhost:3001/api/users", {
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to fetch users");
-  }
-
-  return res.json();
+  const { data } = await api.get("/api/users");
+  return data;
 }
 
 export async function createUser(payload) {
   console.log("Creating user with payload:", payload);
-  const res = await fetch("http://localhost:3001/api/users/create", {
-    method: "POST",
+  const { data } = await api.post("/api/users/create", payload, {
     headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(payload),
   });
-
-  if (!res.ok) {
-    throw new Error("Failed to create user");
-  }
-
-  return res.json();
+  return data;
 }
 
 export async function disableUser(id) {
-  const res = await fetch(`http://localhost:3001/api/users/${id}`, {
-    method: "DELETE",
-    credentials: "include",
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to disable user");
-  }
-
-  return res.json();
+  const { data } = await api.delete(`/api/users/${id}`);
+  return data;
 }

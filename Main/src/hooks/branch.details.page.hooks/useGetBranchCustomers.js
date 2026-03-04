@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
+import api from "api/client";
 import { queryKeys } from "queries/queryKeys";
 
 async function fetchBranchCustomers({
@@ -11,19 +11,16 @@ async function fetchBranchCustomers({
   page = 1,
   pageSize = 5,
 }) {
-  const res = await axios.get(
-    `http://localhost:3001/api/branch-details/customers/${branchId}`,
-    {
-      params: {
-        search,
-        status,
-        sortKey,
-        sortDir,
-        page,
-        pageSize,
-      },
+  const res = await api.get(`/api/branch-details/customers/${branchId}`, {
+    params: {
+      search,
+      status,
+      sortKey,
+      sortDir,
+      page,
+      pageSize,
     },
-  );
+  });
 
   if (res.status !== 200) {
     throw new Error("Failed to load branch customers");
