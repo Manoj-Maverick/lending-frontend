@@ -3,6 +3,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
+import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
 
 const EditStaffModal = ({ isOpen, onClose, onSubmit, staffData }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -29,6 +30,9 @@ const EditStaffModal = ({ isOpen, onClose, onSubmit, staffData }) => {
     ifscCode: "",
     accountType: "",
     status: "",
+    photo: null,
+    idProof: null,
+    addressProof: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -58,6 +62,9 @@ const EditStaffModal = ({ isOpen, onClose, onSubmit, staffData }) => {
         ifscCode: staffData?.ifscCode || "",
         accountType: staffData?.accountType || "",
         status: staffData?.status || "",
+        photo: staffData?.photo || null,
+        idProof: staffData?.idProof || null,
+        addressProof: staffData?.addressProof || null,
       });
     }
   }, [staffData, isOpen]);
@@ -201,8 +208,8 @@ const EditStaffModal = ({ isOpen, onClose, onSubmit, staffData }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card rounded-lg border border-border shadow-elevation-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="form-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="form-modal-panel bg-card rounded-lg border border-border shadow-elevation-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
           <div>
@@ -271,6 +278,7 @@ const EditStaffModal = ({ isOpen, onClose, onSubmit, staffData }) => {
 
         {/* Form Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div key={currentStep} className="motion-fade-up">
           {/* Step 1: Personal Details */}
           {currentStep === 1 && (
             <div className="space-y-4">
@@ -507,8 +515,33 @@ const EditStaffModal = ({ isOpen, onClose, onSubmit, staffData }) => {
                 value={formData?.accountType}
                 onChange={(value) => handleInputChange("accountType", value)}
               />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DocumentCaptureField
+                  label="Update Staff Photo (Optional)"
+                  accept="image/*"
+                  value={formData?.photo}
+                  onChange={(file) => handleInputChange("photo", file)}
+                  helperText="Capture fresh photo or upload from device."
+                />
+                <DocumentCaptureField
+                  label="Update ID Proof (Optional)"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  value={formData?.idProof}
+                  onChange={(file) => handleInputChange("idProof", file)}
+                  helperText="Replace existing ID proof if required."
+                />
+              </div>
+              <DocumentCaptureField
+                label="Update Address Proof (Optional)"
+                accept=".pdf,.jpg,.jpeg,.png"
+                value={formData?.addressProof}
+                onChange={(file) => handleInputChange("addressProof", file)}
+                helperText="Optional address document update."
+              />
             </div>
           )}
+          </div>
         </div>
 
         {/* Footer */}

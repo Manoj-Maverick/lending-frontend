@@ -22,7 +22,7 @@ const Sidebar = ({
       { label: "Branches", path: "/branches-management", icon: "Building2" },
       { label: "Clients", path: "/clients-management", icon: "Users" },
       { label: "Loans", path: "/loans-management", icon: "Wallet" },
-      { label: "Payments", path: "/payments-management", icon: "CreditCard" },
+      // { label: "Payments", path: "/payments-management", icon: "CreditCard" },
       {
         label: "Today's Collection",
         path: "/todays-collection",
@@ -44,7 +44,7 @@ const Sidebar = ({
 
       { label: "Clients", path: "/clients-management", icon: "Users" },
       { label: "Loans", path: "/loans-management", icon: "Wallet" },
-      { label: "Payments", path: "/payments-management", icon: "CreditCard" },
+      // { label: "Payments", path: "/payments-management", icon: "CreditCard" },
       { label: "Staff", path: "/staff-management", icon: "UserCog" },
       { label: "Reports", path: "/reports", icon: "FileText" },
       { label: "Settings", path: "/settings", icon: "Settings" },

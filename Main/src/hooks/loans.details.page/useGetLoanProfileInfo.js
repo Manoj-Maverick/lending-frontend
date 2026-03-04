@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 async function fetchLoanDetails(loanId) {
   if (!loanId) throw new Error("Loan ID is required");
@@ -17,7 +18,7 @@ async function fetchLoanDetails(loanId) {
 
 export function useGetLoanDetails(loanId) {
   return useQuery({
-    queryKey: ["loan-details", loanId],
+    queryKey: queryKeys.loans.detail(loanId),
     queryFn: () => fetchLoanDetails(loanId),
     enabled: !!loanId, // only run when id exists
     staleTime: 1000 * 30,

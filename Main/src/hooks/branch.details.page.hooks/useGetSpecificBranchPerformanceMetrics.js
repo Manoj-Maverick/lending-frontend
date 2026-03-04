@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 async function fetchBranchPerformanceMetricsByID(branchId) {
   const res = await axios.get(
@@ -14,7 +15,7 @@ async function fetchBranchPerformanceMetricsByID(branchId) {
 
 export function useFetchBranchPerformanceMetricsByID(branchId) {
   return useQuery({
-    queryKey: ["branch", branchId, "metrics"],
+    queryKey: queryKeys.branches.metrics(branchId),
     queryFn: () => fetchBranchPerformanceMetricsByID(branchId),
     enabled: !!branchId,
   });

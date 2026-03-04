@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 /**
  * API function: Fetch guarantors for a customer
@@ -38,7 +39,7 @@ const fetchGuarantors = async (customerId) => {
  */
 export const useGuarantors = (customerId) => {
   return useQuery({
-    queryKey: ["guarantors", customerId],
+    queryKey: queryKeys.clients.guarantors(customerId),
     queryFn: () => fetchGuarantors(customerId),
     enabled: !!customerId, // only run when customerId is truthy
   });

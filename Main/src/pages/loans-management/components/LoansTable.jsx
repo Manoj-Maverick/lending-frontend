@@ -83,7 +83,8 @@ const LoansTable = ({ loans, onViewLoan }) => {
                     ₹{loan?.loanAmount?.toLocaleString()}
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {loan?.interestRate}% | {loan?.tenure}M
+                    {loan?.interestRate}% | {loan?.tenure + " "}
+                    {" " + loan?.tenureUnit.toLowerCase() + "s"}
                   </div>
                 </td>
                 <td className="px-4 py-3 text-sm font-semibold text-foreground">
@@ -93,7 +94,7 @@ const LoansTable = ({ loans, onViewLoan }) => {
                   ₹{loan?.emiAmount?.toLocaleString()}
                 </td>
                 <td className="px-4 py-3 text-sm text-foreground">
-                  {loan?.nextEmiDate}
+                  {loan?.nextEmiDate.split("T")[0]}
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -191,7 +192,7 @@ const LoansTable = ({ loans, onViewLoan }) => {
                   <div>
                     <span className="text-muted-foreground">Tenure:</span>
                     <p className="text-foreground font-medium mt-0.5">
-                      {loan?.tenure} Months
+                      {loan?.tenure} {loan?.tenureUnit.toLowerCase() + "s"}
                     </p>
                   </div>
                   <div>
@@ -221,6 +222,21 @@ const LoansTable = ({ loans, onViewLoan }) => {
           </div>
         ))}
       </div>
+
+      {/* Empty state */}
+      {loans?.length === 0 && (
+        <div className="p-8 md:p-12 text-center">
+          <div className="w-16 h-16 md:w-20 md:h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+            <Icon name="FileText" size={32} className="text-muted-foreground" />
+          </div>
+          <h3 className="text-base md:text-lg font-semibold text-foreground mb-2">
+            No loans found
+          </h3>
+          <p className="text-sm md:text-base text-muted-foreground">
+            No loan records available at this time
+          </p>
+        </div>
+      )}
     </div>
   );
 };

@@ -7,6 +7,7 @@ import { ToastProvider } from "context/ToastContext";
 import App from "./App";
 import "./styles/tailwind.css";
 import "./styles/index.css";
+import "./styles/motion-foundation.css";
 
 const queryClient = new QueryClient();
 const container = document.getElementById("root");

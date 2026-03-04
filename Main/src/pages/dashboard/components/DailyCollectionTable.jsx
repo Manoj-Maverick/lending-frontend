@@ -81,7 +81,7 @@ const DailyCollectionTable = () => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
+    <div className="glass-surface-soft motion-hover-lift bg-card border border-border rounded-lg overflow-hidden">
       <div className="p-4 md:p-5 lg:p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <h2 className="text-base md:text-lg lg:text-xl font-semibold text-foreground">

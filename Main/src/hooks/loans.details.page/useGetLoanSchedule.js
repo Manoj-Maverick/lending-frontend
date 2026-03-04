@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 export async function fetchLoanSchedule(loanId) {
   if (!loanId) throw new Error("Loan ID is required");
@@ -25,7 +26,7 @@ export async function fetchLoanSchedule(loanId) {
 
 export function useGetLoanSchedule(loanId) {
   return useQuery({
-    queryKey: ["loan-schedule", loanId],
+    queryKey: queryKeys.loans.schedule(loanId),
     queryFn: () => fetchLoanSchedule(loanId),
     enabled: !!loanId,
     staleTime: 1000 * 30,

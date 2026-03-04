@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 async function fetchClientsList({
   search = "",
@@ -36,7 +37,7 @@ async function fetchClientsList({
 
 export function useGetClientsList(params) {
   return useQuery({
-    queryKey: ["clients-list", params],
+    queryKey: queryKeys.clients.list(params),
     queryFn: () => fetchClientsList(params),
     keepPreviousData: true, // ⭐ smooth pagination (no UI flicker)
   });

@@ -160,7 +160,15 @@ const BranchCard = ({ branch, onClick }) => {
               )}`}
             >
               {formatPercentage(
-                (branch?.total_collected / branch?.total_disbursed) * 100,
+                typeof (
+                  (branch?.total_collected / branch?.total_disbursed) *
+                  100
+                ) != "number" ||
+                  isNaN(
+                    (branch?.total_collected / branch?.total_disbursed) * 100,
+                  )
+                  ? 0
+                  : (branch?.total_collected / branch?.total_disbursed) * 100,
               )}
             </span>
           </div>

@@ -107,7 +107,7 @@ const TodayPaymentsTable = () => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden mb-5">
+    <div className="glass-surface-soft motion-hover-lift bg-card border border-border rounded-lg overflow-hidden mb-5">
       <div className="p-4 md:p-5 lg:p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>

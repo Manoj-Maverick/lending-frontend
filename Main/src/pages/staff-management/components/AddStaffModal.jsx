@@ -3,6 +3,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
+import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
 
 const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -254,8 +255,8 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card rounded-lg border border-border shadow-elevation-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="form-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="form-modal-panel bg-card rounded-lg border border-border shadow-elevation-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
           <div>
@@ -317,6 +318,7 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
 
         {/* Form Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6">
+          <div key={currentStep} className="motion-fade-up">
           {/* Step 1: Account Details */}
           {currentStep === 1 && (
             <div className="space-y-4">
@@ -579,8 +581,34 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
                 error={errors.accountType}
                 required
               />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <DocumentCaptureField
+                  label="Staff Photo (Optional)"
+                  accept="image/*"
+                  value={formData?.photo}
+                  onChange={(file) => handleInputChange("photo", file)}
+                  helperText="Capture live staff photo or upload from gallery."
+                />
+                <DocumentCaptureField
+                  label="ID Proof (Optional)"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  value={formData?.idProof}
+                  onChange={(file) => handleInputChange("idProof", file)}
+                  helperText="Employee ID/Aadhaar/PAN - photo capture is supported."
+                />
+              </div>
+
+              <DocumentCaptureField
+                label="Address Proof (Optional)"
+                accept=".pdf,.jpg,.jpeg,.png"
+                value={formData?.addressProof}
+                onChange={(file) => handleInputChange("addressProof", file)}
+                helperText="Attach any valid address proof file or captured photo."
+              />
             </div>
           )}
+          </div>
         </div>
         {/* Footer */}
         <div className="border-t border-border p-4 md:p-6 bg-muted/30 flex items-center justify-between gap-3">

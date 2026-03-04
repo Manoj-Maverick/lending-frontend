@@ -11,22 +11,19 @@ const PersonalInfoTab = ({ customerId: clientId, onEdit }) => {
     isError,
     error,
   } = useCustomerProfile(clientId);
-
-  const avatarUrl = useMemo(() => {
-    const id = client?.id;
-    const gender = client?.gender;
-
-    if (!id) return "/images/avatar-placeholder.png";
-
-    const seed = Number(id) % 100 || 1;
-    if (gender?.toLowerCase() === "male") {
-      return `https://randomuser.me/api/portraits/men/${seed}.jpg`;
+  const hashString = (value = "") => {
+    let hash = 0;
+    for (let i = 0; i < value.length; i += 1) {
+      hash = value.charCodeAt(i) + ((hash << 5) - hash);
     }
-    if (gender?.toLowerCase() === "female") {
-      return `https://randomuser.me/api/portraits/women/${seed}.jpg`;
-    }
-    return "/images/avatar-placeholder.png";
-  }, [client?.id, client?.gender]);
+    return Math.abs(hash);
+  };
+  const getClientAvatar = (client) => {
+    if (client?.photo_url) return "http://localhost:3001" + client?.photo_url;
+    const base = `${client?.id || ""}-${client?.name || client?.client_name || ""}`;
+    const seed = (hashString(base) % 70) + 1;
+    return `https://i.pravatar.cc/150?img=${seed}`;
+  };
 
   if (!clientId) return null;
 
@@ -73,7 +70,7 @@ const PersonalInfoTab = ({ customerId: clientId, onEdit }) => {
           <div className="flex justify-center lg:justify-start">
             <div className="relative">
               <Image
-                src={avatarUrl}
+                src={getClientAvatar(client)}
                 alt="Client"
                 className="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-lg object-cover"
               />
@@ -275,5 +272,3 @@ const StatMoneyCard = ({ label, amount, color }) => (
 );
 
 export default PersonalInfoTab;
-
-

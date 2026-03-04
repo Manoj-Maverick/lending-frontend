@@ -41,6 +41,7 @@ const LoanDetails = () => {
   }
 
   const loanData = {
+    loanId: loanId,
     id: data.loan_code,
     status: data.status,
     branch: data.branch_name,
@@ -158,7 +159,7 @@ const LoanDetails = () => {
       <AddPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        loanId={loanId}
+        loanData={loanData}
       />
     </>
   );
@@ -168,7 +169,9 @@ const Stat = ({ label, value }) => (
   <div className="bg-muted/50 rounded-lg p-4">
     <p className="text-xs text-muted-foreground mb-1">{label}</p>
     <p className="text-xl font-semibold text-foreground break-words">
-      {typeof value === "number" ? `Rs ${value.toLocaleString("en-IN")}` : value}
+      {typeof value === "number"
+        ? `Rs ${value.toLocaleString("en-IN")}`
+        : value}
     </p>
   </div>
 );

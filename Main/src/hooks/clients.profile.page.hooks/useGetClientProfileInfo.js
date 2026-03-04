@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "queries/queryKeys";
 
 /**
  * Fetch customer profile from backend
@@ -36,7 +37,7 @@ async function fetchCustomerProfile(customerId) {
  */
 export function useCustomerProfile(customerId) {
   return useQuery({
-    queryKey: ["customer-profile", customerId],
+    queryKey: queryKeys.clients.profile(customerId),
     queryFn: () => fetchCustomerProfile(customerId),
     enabled: !!customerId, // only run when id exists
     staleTime: 5 * 60 * 1000, // cache for 5 minutes

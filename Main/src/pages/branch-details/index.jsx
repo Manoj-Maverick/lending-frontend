@@ -264,6 +264,7 @@ const BranchDetails = () => {
         onViewClient={handleViewClient}
       />
       <EditBranchModal
+        branchId={branchId}
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSubmit={(data) => console.log("Updated branch data:", data)}

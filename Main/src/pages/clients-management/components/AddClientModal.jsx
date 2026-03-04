@@ -1,55 +1,70 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-
-const AddClientModal = ({ isOpen, onClose, onSubmit }) => {
+import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
+import { useCreateClient } from "../../../hooks/clients.management.page.hooks/useCreateClient";
+import { useToast } from "context/ToastContext";
+import { useUIContext } from "context/UIContext";
+const AddClientModal = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const [addGuarantorNow, setAddGuarantorNow] = useState(false);
+  const { mutate: createClient, isPending, error } = useCreateClient();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
-    // Personal Details
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
-    gender: "",
-    maritalStatus: "",
-    email: "",
-    phone: "",
-    alternatePhone: "",
-    // Address Information
-    addressLine1: "",
-    addressLine2: "",
-    city: "",
-    state: "",
-    pincode: "",
-    residenceType: "",
-    yearsAtAddress: "",
-    // Bank Details
-    bankName: "",
-    accountNumber: "",
-    ifscCode: "",
-    accountType: "",
-    // Guarantor Information
-    guarantorName: "",
+    fullName: "Ravi Kumar",
+    dateOfBirth: "1994-08-15",
+    gender: "Male",
+    maritalStatus: "Married",
+    email: "ravi.kumar94@gmail.com",
+    phone: "9876543210",
+    alternatePhone: "9123456780",
+    occupation: "Shop Owner",
+    monthlyIncome: "35000",
+    aadhaarNumber: "567812349876",
+    panNumber: "ABCDE1234F",
+    addressLine1: "12, MG Road",
+    addressLine2: "Near Bus Stand",
+    city: "Coimbatore",
+    state: "Tamil Nadu",
+    pincode: "641001",
+    residenceType: "Owned",
+    yearsAtAddress: "6",
+    bankName: "State Bank of India",
+    accountNumber: "123456789012",
+    ifscCode: "SBIN0000456",
+    accountType: "Savings",
+    accountHolderName: "Ravi Kumar",
+    guarantorFullName: "",
     guarantorPhone: "",
     guarantorRelation: "",
     guarantorAddress: "",
-    // Documents & Branch
+    guarantorOccupation: "",
+    guarantorMonthlyIncome: "",
+    guarantorAadhaar: "",
+    guarantorPan: "",
+    guarantorAlternatePhone: "",
+    guarantorEmail: "",
+    guarantorCity: "",
+    guarantorState: "",
+    guarantorPincode: "",
     photo: null,
     idProof: null,
     addressProof: null,
     incomeProof: null,
-    branch: "",
+    branch: "BR001",
+    customerCode: "",
   });
-
+  const { branches } = useUIContext();
   const [errors, setErrors] = useState({});
 
   const steps = [
-    { number: 1, title: "Personal Details", icon: "User" },
-    { number: 2, title: "Address Information", icon: "MapPin" },
-    { number: 3, title: "Bank Details", icon: "CreditCard" },
-    { number: 4, title: "Guarantor Information", icon: "Users" },
-    { number: 5, title: "Documents & Branch", icon: "FileText" },
+    { number: 1, title: "Personal", icon: "User" },
+    { number: 2, title: "Address", icon: "MapPin" },
+    { number: 3, title: "Bank & KYC", icon: "CreditCard" },
+    { number: 4, title: "Guarantor", icon: "Users" },
+    { number: 5, title: "Documents", icon: "FileText" },
   ];
 
   const genderOptions = [
@@ -72,30 +87,33 @@ const AddClientModal = ({ isOpen, onClose, onSubmit }) => {
   ];
 
   const accountTypeOptions = [
-    { value: "savings", label: "Savings Account" },
-    { value: "current", label: "Current Account" },
+    { value: "savings", label: "Savings" },
+    { value: "current", label: "Current" },
   ];
 
   const branchOptions = [
-    { value: "br-001", label: "Main Branch" },
-    { value: "br-002", label: "North Branch" },
-    { value: "br-003", label: "South Branch" },
-    { value: "br-004", label: "East Branch" },
-    { value: "br-005", label: "West Branch" },
+    ...branches.map((b) => ({ value: b.id, label: b.branch_name })),
   ];
 
   const relationOptions = [
     { value: "father", label: "Father" },
     { value: "mother", label: "Mother" },
     { value: "spouse", label: "Spouse" },
-    { value: "sibling", label: "Sibling" },
+    { value: "sibling", label: "Brother/Sister" },
     { value: "friend", label: "Friend" },
     { value: "other", label: "Other" },
   ];
 
+  useEffect(() => {
+    if (!formData.customerCode) {
+      const code = `CUST-${Math.floor(100000 + Math.random() * 900000)}`;
+      setFormData((prev) => ({ ...prev, customerCode: code }));
+    }
+  }, []);
+
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors?.[field]) {
+    if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
@@ -104,57 +122,56 @@ const AddClientModal = ({ isOpen, onClose, onSubmit }) => {
     const newErrors = {};
 
     if (step === 1) {
-      if (!formData?.firstName?.trim())
-        newErrors.firstName = "First name is required";
-      if (!formData?.lastName?.trim())
-        newErrors.lastName = "Last name is required";
-      if (!formData?.dateOfBirth)
+      if (!formData.fullName?.trim())
+        newErrors.fullName = "Full name is required";
+      if (!formData.dateOfBirth)
         newErrors.dateOfBirth = "Date of birth is required";
-      if (!formData?.gender) newErrors.gender = "Gender is required";
-      if (!formData?.phone?.trim())
-        newErrors.phone = "Phone number is required";
-      else if (!/^\d{10}$/?.test(formData?.phone))
+      if (!formData.gender) newErrors.gender = "Gender is required";
+      if (!formData.phone?.trim()) newErrors.phone = "Phone is required";
+      else if (!/^\d{10}$/.test(formData.phone))
         newErrors.phone = "Invalid phone number";
     }
 
     if (step === 2) {
-      if (!formData?.addressLine1?.trim())
+      if (!formData.addressLine1?.trim())
         newErrors.addressLine1 = "Address is required";
-      if (!formData?.city?.trim()) newErrors.city = "City is required";
-      if (!formData?.state?.trim()) newErrors.state = "State is required";
-      if (!formData?.pincode?.trim()) newErrors.pincode = "Pincode is required";
-      else if (!/^\d{6}$/?.test(formData?.pincode))
+      if (!formData.city?.trim()) newErrors.city = "City is required";
+      if (!formData.state?.trim()) newErrors.state = "State is required";
+      if (!formData.pincode?.trim()) newErrors.pincode = "Pincode is required";
+      else if (!/^\d{6}$/.test(formData.pincode))
         newErrors.pincode = "Invalid pincode";
     }
 
     if (step === 3) {
-      if (!formData?.bankName?.trim())
+      if (!formData.bankName?.trim())
         newErrors.bankName = "Bank name is required";
-      if (!formData?.accountNumber?.trim())
+      if (!formData.accountNumber?.trim())
         newErrors.accountNumber = "Account number is required";
-      if (!formData?.ifscCode?.trim())
+      if (!formData.ifscCode?.trim())
         newErrors.ifscCode = "IFSC code is required";
-      if (!formData?.accountType)
+      if (!formData.accountType)
         newErrors.accountType = "Account type is required";
+      if (!formData.accountHolderName?.trim())
+        newErrors.accountHolderName = "Account holder name is required";
     }
 
-    if (step === 4) {
-      if (!formData?.guarantorName?.trim())
-        newErrors.guarantorName = "Guarantor name is required";
-      if (!formData?.guarantorPhone?.trim())
+    if (step === 4 && addGuarantorNow) {
+      if (!formData.guarantorFullName?.trim())
+        newErrors.guarantorFullName = "Guarantor name is required";
+      if (!formData.guarantorPhone?.trim())
         newErrors.guarantorPhone = "Guarantor phone is required";
-      else if (!/^\d{10}$/?.test(formData?.guarantorPhone))
-        newErrors.guarantorPhone = "Invalid phone number";
-      if (!formData?.guarantorRelation)
+      else if (!/^\d{10}$/.test(formData.guarantorPhone))
+        newErrors.guarantorPhone = "Invalid phone";
+      if (!formData.guarantorRelation)
         newErrors.guarantorRelation = "Relation is required";
     }
 
     if (step === 5) {
-      if (!formData?.branch) newErrors.branch = "Branch selection is required";
+      if (!formData.branch) newErrors.branch = "Please select a branch";
     }
 
     setErrors(newErrors);
-    return Object.keys(newErrors)?.length === 0;
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleNext = () => {
@@ -169,22 +186,65 @@ const AddClientModal = ({ isOpen, onClose, onSubmit }) => {
 
   const handleSubmit = () => {
     if (validateStep(currentStep)) {
-      onSubmit(formData);
-      handleClose();
+      const fd = new FormData();
+
+      // Append text fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (
+          value !== null &&
+          value !== undefined &&
+          key !== "photo" &&
+          key !== "idProof" &&
+          key !== "addressProof" &&
+          key !== "incomeProof"
+        ) {
+          fd.append(key, value);
+        }
+      });
+
+      // Append files
+      if (formData.photo) fd.append("photo", formData.photo);
+      if (formData.idProof) fd.append("idProof", formData.idProof);
+      if (formData.addressProof)
+        fd.append("addressProof", formData.addressProof);
+      if (formData.incomeProof) fd.append("incomeProof", formData.incomeProof);
+
+      createClient(fd, {
+        onSuccess: () => {
+          showToast("Client created successfully", "success");
+
+          // ⏱ Close modal after 1 second
+          setTimeout(() => {
+            handleClose();
+          }, 1000);
+        },
+        onError: (err) => {
+          console.error("Create client failed:", err);
+
+          showToast(
+            err?.message || "Failed to create client. Please try again.",
+            "error",
+          );
+        },
+      });
     }
   };
 
   const handleClose = () => {
     setCurrentStep(1);
+    setAddGuarantorNow(false);
     setFormData({
-      firstName: "",
-      lastName: "",
+      fullName: "",
       dateOfBirth: "",
       gender: "",
       maritalStatus: "",
       email: "",
       phone: "",
       alternatePhone: "",
+      occupation: "",
+      monthlyIncome: "",
+      aadhaarNumber: "",
+      panNumber: "",
       addressLine1: "",
       addressLine2: "",
       city: "",
@@ -196,15 +256,26 @@ const AddClientModal = ({ isOpen, onClose, onSubmit }) => {
       accountNumber: "",
       ifscCode: "",
       accountType: "",
-      guarantorName: "",
+      accountHolderName: "",
+      guarantorFullName: "",
       guarantorPhone: "",
       guarantorRelation: "",
       guarantorAddress: "",
+      guarantorOccupation: "",
+      guarantorMonthlyIncome: "",
+      guarantorAadhaar: "",
+      guarantorPan: "",
+      guarantorAlternatePhone: "",
+      guarantorEmail: "",
+      guarantorCity: "",
+      guarantorState: "",
+      guarantorPincode: "",
       photo: null,
       idProof: null,
       addressProof: null,
       incomeProof: null,
       branch: "",
+      customerCode: "",
     });
     setErrors({});
     onClose();
@@ -213,64 +284,65 @@ const AddClientModal = ({ isOpen, onClose, onSubmit }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="bg-card rounded-lg border border-border shadow-elevation-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[96vh] sm:max-h-[92vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-gray-700">
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold text-foreground">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
               Add New Client
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Complete all steps to create client profile
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
+              Fill in the details to create a new client profile
             </p>
           </div>
           <button
             onClick={handleClose}
-            className="w-8 h-8 rounded-lg hover:bg-muted transition-colors flex items-center justify-center"
-            aria-label="Close modal"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
-            <Icon name="X" size={20} />
+            <Icon
+              name="X"
+              size={22}
+              className="text-gray-600 dark:text-gray-300 sm:size-24"
+            />
           </button>
         </div>
 
-        {/* Progress Steps */}
-        <div className="px-4 md:px-6 py-4 border-b border-border bg-muted/30 overflow-x-auto">
-          <div className="flex items-center gap-2 min-w-max">
-            {steps?.map((step, index) => (
-              <React.Fragment key={step?.number}>
-                <div className="flex items-center gap-2">
+        {/* Responsive Progress Bar */}
+        <div className="px-3 sm:px-6 py-3 sm:py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex flex-wrap items-center mx-auto justify-center sm:justify-between gap-2 sm:gap-0 max-w-full sm:max-w-3xl">
+            {steps.map((step, idx) => (
+              <React.Fragment key={step.number}>
+                <div className="flex flex-col items-center flex-shrink-0">
                   <div
-                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${
-                      currentStep === step?.number
-                        ? "bg-accent text-white"
-                        : currentStep > step?.number
-                          ? "bg-accent/20 text-accent"
-                          : "bg-muted text-muted-foreground"
+                    className={`w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all flex-shrink-0 ${
+                      currentStep === step.number
+                        ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                        : currentStep > step.number
+                          ? "bg-green-500 text-white"
+                          : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
                     }`}
                   >
-                    {currentStep > step?.number ? (
-                      <Icon name="Check" size={16} />
+                    {currentStep > step.number ? (
+                      <Icon name="Check" size={18} className="sm:size-20" />
                     ) : (
-                      <Icon name={step?.icon} size={16} />
+                      step.number
                     )}
                   </div>
-                  <div className="hidden md:block">
-                    <div
-                      className={`text-xs font-medium ${currentStep >= step?.number ? "text-foreground" : "text-muted-foreground"}`}
-                    >
-                      Step {step?.number}
-                    </div>
-                    <div
-                      className={`text-xs ${currentStep === step?.number ? "text-accent" : "text-muted-foreground"}`}
-                    >
-                      {step?.title}
-                    </div>
-                  </div>
+
+                  {/* Title - hidden on small screens, shown on md+ */}
+                  <span className="text-[10px] sm:text-xs mt-1.5 sm:mt-2 font-medium text-gray-600 dark:text-gray-300 hidden sm:block whitespace-nowrap">
+                    {step.title}
+                  </span>
                 </div>
-                {index < steps?.length - 1 && (
+
+                {idx < steps.length - 1 && (
                   <div
-                    className={`h-0.5 w-8 md:w-12 ${currentStep > step?.number ? "bg-accent" : "bg-border"}`}
+                    className={`h-0.5 flex-1 min-w-[16px] sm:min-w-[32px] mx-1 sm:mx-4 ${
+                      currentStep > step.number
+                        ? "bg-green-500"
+                        : "bg-gray-300 dark:bg-gray-600"
+                    }`}
                   />
                 )}
               </React.Fragment>
@@ -279,396 +351,451 @@ const AddClientModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         {/* Form Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          {/* Step 1: Personal Details */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {currentStep === 1 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="First Name"
-                  type="text"
-                  placeholder="Enter first name"
-                  value={formData?.firstName}
-                  onChange={(e) =>
-                    handleInputChange("firstName", e?.target?.value)
-                  }
-                  error={errors?.firstName}
-                  required
-                />
-                <Input
-                  label="Last Name"
-                  type="text"
-                  placeholder="Enter last name"
-                  value={formData?.lastName}
-                  onChange={(e) =>
-                    handleInputChange("lastName", e?.target?.value)
-                  }
-                  error={errors?.lastName}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-6">
+              <Input
+                label="Full Name"
+                value={formData.fullName}
+                onChange={(e) => handleInputChange("fullName", e.target.value)}
+                required
+                error={errors.fullName}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Date of Birth"
                   type="date"
-                  value={formData?.dateOfBirth}
+                  value={formData.dateOfBirth}
                   onChange={(e) =>
-                    handleInputChange("dateOfBirth", e?.target?.value)
+                    handleInputChange("dateOfBirth", e.target.value)
                   }
-                  error={errors?.dateOfBirth}
                   required
+                  error={errors.dateOfBirth}
                 />
                 <Select
                   label="Gender"
-                  placeholder="Select gender"
                   options={genderOptions}
-                  value={formData?.gender}
-                  onChange={(value) => handleInputChange("gender", value)}
-                  error={errors?.gender}
+                  value={formData.gender}
+                  onChange={(v) => handleInputChange("gender", v)}
                   required
+                  error={errors.gender}
                 />
               </div>
               <Select
                 label="Marital Status"
-                placeholder="Select marital status"
                 options={maritalStatusOptions}
-                value={formData?.maritalStatus}
-                onChange={(value) => handleInputChange("maritalStatus", value)}
+                value={formData.maritalStatus}
+                onChange={(v) => handleInputChange("maritalStatus", v)}
               />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Phone Number"
                   type="tel"
-                  placeholder="Enter 10-digit phone number"
-                  value={formData?.phone}
-                  onChange={(e) => handleInputChange("phone", e?.target?.value)}
-                  error={errors?.phone}
+                  value={formData.phone}
+                  onChange={(e) => handleInputChange("phone", e.target.value)}
                   required
+                  error={errors.phone}
                 />
                 <Input
                   label="Alternate Phone"
                   type="tel"
-                  placeholder="Enter alternate phone (optional)"
-                  value={formData?.alternatePhone}
+                  value={formData.alternatePhone}
                   onChange={(e) =>
-                    handleInputChange("alternatePhone", e?.target?.value)
+                    handleInputChange("alternatePhone", e.target.value)
                   }
                 />
               </div>
               <Input
-                label="Email Address"
+                label="Email"
                 type="email"
-                placeholder="Enter email address (optional)"
-                value={formData?.email}
-                onChange={(e) => handleInputChange("email", e?.target?.value)}
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
               />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input
+                  label="Occupation"
+                  value={formData.occupation}
+                  onChange={(e) =>
+                    handleInputChange("occupation", e.target.value)
+                  }
+                />
+                <Input
+                  label="Monthly Income (₹)"
+                  type="number"
+                  value={formData.monthlyIncome}
+                  onChange={(e) =>
+                    handleInputChange("monthlyIncome", e.target.value)
+                  }
+                />
+              </div>
             </div>
           )}
 
-          {/* Step 2: Address Information */}
           {currentStep === 2 && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <Input
                 label="Address Line 1"
-                type="text"
-                placeholder="House/Flat number, Street name"
-                value={formData?.addressLine1}
+                value={formData.addressLine1}
                 onChange={(e) =>
-                  handleInputChange("addressLine1", e?.target?.value)
+                  handleInputChange("addressLine1", e.target.value)
                 }
-                error={errors?.addressLine1}
                 required
+                error={errors.addressLine1}
               />
               <Input
-                label="Address Line 2"
-                type="text"
-                placeholder="Locality, Landmark (optional)"
-                value={formData?.addressLine2}
+                label="Address Line 2 (optional)"
+                value={formData.addressLine2}
                 onChange={(e) =>
-                  handleInputChange("addressLine2", e?.target?.value)
+                  handleInputChange("addressLine2", e.target.value)
                 }
               />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Input
                   label="City"
-                  type="text"
-                  placeholder="Enter city"
-                  value={formData?.city}
-                  onChange={(e) => handleInputChange("city", e?.target?.value)}
-                  error={errors?.city}
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
                   required
+                  error={errors.city}
                 />
                 <Input
                   label="State"
-                  type="text"
-                  placeholder="Enter state"
-                  value={formData?.state}
-                  onChange={(e) => handleInputChange("state", e?.target?.value)}
-                  error={errors?.state}
+                  value={formData.state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
                   required
+                  error={errors.state}
                 />
                 <Input
                   label="Pincode"
-                  type="text"
-                  placeholder="6-digit pincode"
-                  value={formData?.pincode}
-                  onChange={(e) =>
-                    handleInputChange("pincode", e?.target?.value)
-                  }
-                  error={errors?.pincode}
+                  value={formData.pincode}
+                  onChange={(e) => handleInputChange("pincode", e.target.value)}
                   required
+                  error={errors.pincode}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Select
                   label="Residence Type"
-                  placeholder="Select residence type"
                   options={residenceTypeOptions}
-                  value={formData?.residenceType}
-                  onChange={(value) =>
-                    handleInputChange("residenceType", value)
-                  }
+                  value={formData.residenceType}
+                  onChange={(v) => handleInputChange("residenceType", v)}
                 />
                 <Input
-                  label="Years at Current Address"
+                  label="Years at this Address"
                   type="number"
-                  placeholder="Enter years"
-                  value={formData?.yearsAtAddress}
+                  value={formData.yearsAtAddress}
                   onChange={(e) =>
-                    handleInputChange("yearsAtAddress", e?.target?.value)
+                    handleInputChange("yearsAtAddress", e.target.value)
                   }
                 />
               </div>
             </div>
           )}
 
-          {/* Step 3: Bank Details */}
           {currentStep === 3 && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <Input
                 label="Bank Name"
-                type="text"
-                placeholder="Enter bank name"
-                value={formData?.bankName}
-                onChange={(e) =>
-                  handleInputChange("bankName", e?.target?.value)
-                }
-                error={errors?.bankName}
+                value={formData.bankName}
+                onChange={(e) => handleInputChange("bankName", e.target.value)}
                 required
+                error={errors.bankName}
               />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Input
                   label="Account Number"
-                  type="text"
-                  placeholder="Enter account number"
-                  value={formData?.accountNumber}
+                  value={formData.accountNumber}
                   onChange={(e) =>
-                    handleInputChange("accountNumber", e?.target?.value)
+                    handleInputChange("accountNumber", e.target.value)
                   }
-                  error={errors?.accountNumber}
                   required
+                  error={errors.accountNumber}
                 />
                 <Input
                   label="IFSC Code"
-                  type="text"
-                  placeholder="Enter IFSC code"
-                  value={formData?.ifscCode}
+                  value={formData.ifscCode}
                   onChange={(e) =>
-                    handleInputChange("ifscCode", e?.target?.value)
+                    handleInputChange("ifscCode", e.target.value)
                   }
-                  error={errors?.ifscCode}
                   required
+                  error={errors.ifscCode}
                 />
               </div>
-              <Select
-                label="Account Type"
-                placeholder="Select account type"
-                options={accountTypeOptions}
-                value={formData?.accountType}
-                onChange={(value) => handleInputChange("accountType", value)}
-                error={errors?.accountType}
-                required
-              />
-            </div>
-          )}
-
-          {/* Step 4: Guarantor Information */}
-          {currentStep === 4 && (
-            <div className="space-y-4">
-              <Input
-                label="Guarantor Full Name"
-                type="text"
-                placeholder="Enter guarantor name"
-                value={formData?.guarantorName}
-                onChange={(e) =>
-                  handleInputChange("guarantorName", e?.target?.value)
-                }
-                error={errors?.guarantorName}
-                required
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Guarantor Phone"
-                  type="tel"
-                  placeholder="Enter 10-digit phone number"
-                  value={formData?.guarantorPhone}
-                  onChange={(e) =>
-                    handleInputChange("guarantorPhone", e?.target?.value)
-                  }
-                  error={errors?.guarantorPhone}
-                  required
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Select
-                  label="Relation with Client"
-                  placeholder="Select relation"
-                  options={relationOptions}
-                  value={formData?.guarantorRelation}
-                  onChange={(value) =>
-                    handleInputChange("guarantorRelation", value)
-                  }
-                  error={errors?.guarantorRelation}
+                  label="Account Type"
+                  options={accountTypeOptions}
+                  value={formData.accountType}
+                  onChange={(v) => handleInputChange("accountType", v)}
                   required
+                  error={errors.accountType}
+                />
+                <Input
+                  label="Account Holder Name"
+                  value={formData.accountHolderName}
+                  onChange={(e) =>
+                    handleInputChange("accountHolderName", e.target.value)
+                  }
+                  required
+                  error={errors.accountHolderName}
                 />
               </div>
-              <Input
-                label="Guarantor Address"
-                type="text"
-                placeholder="Enter guarantor address"
-                value={formData?.guarantorAddress}
-                onChange={(e) =>
-                  handleInputChange("guarantorAddress", e?.target?.value)
-                }
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input
+                  label="Aadhaar Number"
+                  value={formData.aadhaarNumber}
+                  onChange={(e) =>
+                    handleInputChange("aadhaarNumber", e.target.value)
+                  }
+                  maxLength={12}
+                />
+                <Input
+                  label="PAN Number"
+                  value={formData.panNumber}
+                  onChange={(e) =>
+                    handleInputChange("panNumber", e.target.value)
+                  }
+                  maxLength={10}
+                />
+              </div>
             </div>
           )}
 
-          {/* Step 5: Documents & Branch */}
-          {currentStep === 5 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Client Photo
-                  </label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-accent transition-colors cursor-pointer">
-                    <Icon
-                      name="Upload"
-                      size={24}
-                      className="mx-auto mb-2 text-muted-foreground"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Click to upload photo
-                    </p>
-                    <input type="file" className="hidden" accept="image/*" />
-                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Guarantor Information
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {addGuarantorNow
+                      ? "Enter guarantor details now"
+                      : "You can add a guarantor later from the client profile"}
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    ID Proof
-                  </label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-accent transition-colors cursor-pointer">
-                    <Icon
-                      name="FileText"
-                      size={24}
-                      className="mx-auto mb-2 text-muted-foreground"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Upload ID proof
-                    </p>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                  </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setAddGuarantorNow(false)}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      !addGuarantorNow
+                        ? "bg-gray-800 text-white shadow-md"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    Add Later
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddGuarantorNow(true)}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      addGuarantorNow
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    Add Now
+                  </button>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Address Proof
-                  </label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-accent transition-colors cursor-pointer">
-                    <Icon
-                      name="FileText"
-                      size={24}
-                      className="mx-auto mb-2 text-muted-foreground"
+
+              {addGuarantorNow && (
+                <div className="space-y-6 pt-4 animate-fade-in">
+                  <Input
+                    label="Guarantor Full Name"
+                    value={formData.guarantorFullName}
+                    onChange={(e) =>
+                      handleInputChange("guarantorFullName", e.target.value)
+                    }
+                    required
+                    error={errors.guarantorFullName}
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Phone Number"
+                      type="tel"
+                      value={formData.guarantorPhone}
+                      onChange={(e) =>
+                        handleInputChange("guarantorPhone", e.target.value)
+                      }
+                      required
+                      error={errors.guarantorPhone}
                     />
-                    <p className="text-sm text-muted-foreground">
-                      Upload address proof
-                    </p>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.jpg,.jpeg,.png"
+                    <Select
+                      label="Relation"
+                      options={relationOptions}
+                      value={formData.guarantorRelation}
+                      onChange={(v) =>
+                        handleInputChange("guarantorRelation", v)
+                      }
+                      required
+                      error={errors.guarantorRelation}
+                    />
+                  </div>
+                  <Input
+                    label="Address"
+                    value={formData.guarantorAddress}
+                    onChange={(e) =>
+                      handleInputChange("guarantorAddress", e.target.value)
+                    }
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Occupation"
+                      value={formData.guarantorOccupation}
+                      onChange={(e) =>
+                        handleInputChange("guarantorOccupation", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Monthly Income (₹)"
+                      type="number"
+                      value={formData.guarantorMonthlyIncome}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "guarantorMonthlyIncome",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Input
+                      label="City"
+                      value={formData.guarantorCity}
+                      onChange={(e) =>
+                        handleInputChange("guarantorCity", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="State"
+                      value={formData.guarantorState}
+                      onChange={(e) =>
+                        handleInputChange("guarantorState", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Pincode"
+                      value={formData.guarantorPincode}
+                      onChange={(e) =>
+                        handleInputChange("guarantorPincode", e.target.value)
+                      }
+                      maxLength={6}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Aadhaar Number"
+                      value={formData.guarantorAadhaar}
+                      onChange={(e) =>
+                        handleInputChange("guarantorAadhaar", e.target.value)
+                      }
+                      maxLength={12}
+                    />
+                    <Input
+                      label="PAN Number"
+                      value={formData.guarantorPan}
+                      onChange={(e) =>
+                        handleInputChange("guarantorPan", e.target.value)
+                      }
+                      maxLength={10}
                     />
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Income Proof (Optional)
-                  </label>
-                  <div className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-accent transition-colors cursor-pointer">
-                    <Icon
-                      name="FileText"
-                      size={24}
-                      className="mx-auto mb-2 text-muted-foreground"
-                    />
-                    <p className="text-sm text-muted-foreground">
-                      Upload income proof
-                    </p>
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept=".pdf,.jpg,.jpeg,.png"
-                    />
-                  </div>
+              )}
+
+              {!addGuarantorNow && (
+                <div className="py-10 text-center text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl">
+                  <Icon
+                    name="Users"
+                    size={48}
+                    className="mx-auto mb-4 opacity-60"
+                  />
+                  <p className="text-lg font-medium">
+                    No guarantor added at this time
+                  </p>
+                  <p className="text-sm mt-2">
+                    You can add one later from the client profile page
+                  </p>
                 </div>
+              )}
+            </div>
+          )}
+
+          {currentStep === 5 && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <DocumentCaptureField
+                  label="Client Photo"
+                  accept="image/*"
+                  value={formData.photo}
+                  onChange={(file) => handleInputChange("photo", file)}
+                  helperText="Profile photo"
+                />
+                <DocumentCaptureField
+                  label="ID Proof (Aadhaar/PAN)"
+                  accept=".pdf,image/*"
+                  value={formData.idProof}
+                  onChange={(file) => handleInputChange("idProof", file)}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <DocumentCaptureField
+                  label="Address Proof"
+                  accept=".pdf,image/*"
+                  value={formData.addressProof}
+                  onChange={(file) => handleInputChange("addressProof", file)}
+                />
+                <DocumentCaptureField
+                  label="Income Proof (optional)"
+                  accept=".pdf,image/*"
+                  value={formData.incomeProof}
+                  onChange={(file) => handleInputChange("incomeProof", file)}
+                />
               </div>
               <Select
                 label="Assign to Branch"
-                placeholder="Select branch"
                 options={branchOptions}
-                value={formData?.branch}
-                onChange={(value) => handleInputChange("branch", value)}
-                error={errors?.branch}
+                value={formData.branch}
+                onChange={(v) => handleInputChange("branch", v)}
                 required
+                error={errors.branch}
               />
             </div>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-4 md:p-6 border-t border-border bg-muted/30">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center justify-between text-sm">
           <Button
             variant="outline"
             onClick={handlePrevious}
             disabled={currentStep === 1}
-            iconName="ChevronLeft"
-            iconPosition="left"
+            size="sm"
           >
-            Previous
+            <Icon name="ChevronLeft" className="mr-1.5" size={16} />
+            Back
           </Button>
-          <div className="text-sm text-muted-foreground">
-            Step {currentStep} of {steps?.length}
+
+          <div className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-300">
+            Step {currentStep} of {steps.length}
           </div>
-          {currentStep < steps?.length ? (
-            <Button
-              variant="default"
-              onClick={handleNext}
-              iconName="ChevronRight"
-              iconPosition="right"
-            >
+
+          {currentStep < steps.length ? (
+            <Button onClick={handleNext} size="sm">
               Next
+              <Icon name="ChevronRight" className="ml-1.5" size={16} />
             </Button>
           ) : (
             <Button
-              variant="success"
+              variant="primary"
               onClick={handleSubmit}
-              iconName="Check"
+              iconName={isPending ? "Loader" : "Check"}
               iconPosition="left"
+              disabled={isPending}
+              size="sm"
             >
-              Create Client
+              {isPending ? "Creating Client..." : "Create Client"}
             </Button>
           )}
         </div>

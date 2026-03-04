@@ -47,8 +47,7 @@ const hashString = (value = "") => {
 };
 
 const getClientAvatar = (client) => {
-  if (client?.photo || client?.avatar) return client?.photo || client?.avatar;
-
+  if (client?.photo_url) return "http://localhost:3001" + client?.photo_url;
   const base = `${client?.id || ""}-${client?.name || client?.client_name || ""}`;
   const seed = (hashString(base) % 70) + 1;
   return `https://i.pravatar.cc/150?img=${seed}`;
@@ -170,7 +169,9 @@ const ClientsListPage = () => {
             </h2>
           </div>
           <div className="text-xs md:text-sm text-muted-foreground">
-            Showing <span className="font-semibold text-accent">{clients.length}</span> of{" "}
+            Showing{" "}
+            <span className="font-semibold text-accent">{clients.length}</span>{" "}
+            of{" "}
             <span className="font-semibold text-foreground">{totalItems}</span>
           </div>
         </div>
@@ -205,7 +206,9 @@ const ClientsListPage = () => {
         </div>
 
         {isFetching && (
-          <div className="mt-2 text-xs text-muted-foreground">Updating results...</div>
+          <div className="mt-2 text-xs text-muted-foreground">
+            Updating results...
+          </div>
         )}
       </div>
 
@@ -241,7 +244,8 @@ const ClientsListPage = () => {
                 onClick={() => handleSort("loanStatus")}
               >
                 <div className="flex items-center gap-2">
-                  Loan Status <Icon name={getSortIcon("loanStatus")} size={14} />
+                  Loan Status{" "}
+                  <Icon name={getSortIcon("loanStatus")} size={14} />
                 </div>
               </th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -252,7 +256,8 @@ const ClientsListPage = () => {
           <tbody>
             {clients.map((client) => {
               const displayName = client.name || client.client_name || "-";
-              const displayStatus = client.loan_status || client.loanStatus || "No Loans";
+              const displayStatus =
+                client.loan_status || client.loanStatus || "No Loans";
 
               return (
                 <tr
@@ -270,7 +275,9 @@ const ClientsListPage = () => {
                   </td>
 
                   <td className="px-4 py-3">
-                    <div className="font-semibold text-foreground">{displayName}</div>
+                    <div className="font-semibold text-foreground">
+                      {displayName}
+                    </div>
                     <div className="text-xs text-muted-foreground mt-0.5">
                       {getInitials(displayName)} profile
                     </div>
@@ -290,7 +297,12 @@ const ClientsListPage = () => {
                         displayStatus,
                       )}`}
                     >
-                      <Icon name={displayStatus === "ACTIVE" ? "CircleDot" : "Circle"} size={12} />
+                      <Icon
+                        name={
+                          displayStatus === "ACTIVE" ? "CircleDot" : "Circle"
+                        }
+                        size={12}
+                      />
                       {displayStatus}
                     </span>
                   </td>
@@ -312,10 +324,16 @@ const ClientsListPage = () => {
         </table>
 
         {!isLoading && clients.length === 0 && (
-          <div className="p-10 text-center text-muted-foreground">No clients found</div>
+          <div className="p-10 text-center text-muted-foreground">
+            No clients found
+          </div>
         )}
 
-        {isError && <div className="p-10 text-center text-red-600">Failed to load clients</div>}
+        {isError && (
+          <div className="p-10 text-center text-red-600">
+            Failed to load clients
+          </div>
+        )}
       </div>
 
       {/* ================= PAGINATION ================= */}

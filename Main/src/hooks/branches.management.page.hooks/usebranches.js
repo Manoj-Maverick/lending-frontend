@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "queries/queryKeys";
 
 async function fetchBranches(branchId) {
   const url =
@@ -15,10 +16,9 @@ async function fetchBranches(branchId) {
 
 export function useBranches(user, authLoading) {
   const branchId = user?.role === "ADMIN" ? null : user?.branchId;
-  console.log(branchId);
 
   return useQuery({
-    queryKey: ["branches", branchId],
+    queryKey: queryKeys.branches.options(branchId),
     queryFn: () => fetchBranches(branchId),
     enabled: !authLoading && !!user, // 🔑 KEY LINE
     staleTime: 5 * 60 * 1000,

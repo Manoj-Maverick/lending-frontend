@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 async function fetchBranchCustomers({
   branchId,
@@ -42,17 +43,14 @@ export function useFetchBranchCustomers({
   pageSize = 5,
 }) {
   return useQuery({
-    queryKey: [
-      "branch",
-      branchId,
-      "customers",
+    queryKey: queryKeys.branches.customers(branchId, {
       search,
       status,
       sortKey,
       sortDir,
       page,
       pageSize,
-    ],
+    }),
     queryFn: () =>
       fetchBranchCustomers({
         branchId,

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 /**
  * Fetch function:
@@ -38,7 +39,7 @@ export async function fetchLoansManagementStats({ branch }) {
  */
 export function useLoansManagementStats({ branch }) {
   return useQuery({
-    queryKey: ["loans-management-stats", branch ?? "all"],
+    queryKey: queryKeys.loans.stats(branch),
     queryFn: () => fetchLoansManagementStats({ branch }),
     keepPreviousData: true,
     staleTime: 1000 * 60, // 1 minute cache is fine for stats

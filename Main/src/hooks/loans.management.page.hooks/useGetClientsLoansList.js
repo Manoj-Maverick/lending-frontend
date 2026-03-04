@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 /**
  * Fetch function
@@ -47,15 +48,7 @@ export async function fetchClientsLoansList(filters) {
  */
 export function useClientsLoansList(filters) {
   return useQuery({
-    queryKey: [
-      "clients-loans-list",
-      filters.status,
-      filters.branch,
-      filters.searchQuery,
-      filters.loanType,
-      filters.page,
-      filters.pageSize,
-    ],
+    queryKey: queryKeys.loans.list(filters),
     queryFn: () => fetchClientsLoansList(filters),
     keepPreviousData: true, // smooth pagination UX
     staleTime: 1000 * 30,

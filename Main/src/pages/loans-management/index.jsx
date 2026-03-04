@@ -109,11 +109,13 @@ const LoansManagement = () => {
     loanAmount: Number(l.loan_amount),
     outstanding: Number(l.outstanding),
     emiAmount: Number(l.emi_amount),
-    nextEmiDate: l.next_emi_date,
-    interestRate: Number(l.interest_amount),
-    tenure: Number(l.tenure_weeks),
+    nextEmiDate: l.next_emi_date.split("T")[0],
+    interestRate: Number(l.interest_rate),
+    tenure: Number(l.tenure_value),
+    tenureUnit: l.tenure_unit,
     status: l.status,
   }));
+  console.log("Mapped Loans:", loans);
 
   // 📊 Stats cards
   const loanStats = [

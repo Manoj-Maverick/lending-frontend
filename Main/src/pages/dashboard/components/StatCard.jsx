@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
+import { cn } from "../../../utils/cn";
 
-const StatCard = ({ title, value, icon, color, navigateTo }) => {
+const StatCard = ({ title, value, icon, color, navigateTo, className }) => {
   const navigate = useNavigate();
 
   const handleClick = () => {
@@ -24,9 +25,11 @@ const StatCard = ({ title, value, icon, color, navigateTo }) => {
 
   return (
     <div
-      className={`group rounded-xl border border-border/70 bg-card p-3.5 sm:p-4 lg:p-5 shadow-sm transition-all duration-250 hover:-translate-y-0.5 hover:shadow-elevation-md ${
-        navigateTo ? "cursor-pointer" : ""
-      }`}
+      className={cn(
+        "group glass-surface-soft motion-hover-lift rounded-xl border border-border/70 bg-card p-3.5 shadow-sm transition-all duration-250 sm:p-4 lg:p-5",
+        navigateTo ? "cursor-pointer" : "",
+        className,
+      )}
       onClick={handleClick}
       role={navigateTo ? "button" : "article"}
       tabIndex={navigateTo ? 0 : undefined}

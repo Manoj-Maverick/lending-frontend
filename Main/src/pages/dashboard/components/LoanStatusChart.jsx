@@ -37,7 +37,7 @@ const LoanStatusChart = () => {
   };
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 md:p-5 lg:p-6">
+    <div className="glass-surface-soft motion-hover-lift bg-card border border-border rounded-lg p-4 md:p-5 lg:p-6">
       <div className="flex items-center justify-between mb-4 md:mb-6">
         <div>
           <h2 className="text-base md:text-lg lg:text-xl font-semibold text-foreground">

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 async function fetchWeeklyLoanSummary(branchId) {
   try {
@@ -23,7 +24,7 @@ async function fetchWeeklyLoanSummary(branchId) {
 
 export function useGetWeeklyLoanSummary(branchId) {
   return useQuery({
-    queryKey: ["branch", branchId, "weekly-loan-summary"],
+    queryKey: queryKeys.branches.weeklyLoanSummary(branchId),
     queryFn: () => fetchWeeklyLoanSummary(branchId),
     enabled: !!branchId,
     staleTime: 10000 * 60,

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
 import Icon from "../../components/AppIcon";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
@@ -63,23 +64,52 @@ const Login = () => {
     return Object.keys(newErrors)?.length === 0;
   };
 
-  const handleLogin = async (e) => {
+  // ================================
+  // React Query Mutation for Login
+  // ================================
+  const loginMutation = useMutation({
+    mutationFn: ({ username, password }) => login(username, password),
+    retry: 2,
+
+    onMutate: () => {
+      setIsLoading(true);
+      setErrors({});
+    },
+
+    onSuccess: () => {
+      navigate("/dashboard");
+    },
+
+    onError: (err) => {
+      let message = "Something went wrong. Please try again.";
+
+      if (!err?.response) {
+        message =
+          "Cannot reach server. Check your internet or try again later.";
+      } else if (err.response?.status === 401) {
+        message = "Invalid username or password.";
+      } else if (err.response?.status === 429) {
+        message = "Too many attempts. Please wait and try again.";
+      } else if (err.response?.status >= 500) {
+        message = "Server error. Please try again later.";
+      }
+
+      setErrors({ submit: message });
+    },
+
+    onSettled: () => {
+      setIsLoading(false);
+    },
+  });
+
+  const handleLogin = (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-    setIsLoading(true);
 
-    try {
-      await login(formData.username, formData.password); // << USE CONTEXT LOGIN
-      navigate("/dashboard"); // SAFE NOW
-    } catch (err) {
-      setErrors({
-        submit:
-          err?.response?.data?.error ||
-          "Invalid credentials. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    loginMutation.mutate({
+      username: formData.username,
+      password: formData.password,
+    });
   };
 
   return (

@@ -3,6 +3,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
+import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
 
 const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,8 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
     phone: "",
     email: "",
     status: "active",
+    photo: null,
+    idProof: null,
   });
 
   const [errors, setErrors] = useState({});
@@ -67,6 +70,8 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
       phone: "",
       email: "",
       status: "active",
+      photo: null,
+      idProof: null,
     });
     setErrors({});
     onClose();
@@ -76,11 +81,11 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+      className="form-modal-overlay fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
       onClick={handleClose}
     >
       <div
-        className="bg-card border border-border rounded-lg w-full max-w-lg max-h-[90vh] overflow-hidden shadow-elevation-lg"
+        className="form-modal-panel bg-card border border-border rounded-lg w-full max-w-lg max-h-[90vh] overflow-hidden shadow-elevation-lg"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -98,7 +103,7 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
         </div>
 
         {/* Body */}
-        <div className="px-6 py-6 max-h-[calc(90vh-160px)] overflow-y-auto space-y-4">
+        <div className="px-6 py-6 max-h-[calc(90vh-160px)] overflow-y-auto space-y-4 motion-fade-up">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               label="First Name"
@@ -156,6 +161,23 @@ const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
             value={formData?.status}
             onChange={(value) => handleChange("status", value)}
           />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <DocumentCaptureField
+              label="Staff Photo (Optional)"
+              accept="image/*"
+              value={formData?.photo}
+              onChange={(file) => handleChange("photo", file)}
+              helperText="Capture staff image instantly or upload."
+            />
+            <DocumentCaptureField
+              label="ID Proof (Optional)"
+              accept=".pdf,.jpg,.jpeg,.png"
+              value={formData?.idProof}
+              onChange={(file) => handleChange("idProof", file)}
+              helperText="Upload/capture staff ID verification."
+            />
+          </div>
         </div>
 
         {/* Footer */}

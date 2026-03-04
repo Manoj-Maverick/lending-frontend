@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 /**
  * Fetch function:
@@ -37,7 +38,7 @@ export async function fetchCustomerLoans(customerId) {
  */
 export function useCustomerLoans(customerId) {
   return useQuery({
-    queryKey: ["customer-loans", customerId],
+    queryKey: queryKeys.clients.loans(customerId),
     enabled: !!customerId,
     queryFn: () => fetchCustomerLoans(customerId),
     staleTime: 1000 * 30,

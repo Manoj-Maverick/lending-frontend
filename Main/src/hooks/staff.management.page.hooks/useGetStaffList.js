@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { queryKeys } from "queries/queryKeys";
 
 /**
  * -------------------------------
@@ -70,7 +71,7 @@ export async function fetchStaffList(params) {
  */
 export function useGetStaffList(params) {
   return useQuery({
-    queryKey: ["staff-list", params],
+    queryKey: queryKeys.staff.list(params),
     queryFn: () => fetchStaffList(params),
     keepPreviousData: true, // 👈 important for pagination UX
     staleTime: 1000 * 60 * 10, // 30 seconds

@@ -24,8 +24,8 @@ const BlocklistModal = ({
   if (!isOpen || !clientData) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg border border-border shadow-lg max-w-md w-full animate-in fade-in zoom-in">
+    <div className="form-modal-overlay fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="form-modal-panel bg-card rounded-lg border border-border shadow-lg max-w-md w-full">
         {/* Header */}
         <div
           className={`flex items-center gap-3 p-6 border-b border-border ${
