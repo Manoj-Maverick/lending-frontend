@@ -6,7 +6,7 @@ import StaffTable from "./components/StaffTable";
 import AddStaffModal from "./components/AddStaffModal";
 import EditStaffModal from "./components/EditStaffModal";
 import Pagination from "./components/Pagination";
-import { useGetStaffList } from "hooks/staff.management.page.hooks/useGetStaffList";
+import { useGetStaffList } from "hooks/staff/useStaffList";
 
 const StaffManagement = () => {
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);

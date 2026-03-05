@@ -222,7 +222,7 @@ const BranchDetails = () => {
   };
 
   const handleViewClient = (clientId) => {
-    navigate("/client-profile", { state: { clientId } });
+    navigate("/borrower-profile", { state: { clientId } });
   };
 
   return (
@@ -280,3 +280,4 @@ const BranchDetails = () => {
 };
 
 export default BranchDetails;
+

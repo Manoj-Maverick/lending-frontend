@@ -3,8 +3,8 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import { useFetchBranchById } from "hooks/branch.details.page.hooks/useGetSpecificBranch";
-import { useUpdateBranch } from "hooks/branch.details.page.hooks/updateBranchDeatils";
+import { useFetchBranchById } from "hooks/branchDetails/useBranchHeader";
+import { useUpdateBranch } from "hooks/branchDetails/useUpdateBranch";
 import { useToast } from "context/ToastContext";
 import { set } from "date-fns";
 

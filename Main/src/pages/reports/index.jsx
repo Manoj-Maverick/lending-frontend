@@ -51,7 +51,7 @@ const Reports = () => {
       title: "Executive Summary",
       description: "High-level overview of key metrics and KPIs",
       icon: "Briefcase",
-      metrics: ["Total Clients", "Active Loans", "Total Revenue"],
+      metrics: ["Total Borrowers", "Active Loans", "Total Revenue"],
     },
     {
       id: 2,
@@ -206,7 +206,7 @@ const Reports = () => {
       title: "Branch Performance Report",
       description: "Comparative performance of all branches",
       icon: "BarChart2",
-      metrics: ["Revenue by Branch", "Clients by Branch", "Growth %"],
+      metrics: ["Revenue by Branch", "Borrowers by Branch", "Growth %"],
     },
     {
       id: 2,

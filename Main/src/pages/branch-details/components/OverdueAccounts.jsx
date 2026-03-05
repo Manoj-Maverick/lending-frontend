@@ -73,7 +73,7 @@ const OverdueAccounts = ({ accounts, onViewClient }) => {
                     onClick={() => onViewClient(account?.clientId)}
                     className="w-full lg:w-auto"
                   >
-                    View Client
+                    View Borrower
                   </Button>
                   <Button
                     variant="default"

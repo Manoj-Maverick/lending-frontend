@@ -83,8 +83,8 @@ const LoanInfoTab = ({ data: loanData }) => {
         </div>
       </div>
 
-      <Section title="Client Information">
-        <Info label="Client Name" value={loanData.client_name} />
+      <Section title="Borrower Information">
+        <Info label="Borrower Name" value={loanData.client_name} />
         <Info label="Customer Code" value={loanData.customer_code} />
         <Info label="Phone Number" value={loanData.phone} />
         <Info label="Email Address" value={loanData.email} />

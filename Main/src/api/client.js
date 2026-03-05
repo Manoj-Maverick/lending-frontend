@@ -1,6 +1,5 @@
 import axios from "axios";
 
-// central configuration for API requests
 const envBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
 const runtimeBaseUrl =
   typeof window !== "undefined"
@@ -11,7 +10,29 @@ export const API_BASE_URL = envBaseUrl || runtimeBaseUrl;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  withCredentials: true, // include cookies if backend uses them
+  withCredentials: true,
 });
+
+if (import.meta.env.DEV) {
+  apiClient.interceptors.request.use((config) => {
+    const method = (config.method || "GET").toUpperCase();
+    console.debug(`[api] ${method} ${config.baseURL}${config.url}`);
+    return config;
+  });
+}
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const message =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message ||
+      "Request failed";
+
+    error.message = message;
+    return Promise.reject(error);
+  },
+);
 
 export default apiClient;

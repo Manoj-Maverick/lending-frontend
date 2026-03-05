@@ -159,7 +159,7 @@ const PerformanceTab = ({ performance, onDownloadReport, onAddReview }) => {
             {performance?.metrics?.clientSatisfaction || 0}%
           </p>
           <p className="text-sm text-muted-foreground mt-1">
-            Client Satisfaction
+            Borrower Satisfaction
           </p>
         </div>
 

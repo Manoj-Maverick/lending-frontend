@@ -1,6 +1,6 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
-import { useGetWeeklyLoanSummary } from "hooks/branch.details.page.hooks/useGetWeeklyLoanSummary";
+import { useGetWeeklyLoanSummary } from "hooks/branchDetails/useBranchWeeklySummary";
 
 const DailyCollectionsWeekly = ({ branchId }) => {
   const { data: branchData, isLoading } = useGetWeeklyLoanSummary(branchId);

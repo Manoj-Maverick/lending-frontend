@@ -3,19 +3,18 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import { useGetLoanSchedule } from "hooks/loans.details.page/useGetLoanSchedule";
-import { useAddPayment } from "hooks/loans.details.page/recordPayment";
+import { useLoanSchedule } from "hooks/loans/useLoanDetails";
+import { useCreatePayment } from "hooks/payments/useCreatePayment";
 import { useToast } from "context/ToastContext";
-import { set } from "date-fns";
 const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
   const {
     data = [],
     isLoading,
     isError,
     error,
-  } = useGetLoanSchedule(loanData?.loanId);
+  } = useLoanSchedule(loanData?.loanId);
 
-  const { mutate: addPayment } = useAddPayment();
+  const { mutate: addPayment } = useCreatePayment();
   const { showToast } = useToast();
   const today = new Date().toLocaleDateString("en-CA");
 
@@ -141,11 +140,11 @@ const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
 
           {!isLoading && !isError && todayDue && (
             <>
-              {/* Client Info */}
+              {/* Borrower Info */}
 
               <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
                 <p className="text-xs text-muted-foreground mb-2">
-                  Client Information
+                  Borrower Information
                 </p>
 
                 <p className="font-semibold text-foreground">

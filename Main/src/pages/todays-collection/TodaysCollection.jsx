@@ -11,23 +11,10 @@ import CollectionTabs from "./components/CollectionTabs";
 import CollectionTable from "./components/CollectionTable";
 import ContactPopover from "./components/ContactPopover";
 
-import { useCollections } from "hooks/todayCollections.page.hooks/useGetTodayCollections";
-
-const getIndianDate = (date = new Date()) =>
-  new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Kolkata",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
+import { useCollections } from "hooks/collections/useCollections";
+import { addIndianDays, getIndianDate } from "utils/date";
 
 const todayStr = () => getIndianDate();
-
-const addDays = (date, days) => {
-  const base = new Date(date);
-  base.setDate(base.getDate() + days);
-  return getIndianDate(base);
-};
 
 const TodaysCollection = () => {
   const navigate = useNavigate();
@@ -62,12 +49,12 @@ const TodaysCollection = () => {
     }
 
     if (range === "tomorrow") {
-      const tomorrow = addDays(todayStr(), 1);
+      const tomorrow = addIndianDays(todayStr(), 1);
       return { startDate: tomorrow, endDate: tomorrow };
     }
 
     if (range === "next7") {
-      return { startDate: todayStr(), endDate: addDays(todayStr(), 7) };
+      return { startDate: todayStr(), endDate: addIndianDays(todayStr(), 7) };
     }
 
     return { startDate: customDate, endDate: customDate };

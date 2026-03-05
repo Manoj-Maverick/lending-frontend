@@ -8,7 +8,7 @@ import EmptyState from "./components/EmptyState";
 
 import Button from "../../components/ui/Button";
 import Icon from "../../components/AppIcon";
-import { useBranchesList } from "hooks/branches.management.page.hooks/useBranchesList";
+import { useBranchesList } from "hooks/branches/useBranchesList";
 
 const BranchesManagement = () => {
   const navigate = useNavigate();

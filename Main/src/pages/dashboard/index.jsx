@@ -7,7 +7,7 @@ import LoanStatusChart from "./components/LoanStatusChart";
 import MonthlyCollectionChart from "./components/MonthlyCollectionChart";
 import BranchComparisonChart from "./components/BranchComparisonChart";
 import NoBranchAssigned from "components/NoBranchAssigned";
-import { useDashboardSummary } from "hooks/dashboard.page.hooks/useDashboardSummary";
+import { useDashboardSummary } from "hooks/dashboard/useDashboardSummary";
 import { useUIContext } from "context/UIContext";
 import { useAuth } from "auth/AuthContext";
 import PageShell from "components/ui/PageShell";
@@ -63,11 +63,11 @@ const Dashboard = () => {
         )}
 
         <StatCard
-          title="Total Clients"
+          title="Total Borrowers"
           value={data?.data.total_clients}
           icon="Users"
           color="green"
-          navigateTo="/clients-management"
+          navigateTo="/borrowers-management"
         />
 
         <StatCard
@@ -123,3 +123,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

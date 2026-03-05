@@ -3,10 +3,10 @@ import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
-import { useSettings } from "hooks/settings.page.hooks/useSettings";
-import { useSaveSettings } from "hooks/settings.page.hooks/useSaveSettings";
-import { useUsers } from "hooks/auth.page.hooks/useUser";
-import { useCreateUser } from "hooks/auth.page.hooks/useSaveUser";
+import { useSettings } from "hooks/settings/useSettings";
+import { useSaveSettings } from "hooks/settings/useSaveSettings";
+import { useUsers } from "hooks/auth/useUsers";
+import { useCreateUser } from "hooks/auth/useManageUsers";
 import { useToast } from "context/ToastContext";
 
 const Settings = () => {
@@ -41,7 +41,7 @@ const Settings = () => {
     website: "www.sdfc.com",
     timezone: "EST",
     dateFormat: "MM/DD/YYYY",
-    currency: "USD",
+    currency: "INR",
     language: "English",
   });
 
@@ -385,10 +385,9 @@ const Settings = () => {
                           handleGeneralChange("currency", value)
                         }
                         options={[
-                          { value: "USD", label: "USD ($)" },
-                          { value: "EUR", label: "EUR (€)" },
-                          { value: "GBP", label: "GBP (£)" },
-                          { value: "INR", label: "INR (₹)" },
+                          { value: "INR", label: "INR (Rs)" },
+                          { value: "EUR", label: "EUR" },
+                          { value: "GBP", label: "GBP" },
                         ]}
                       />
                     </div>
@@ -1210,3 +1209,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

@@ -7,8 +7,8 @@ const TodayPaymentsTable = () => {
   const todayPayments = [
     {
       id: "PAY-001",
-      clientName: "Sarah Johnson",
-      clientCode: "CLI-1024",
+      borrowerName: "Sarah Johnson",
+      borrowerCode: "CLI-1024",
       avatar:
         "https://img.rocket.new/generatedImages/rocket_gen_img_1456eb2f9-1763294356174.png",
       avatarAlt:
@@ -20,8 +20,8 @@ const TodayPaymentsTable = () => {
     },
     {
       id: "PAY-002",
-      clientName: "Michael Chen",
-      clientCode: "CLI-1025",
+      borrowerName: "Michael Chen",
+      borrowerCode: "CLI-1025",
       avatar:
         "https://img.rocket.new/generatedImages/rocket_gen_img_1a75f5670-1763292878816.png",
       avatarAlt:
@@ -33,8 +33,8 @@ const TodayPaymentsTable = () => {
     },
     {
       id: "PAY-003",
-      clientName: "Emily Rodriguez",
-      clientCode: "CLI-1026",
+      borrowerName: "Emily Rodriguez",
+      borrowerCode: "CLI-1026",
       avatar:
         "https://img.rocket.new/generatedImages/rocket_gen_img_13817b13e-1763295856027.png",
       avatarAlt:
@@ -46,8 +46,8 @@ const TodayPaymentsTable = () => {
     },
     {
       id: "PAY-004",
-      clientName: "David Thompson",
-      clientCode: "CLI-1027",
+      borrowerName: "David Thompson",
+      borrowerCode: "CLI-1027",
       avatar:
         "https://img.rocket.new/generatedImages/rocket_gen_img_12c942d4c-1763294979358.png",
       avatarAlt:
@@ -59,8 +59,8 @@ const TodayPaymentsTable = () => {
     },
     {
       id: "PAY-005",
-      clientName: "Lisa Anderson",
-      clientCode: "CLI-1028",
+      borrowerName: "Lisa Anderson",
+      borrowerCode: "CLI-1028",
       avatar:
         "https://img.rocket.new/generatedImages/rocket_gen_img_1c2d3f8ee-1763296078446.png",
       avatarAlt:
@@ -128,7 +128,7 @@ const TodayPaymentsTable = () => {
           <thead className="bg-muted/30">
             <tr>
               <th className="px-4 py-3 text-left text-xs md:text-sm font-medium text-muted-foreground">
-                Client
+                Borrower
               </th>
               <th className="px-4 py-3 text-left text-xs md:text-sm font-medium text-muted-foreground">
                 Loan Code
@@ -166,10 +166,10 @@ const TodayPaymentsTable = () => {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs md:text-sm font-medium text-foreground truncate">
-                        {payment?.clientName}
+                        {payment?.borrowerName}
                       </p>
                       <p className="text-xs text-muted-foreground truncate">
-                        {payment?.clientCode}
+                        {payment?.borrowerCode}
                       </p>
                     </div>
                   </div>
@@ -181,7 +181,7 @@ const TodayPaymentsTable = () => {
                   {payment?.branch}
                 </td>
                 <td className="px-4 py-3 md:py-4 text-right text-xs md:text-sm font-medium text-foreground whitespace-nowrap">
-                  ${payment?.dueAmount?.toLocaleString()}
+                  Rs {payment?.dueAmount?.toLocaleString()}
                 </td>
                 <td className="px-4 py-3 md:py-4 text-center">
                   {getStatusBadge(payment?.status)}

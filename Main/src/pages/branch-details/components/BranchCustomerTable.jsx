@@ -5,7 +5,7 @@ import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import { useFetchBranchCustomers as useBranchClients } from "../../../hooks/branch.details.page.hooks/useGetBranchCustomers";
+import { useFetchBranchCustomers as useBranchClients } from "hooks/branchDetails/useBranchCustomers";
 
 const statusOptions = [
   { value: "all", label: "All Statuses" },
@@ -115,7 +115,7 @@ const BranchClients = () => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Icon name="Filter" size={18} className="text-muted-foreground" />
-            <h2 className="font-semibold text-foreground">Filter Clients</h2>
+            <h2 className="font-semibold text-foreground">Filter Borrowers</h2>
           </div>
           <div className="text-sm text-muted-foreground">
             Showing <span className="font-semibold text-accent">{clients.length}</span> of{" "}
@@ -233,7 +233,7 @@ const BranchClients = () => {
                         variant="outline"
                         size="sm"
                         iconName="Eye"
-                        onClick={() => navigate(`/client-profile/${client.id}`)}
+                        onClick={() => navigate(`/borrower-profile/${client.id}`)}
                       >
                         View
                       </Button>
@@ -292,7 +292,7 @@ const BranchClients = () => {
                   variant="outline"
                   size="sm"
                   iconName="Eye"
-                  onClick={() => navigate(`/client-profile/${client.id}`)}
+                  onClick={() => navigate(`/borrower-profile/${client.id}`)}
                 >
                   View
                 </Button>
@@ -309,10 +309,10 @@ const BranchClients = () => {
         </div>
 
         {!isLoading && clients.length === 0 && (
-          <div className="p-10 text-center text-muted-foreground">No clients found</div>
+          <div className="p-10 text-center text-muted-foreground">No borrowers found</div>
         )}
 
-        {isError && <div className="p-10 text-center text-red-600">Failed to load clients</div>}
+        {isError && <div className="p-10 text-center text-red-600">Failed to load borrowers</div>}
       </div>
 
       <div className="bg-card border border-border rounded-b-xl p-4 flex flex-col md:flex-row items-center gap-4 mb-5">
@@ -358,3 +358,4 @@ const BranchClients = () => {
 };
 
 export default BranchClients;
+

@@ -413,7 +413,7 @@ const PaymentsManagement = () => {
               Search Payment
             </label>
             <Input
-              placeholder="Client name, Loan ID, or Payment ID..."
+              placeholder="Borrower name, Loan ID, or Payment ID..."
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -495,7 +495,7 @@ const PaymentsManagement = () => {
               <thead className="bg-muted/50 sticky top-0">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">
-                    Client & Loan
+                    Borrower & Loan
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">
                     Amount

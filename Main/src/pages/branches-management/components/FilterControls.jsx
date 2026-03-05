@@ -14,8 +14,8 @@ const FilterControls = ({ filters, onFilterChange }) => {
   const sortOptions = [
     { value: "name-asc", label: "Name (A-Z)" },
     { value: "name-desc", label: "Name (Z-A)" },
-    { value: "clients-desc", label: "Most Clients" },
-    { value: "clients-asc", label: "Least Clients" },
+    { value: "clients-desc", label: "Most Borrowers" },
+    { value: "clients-asc", label: "Least Borrowers" },
     { value: "collection-desc", label: "Highest Collection Rate" },
     { value: "collection-asc", label: "Lowest Collection Rate" },
   ];

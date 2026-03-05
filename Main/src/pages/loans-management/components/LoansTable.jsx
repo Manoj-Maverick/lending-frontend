@@ -34,7 +34,7 @@ const LoansTable = ({ loans, onViewLoan }) => {
                 Loan ID
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Client
+                Borrower
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Loan Amount

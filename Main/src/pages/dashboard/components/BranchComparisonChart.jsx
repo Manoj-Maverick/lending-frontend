@@ -12,11 +12,11 @@ import Icon from "../../../components/AppIcon";
 
 const BranchComparisonChart = () => {
   const data = [
-    { branch: "Main", clients: 156, loans: 89, collection: 95000 },
-    { branch: "North", clients: 134, loans: 72, collection: 82000 },
-    { branch: "South", clients: 98, loans: 54, collection: 68000 },
-    { branch: "East", clients: 112, loans: 63, collection: 75000 },
-    { branch: "West", clients: 87, loans: 47, collection: 58000 },
+    { branch: "Main", borrowers: 156, loans: 89, collection: 95000 },
+    { branch: "North", borrowers: 134, loans: 72, collection: 82000 },
+    { branch: "South", borrowers: 98, loans: 54, collection: 68000 },
+    { branch: "East", borrowers: 112, loans: 63, collection: 75000 },
+    { branch: "West", borrowers: 87, loans: 47, collection: 58000 },
   ];
 
   const CustomTooltip = ({ active, payload, label }) => {
@@ -28,9 +28,9 @@ const BranchComparisonChart = () => {
           </p>
           <div className="space-y-1">
             <div className="flex items-center justify-between gap-4">
-              <span className="text-xs text-muted-foreground">Clients:</span>
+              <span className="text-xs text-muted-foreground">Borrowers:</span>
               <span className="text-xs font-medium text-foreground">
-                {payload?.[0]?.payload?.clients}
+                {payload?.[0]?.payload?.borrowers}
               </span>
             </div>
             <div className="flex items-center justify-between gap-4">
@@ -44,7 +44,7 @@ const BranchComparisonChart = () => {
             <div className="flex items-center justify-between gap-4">
               <span className="text-xs text-muted-foreground">Collection:</span>
               <span className="text-xs font-medium text-accent">
-                ${payload?.[0]?.value?.toLocaleString()}
+                Rs {payload?.[0]?.value?.toLocaleString()}
               </span>
             </div>
           </div>
@@ -85,7 +85,7 @@ const BranchComparisonChart = () => {
             <YAxis
               tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }}
               axisLine={{ stroke: "var(--color-border)" }}
-              tickFormatter={(value) => `$${(value / 1000)?.toFixed(0)}k`}
+              tickFormatter={(value) => `Rs ${(value / 1000)?.toFixed(0)}k`}
             />
             <Tooltip
               content={<CustomTooltip />}

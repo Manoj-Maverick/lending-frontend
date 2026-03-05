@@ -7,8 +7,7 @@ import CreateLoanModal from "./components/CreateLoanModal";
 import Button from "../../components/ui/Button";
 import Icon from "../../components/AppIcon";
 import Select from "components/ui/Select";
-import { useClientsLoansList as useLoansList } from "../../hooks/loans.management.page.hooks/useGetClientsLoansList";
-import { useLoansManagementStats } from "../../hooks/loans.management.page.hooks/useGetClientsLoansStats";
+import { useLoans, useLoanStats } from "hooks/loans/useLoans";
 import { useUIContext } from "context/UIContext";
 
 const LoansManagement = () => {
@@ -63,7 +62,7 @@ const LoansManagement = () => {
     isLoading: isLoansLoading,
     isError: isLoansError,
     error: loansError,
-  } = useLoansList(debouncedFilters);
+  } = useLoans(debouncedFilters);
   const rawLoans = listResponse?.data ?? [];
   const pagination = listResponse?.pagination;
 
@@ -73,7 +72,7 @@ const LoansManagement = () => {
     isLoading: isStatsLoading,
     isError: isStatsError,
     error: statsError,
-  } = useLoansManagementStats({ branch: filters.branch });
+  } = useLoanStats(filters.branch);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);

@@ -41,7 +41,7 @@ const MonthlyCollectionChart = () => {
                 className="text-xs font-medium"
                 style={{ color: entry?.color }}
               >
-                ${entry?.value?.toLocaleString()}
+                Rs {entry?.value?.toLocaleString()}
               </span>
             </div>
           ))}
@@ -82,7 +82,7 @@ const MonthlyCollectionChart = () => {
             <YAxis
               tick={{ fill: "var(--color-muted-foreground)", fontSize: 12 }}
               axisLine={{ stroke: "var(--color-border)" }}
-              tickFormatter={(value) => `₹${(value / 1000)?.toFixed(0)}k`}
+              tickFormatter={(value) => `Rs ${(value / 1000)?.toFixed(0)}k`}
             />
             <Tooltip
               content={<CustomTooltip />}

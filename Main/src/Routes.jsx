@@ -7,8 +7,8 @@ import Dashboard from "./pages/dashboard";
 import BranchesManagement from "pages/branches-management";
 import BranchDetails from "pages/branch-details";
 import AppLayout from "layouts/AppLayout";
-import ClientsManagement from "pages/clients-management";
-import ClientProfile from "pages/client-profile";
+import BorrowersManagement from "pages/borrowers-management";
+import BorrowerProfile from "pages/borrower-profile";
 import LoansManagement from "pages/loans-management";
 import LoanDetails from "pages/loan-details";
 import StaffManagement from "pages/staff-management";
@@ -43,8 +43,8 @@ const Routes = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/branches-management" element={<BranchesManagement />} />
           <Route path="/branch-details/:branchId" element={<BranchDetails />} />
-          <Route path="/clients-management" element={<ClientsManagement />} />
-          <Route path="/client-profile/:clientId" element={<ClientProfile />} />
+          <Route path="/borrowers-management" element={<BorrowersManagement />} />
+          <Route path="/borrower-profile/:clientId" element={<BorrowerProfile />} />
           <Route path="/loans-management" element={<LoansManagement />} />
           <Route path="/loan-details/:loanId" element={<LoanDetails />} />
           <Route path="/staff-management" element={<StaffManagement />} />
@@ -63,3 +63,4 @@ const Routes = () => {
 };
 
 export default Routes;
+

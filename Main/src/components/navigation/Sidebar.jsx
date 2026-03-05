@@ -20,7 +20,7 @@ const Sidebar = ({
     ADMIN: [
       { label: "Dashboard", path: "/dashboard", icon: "LayoutDashboard" },
       { label: "Branches", path: "/branches-management", icon: "Building2" },
-      { label: "Clients", path: "/clients-management", icon: "Users" },
+      { label: "Borrowers", path: "/borrowers-management", icon: "Users" },
       { label: "Loans", path: "/loans-management", icon: "Wallet" },
       // { label: "Payments", path: "/payments-management", icon: "CreditCard" },
       {
@@ -42,7 +42,7 @@ const Sidebar = ({
       // If you still want them to see list:
       { label: "Branches", path: "/branches-management", icon: "Building2" },
 
-      { label: "Clients", path: "/clients-management", icon: "Users" },
+      { label: "Borrowers", path: "/borrowers-management", icon: "Users" },
       { label: "Loans", path: "/loans-management", icon: "Wallet" },
       // { label: "Payments", path: "/payments-management", icon: "CreditCard" },
       { label: "Staff", path: "/staff-management", icon: "UserCog" },
@@ -57,7 +57,7 @@ const Sidebar = ({
         path: `/branch-details/${user?.branchId}`,
         icon: "Building2",
       },
-      { label: "Customers", path: "/clients-management", icon: "Users" },
+      { label: "Borrowers", path: "/borrowers-management", icon: "Users" },
       { label: "Loans Accounts", path: "/loans-management", icon: "Wallet" },
       { label: "Payments", path: "/payments-management", icon: "CreditCard" },
       { label: "Settings", path: "/settings", icon: "Settings" },
@@ -163,3 +163,4 @@ const Sidebar = ({
 };
 
 export default Sidebar;
+

@@ -114,7 +114,7 @@ const BranchCard = ({ branch, onClick }) => {
         <div className="bg-muted/30 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-1">
             <Icon name="Users" size={16} color="var(--color-primary)" />
-            <p className="text-xs text-muted-foreground">Clients</p>
+            <p className="text-xs text-muted-foreground">Borrowers</p>
           </div>
           <p className="text-lg md:text-xl font-semibold text-foreground">
             {formatNumber(branch?.total_clients)}

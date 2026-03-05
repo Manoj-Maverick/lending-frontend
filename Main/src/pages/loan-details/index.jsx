@@ -7,7 +7,8 @@ import LoanInfoTab from "./components/LoanInfoTab";
 import PaymentScheduleTab from "./components/PaymentScheduleTab";
 import TransactionHistoryTab from "./components/TransactionHistoryTab";
 import DocumentsTab from "./components/DocumentsTab";
-import { useGetLoanDetails } from "hooks/loans.details.page/useGetLoanProfileInfo";
+import { useLoanDetails } from "hooks/loans/useLoanDetails";
+import { formatCurrencyINR } from "utils/format";
 
 function capitalizeFirst(str) {
   if (!str) return "";
@@ -20,7 +21,7 @@ const LoanDetails = () => {
   const [activeTab, setActiveTab] = useState("info");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
-  const { data, isLoading, isError, error } = useGetLoanDetails(loanId);
+  const { data, isLoading, isError, error } = useLoanDetails(loanId);
 
   if (isLoading) {
     return (
@@ -98,7 +99,7 @@ const LoanDetails = () => {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mt-2 break-words">
-                Client: {loanData.clientName} ({loanData.clientCode})
+                Borrower: {loanData.clientName} ({loanData.clientCode})
               </p>
             </div>
 
@@ -169,9 +170,7 @@ const Stat = ({ label, value }) => (
   <div className="bg-muted/50 rounded-lg p-4">
     <p className="text-xs text-muted-foreground mb-1">{label}</p>
     <p className="text-xl font-semibold text-foreground break-words">
-      {typeof value === "number"
-        ? `Rs ${value.toLocaleString("en-IN")}`
-        : value}
+      {typeof value === "number" ? formatCurrencyINR(value) : value}
     </p>
   </div>
 );

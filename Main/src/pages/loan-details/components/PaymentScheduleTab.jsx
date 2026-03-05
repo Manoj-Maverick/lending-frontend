@@ -1,9 +1,9 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
-import { useGetLoanSchedule } from "hooks/loans.details.page/useGetLoanSchedule";
+import { useLoanSchedule } from "hooks/loans/useLoanDetails";
 
 const PaymentScheduleTab = ({ loanId }) => {
-  const { data, isLoading, isError, error } = useGetLoanSchedule(loanId);
+  const { data, isLoading, isError, error } = useLoanSchedule(loanId);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-IN", {

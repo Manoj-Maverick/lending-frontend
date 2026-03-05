@@ -10,8 +10,8 @@ const Breadcrumb = () => {
     "/dashboard": "Dashboard",
     "/branches-management": "Branches",
     "/branch-details": "Branch Details",
-    "/clients-management": "Clients",
-    "/client-profile": "Client Profile",
+    "/borrowers-management": "Borrowers",
+    "/borrower-profile": "Borrower Profile",
     "/loans-management": "Loans",
     "/loan-details": "Loan Details",
     "/payments-management": "Payments",
@@ -81,3 +81,4 @@ const Breadcrumb = () => {
 };
 
 export default Breadcrumb;
+

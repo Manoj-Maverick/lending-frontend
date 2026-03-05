@@ -126,10 +126,10 @@ const DailyCollectionTable = () => {
                   {item?.day}
                 </td>
                 <td className="px-4 py-3 md:py-4 text-right text-xs md:text-sm text-foreground whitespace-nowrap">
-                  ${item?.expected?.toLocaleString()}
+                  Rs {item?.expected?.toLocaleString()}
                 </td>
                 <td className="px-4 py-3 md:py-4 text-right text-xs md:text-sm font-medium text-foreground whitespace-nowrap">
-                  ${item?.collected?.toLocaleString()}
+                  Rs {item?.collected?.toLocaleString()}
                 </td>
                 <td
                   className={`px-4 py-3 md:py-4 text-right text-xs md:text-sm font-medium whitespace-nowrap ${getStatusColor(

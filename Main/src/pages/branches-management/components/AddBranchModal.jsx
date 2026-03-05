@@ -4,7 +4,7 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
-import { useCreateBranch } from "hooks/branches.management.page.hooks/useCreateBranch";
+import { useCreateBranch } from "hooks/branches/useCreateBranch";
 import { useToast } from "context/ToastContext";
 
 const AddBranchModal = ({ isOpen, onClose }) => {

@@ -5,11 +5,11 @@ import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
 import { useAuth } from "auth/AuthContext";
-import { useCreateLoan } from "hooks/clients.profile.page.hooks/useCreateNewLoan";
+import { useCreateLoan } from "hooks/loans/useCreateLoan";
 import { useToast } from "context/ToastContext";
-import { useGuarantors } from "hooks/clients.profile.page.hooks/useGetGuarantorsInfo";
-// Fixed dummy client
-const DUMMY_CLIENT = {
+import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
+// Fixed dummy borrower
+const DUMMY_BORROWER = {
   id: "CUS0418",
   name: "Rani Das",
   phone: "8510946946",
@@ -22,7 +22,7 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [guarantorMode, setGuarantorMode] = useState("new"); // only "existing" | "new" now
   const { mutate: createLoan, isPending } = useCreateLoan();
-  const { data: guarantors = [] } = useGuarantors(customerId);
+  const { data: guarantors = [] } = useBorrowerGuarantors(customerId);
   const { showToast } = useToast();
   const today = new Date().toISOString().split("T")[0];
 
@@ -550,20 +550,20 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
           {currentStep === 1 && (
             <div className="space-y-6">
               <h3 className="text-lg sm:text-xl font-semibold">
-                Client & Loan Details
+                Borrower & Loan Details
               </h3>
 
-              {/* Client info */}
+              {/* Borrower info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
-                  label="Client Name"
+                  label="Borrower Name"
                   value={data?.name}
                   disabled
                   readOnly
                   className="bg-gray-50"
                 />
                 <Input
-                  label="Client Code"
+                  label="Borrower Code"
                   value={data?.code}
                   disabled
                   readOnly
@@ -884,7 +884,7 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
                   </h3>
                   <p className="text-sm text-gray-500 mt-1">
                     {guarantorMode === "existing"
-                      ? "Select from existing clients"
+                      ? "Select from existing borrowers"
                       : "Enter new guarantor details"}
                   </p>
                 </div>
@@ -1147,3 +1147,4 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
 };
 
 export default CreateLoanModal;
+

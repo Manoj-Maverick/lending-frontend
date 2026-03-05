@@ -1,7 +1,7 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
-import { useFetchBranchById } from "hooks/branch.details.page.hooks/useGetSpecificBranch";
+import { useFetchBranchById } from "hooks/branchDetails/useBranchHeader";
 
 const BranchHeader = ({ branchId, branch, onEdit, onStatusToggle }) => {
   const getStatusColor = (status) => {

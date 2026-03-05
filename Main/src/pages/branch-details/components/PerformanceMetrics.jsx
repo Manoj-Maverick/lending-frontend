@@ -1,6 +1,6 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
-import { useFetchBranchPerformanceMetricsByID } from "hooks/branch.details.page.hooks/useGetSpecificBranchPerformanceMetrics";
+import { useFetchBranchPerformanceMetricsByID } from "hooks/branchDetails/useBranchPerformance";
 
 const PerformanceMetrics = ({ branchId }) => {
   const { data, isLoading } = useFetchBranchPerformanceMetricsByID(branchId);
@@ -19,7 +19,7 @@ const PerformanceMetrics = ({ branchId }) => {
 
   const metricCards = [
     {
-      label: "Total Clients",
+      label: "Total Borrowers",
       value: totalClients.toLocaleString("en-IN"),
       icon: "Users",
       bgColor: "bg-primary/10",

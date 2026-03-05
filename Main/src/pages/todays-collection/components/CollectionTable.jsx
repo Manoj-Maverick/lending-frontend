@@ -41,7 +41,7 @@ const CollectionTable = ({
           <thead className="bg-muted/50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">
-                Client & Loan
+                Borrower & Loan
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase">
                 Phone
