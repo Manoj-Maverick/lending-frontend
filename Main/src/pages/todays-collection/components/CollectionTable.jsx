@@ -141,7 +141,7 @@ const CollectionTable = ({
                       size="sm"
                       variant="ghost"
                       iconName="Eye"
-                      onClick={() => onViewLoan(row.clientCode)}
+                      onClick={() => onViewLoan(row.loanId)}
                     />
                   </div>
                 </td>

@@ -20,6 +20,7 @@ const LoansManagement = () => {
     branch: "all",
     loanType: "all",
     searchQuery: "",
+    collectionDay: "all",
   });
 
   // 🧭 Pagination state
@@ -44,6 +45,7 @@ const LoansManagement = () => {
     filters.status,
     filters.branch,
     filters.loanType,
+    filters.collectionDay,
     debouncedSearch,
     pageSize,
   ]);
@@ -108,7 +110,7 @@ const LoansManagement = () => {
     loanAmount: Number(l.loan_amount),
     outstanding: Number(l.outstanding),
     emiAmount: Number(l.emi_amount),
-    nextEmiDate: l.next_emi_date.split("T")[0],
+    nextEmiDate: l?.next_emi_date?.split("T")[0] || null,
     interestRate: Number(l.interest_rate),
     tenure: Number(l.tenure_value),
     tenureUnit: l.tenure_unit,
@@ -158,7 +160,7 @@ const LoansManagement = () => {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto space-y-6">
+      <div className=" mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>

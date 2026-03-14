@@ -44,7 +44,7 @@ const Routes = () => {
           <Route path="/branches-management" element={<BranchesManagement />} />
           <Route path="/branch-details/:branchId" element={<BranchDetails />} />
           <Route path="/borrowers-management" element={<BorrowersManagement />} />
-          <Route path="/borrower-profile/:clientId" element={<BorrowerProfile />} />
+          <Route path="/borrower-profile/:borrowerId" element={<BorrowerProfile />} />
           <Route path="/loans-management" element={<LoansManagement />} />
           <Route path="/loan-details/:loanId" element={<LoanDetails />} />
           <Route path="/staff-management" element={<StaffManagement />} />

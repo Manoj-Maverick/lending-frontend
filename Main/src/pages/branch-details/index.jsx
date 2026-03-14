@@ -171,8 +171,8 @@ const BranchDetails = () => {
   const overdueAccounts = [
     {
       id: "overdue-001",
-      clientId: "client-001",
-      clientName: "Patricia Davis",
+      borrowerId: "borrower-001",
+      borrowerName: "Patricia Davis",
       loanCode: "LN-2023-234",
       overdueAmount: 850,
       daysOverdue: 45,
@@ -181,8 +181,8 @@ const BranchDetails = () => {
     },
     {
       id: "overdue-002",
-      clientId: "client-002",
-      clientName: "Christopher Lee",
+      borrowerId: "borrower-002",
+      borrowerName: "Christopher Lee",
       loanCode: "LN-2023-189",
       overdueAmount: 620,
       daysOverdue: 32,
@@ -191,8 +191,8 @@ const BranchDetails = () => {
     },
     {
       id: "overdue-003",
-      clientId: "client-003",
-      clientName: "Amanda Taylor",
+      borrowerId: "borrower-003",
+      borrowerName: "Amanda Taylor",
       loanCode: "LN-2024-012",
       overdueAmount: 450,
       daysOverdue: 18,
@@ -221,8 +221,8 @@ const BranchDetails = () => {
     console.log("Remove staff member:", staffId);
   };
 
-  const handleViewClient = (clientId) => {
-    navigate("/borrower-profile", { state: { clientId } });
+  const handleViewBorrower = (borrowerId) => {
+    navigate("/borrower-profile", { state: { borrowerId } });
   };
 
   return (
@@ -261,7 +261,7 @@ const BranchDetails = () => {
       <RecentTransactions transactions={recentTransactions} />
       <OverdueAccounts
         accounts={overdueAccounts}
-        onViewClient={handleViewClient}
+        onViewBorrower={handleViewBorrower}
       />
       <EditBranchModal
         branchId={branchId}

@@ -7,14 +7,16 @@ const LoansTable = ({ loans, onViewLoan }) => {
 
   const getStatusColor = (status) => {
     const colors = {
-      Active:
+      ACTIVE:
         "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
-      Overdue:
+      OVERDUE:
         "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
-      Closed:
+      CLOSED:
         "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
       Pending:
         "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+      FORECLOSED:
+        "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
     };
     return colors?.[status] || colors?.["Active"];
   };
@@ -94,7 +96,7 @@ const LoansTable = ({ loans, onViewLoan }) => {
                   ₹{loan?.emiAmount?.toLocaleString()}
                 </td>
                 <td className="px-4 py-3 text-sm text-foreground">
-                  {loan?.nextEmiDate.split("T")[0]}
+                  {loan?.nextEmiDate?.split("T")[0] ?? "-"}
                 </td>
                 <td className="px-4 py-3">
                   <span

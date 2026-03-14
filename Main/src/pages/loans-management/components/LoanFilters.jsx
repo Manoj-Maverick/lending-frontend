@@ -5,14 +5,23 @@ import Icon from "../../../components/AppIcon";
 
 const LoanFilters = ({ filters, branches, onFilterChange }) => {
   const handleChange = (field, value) => {
-    console.log(`Filters - `, filters);
-    console.log(`Filter change - ${field}:`, value);
     onFilterChange({ ...filters, [field]: value });
   };
 
+  const collectionDayOptions = [
+    { value: "all", label: "All Days" },
+    { value: "MON", label: "Monday" },
+    { value: "TUE", label: "Tuesday" },
+    { value: "WED", label: "Wednesday" },
+    { value: "THU", label: "Thursday" },
+    { value: "FRI", label: "Friday" },
+    { value: "SAT", label: "Saturday" },
+    { value: "SUN", label: "Sunday" },
+  ];
+
   return (
     <div className="mb-6 space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Select
           label="Status"
           value={filters?.status}
@@ -29,10 +38,7 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
         <Select
           label="Branch"
           value={filters?.branch}
-          onChange={(value) => {
-            handleChange("branch", value);
-            console.log("Selected branch:", value);
-          }}
+          onChange={(value) => handleChange("branch", value)}
           options={[
             { value: "all", label: "All Branches" },
             ...(branches || []).map((branch) => ({
@@ -55,6 +61,14 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
           ]}
         />
 
+        {/* NEW COLLECTION DAY FILTER */}
+        <Select
+          label="Collection Day"
+          value={filters?.collectionDay}
+          onChange={(value) => handleChange("collectionDay", value)}
+          options={collectionDayOptions}
+        />
+
         <div className="flex items-end">
           <button
             onClick={() =>
@@ -62,6 +76,7 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
                 status: "all",
                 branch: "all",
                 loanType: "all",
+                collectionDay: "all",
                 searchQuery: "",
               })
             }
@@ -79,11 +94,12 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
           size={16}
           className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         />
+
         <Input
           type="text"
           placeholder="Search by loan ID, client name, or client code..."
           value={filters?.searchQuery}
-          onChange={(e) => handleChange("searchQuery", e?.target?.value)}
+          onChange={(e) => handleChange("searchQuery", e.target.value)}
           className="pl-10"
         />
       </div>

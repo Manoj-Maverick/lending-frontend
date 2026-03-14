@@ -9,14 +9,24 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import Icon from "../../../components/AppIcon";
+import { useBranchComparison } from "hooks/dashboard/useBranchComparison";
 
 const BranchComparisonChart = () => {
+  const { data: branchData, isLoading } = useBranchComparison();
   const data = [
     { branch: "Main", borrowers: 156, loans: 89, collection: 95000 },
     { branch: "North", borrowers: 134, loans: 72, collection: 82000 },
     { branch: "South", borrowers: 98, loans: 54, collection: 68000 },
     { branch: "East", borrowers: 112, loans: 63, collection: 75000 },
     { branch: "West", borrowers: 87, loans: 47, collection: 58000 },
+    // ...branchData?.data?.map((item) => {
+    //   return {
+    //     branch: item.branch,
+    //     borrowers: item.borrowers,
+    //     loans: item.loans,
+    //     collection: item.collection,
+    //   };
+    // }),
   ];
 
   const CustomTooltip = ({ active, payload, label }) => {

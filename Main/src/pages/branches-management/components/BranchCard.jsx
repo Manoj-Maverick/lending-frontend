@@ -56,15 +56,21 @@ const BranchCard = ({ branch, onClick }) => {
             <Icon name="Building2" size={24} color="var(--color-primary)" />
           </div>
           <div>
-            <h3 className="text-base md:text-lg font-semibold text-foreground mb-1">
+            <h3 className="text-base md:text-lg font-semibold text-foreground mb-0.5">
               {branch?.branch_name}
             </h3>
+            {branch?.branch_code && (
+              <p className="text-xs text-muted-foreground mb-1">
+                Code: {branch.branch_code}
+              </p>
+            )}
             <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-1">
               <Icon name="MapPin" size={14} />
               {branch?.location}
             </p>
           </div>
         </div>
+
         <span
           className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
             branch?.is_active ? "active" : "inactive",
@@ -100,7 +106,7 @@ const BranchCard = ({ branch, onClick }) => {
         </div>
       ) : (
         <div className="mb-4 pb-4 border-b border-border">
-          <div className=" bg-warning/10 border border-warning/20 rounded-md p-2 flex items-center gap-2">
+          <div className="bg-warning/10 border border-warning/20 rounded-md p-2 flex items-center gap-2">
             <Icon name="AlertCircle" size={14} className="text-warning" />
             <span className="text-sm text-warning font-medium">
               Manager Not Assigned
@@ -160,15 +166,9 @@ const BranchCard = ({ branch, onClick }) => {
               )}`}
             >
               {formatPercentage(
-                typeof (
-                  (branch?.total_collected / branch?.total_disbursed) *
-                  100
-                ) != "number" ||
-                  isNaN(
-                    (branch?.total_collected / branch?.total_disbursed) * 100,
-                  )
-                  ? 0
-                  : (branch?.total_collected / branch?.total_disbursed) * 100,
+                branch?.total_disbursed > 0
+                  ? (branch.total_collected / branch.total_disbursed) * 100
+                  : 0,
               )}
             </span>
           </div>

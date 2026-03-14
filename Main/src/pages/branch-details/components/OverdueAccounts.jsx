@@ -2,7 +2,7 @@ import React from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 
-const OverdueAccounts = ({ accounts, onViewClient }) => {
+const OverdueAccounts = ({ accounts, onViewBorrower }) => {
   const getDaysOverdueColor = (days) => {
     if (days > 30) return "text-error";
     if (days > 15) return "text-warning";
@@ -30,7 +30,7 @@ const OverdueAccounts = ({ accounts, onViewClient }) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                     <h3 className="text-sm md:text-base font-medium text-foreground line-clamp-1">
-                      {account?.clientName}
+                      {account?.borrowerName || account?.clientName}
                     </h3>
                     <span className="text-xs text-muted-foreground whitespace-nowrap">Loan: {account?.loanCode}</span>
                   </div>
@@ -70,7 +70,9 @@ const OverdueAccounts = ({ accounts, onViewClient }) => {
                     size="sm"
                     iconName="User"
                     iconPosition="left"
-                    onClick={() => onViewClient(account?.clientId)}
+                    onClick={() =>
+                      onViewBorrower(account?.borrowerId)
+                    }
                     className="w-full lg:w-auto"
                   >
                     View Borrower

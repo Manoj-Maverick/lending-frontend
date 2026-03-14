@@ -395,7 +395,7 @@ const BorrowersTable = ({
                   onClick={(e) => {
                     e?.stopPropagation();
                     navigate("/borrower-profile", {
-                      state: { clientId: client?.id },
+                      state: { borrowerId: client?.id },
                     });
                   }}
                 >

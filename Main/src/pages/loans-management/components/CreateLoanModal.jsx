@@ -8,6 +8,7 @@ import { useAuth } from "auth/AuthContext";
 import { useCreateLoan } from "hooks/loans/useCreateLoan";
 import { useToast } from "context/ToastContext";
 import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
+import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
 // Fixed dummy borrower
 const DUMMY_BORROWER = {
   id: "CUS0418",
@@ -17,21 +18,22 @@ const DUMMY_BORROWER = {
   aadhaar_last4: "6946",
 };
 
-const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
+const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [guarantorMode, setGuarantorMode] = useState("new"); // only "existing" | "new" now
   const { mutate: createLoan, isPending } = useCreateLoan();
-  const { data: guarantors = [] } = useBorrowerGuarantors(customerId);
+  const { data: guarantors = [] } = useBorrowerGuarantors(borrowerId);
   const { showToast } = useToast();
   const today = new Date().toISOString().split("T")[0];
+  const { data: borrower } = useBorrowerDetails(borrowerId);
 
   const [formData, setFormData] = useState({
     // 1–4 Basic Identity
     loan_code: `LN-CDL-2025-${String(1000 + Math.floor(Math.random() * 9000)).padStart(5, "0")}`,
-    customer_id: data?.id,
-    branch_id: data?.branchId,
-    parent_loan_id: null,
+    customer_id: null,
+    branch_id: null,
+    parent_loan_id: oldLoanId ? oldLoanId : null,
 
     // 5–9 Financial Core
     principal_amount: "15000",
@@ -93,7 +95,6 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
     signature_sheet: null,
     other_document: null,
   });
-
   const [errors, setErrors] = useState({});
 
   const existingGuarantors = [
@@ -140,6 +141,10 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
     { value: "SAT", label: "Saturday" },
     { value: "SUN", label: "Sunday" },
   ];
+  useEffect(() => {
+    formData.branch_id = borrower?.branchId;
+    formData.customer_id = borrower?.id;
+  }, [borrower]);
 
   // Sync tenure_unit based on repayment_type
   useEffect(() => {
@@ -557,28 +562,28 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
                   label="Borrower Name"
-                  value={data?.name}
+                  value={borrower?.name}
                   disabled
                   readOnly
                   className="bg-gray-50"
                 />
                 <Input
                   label="Borrower Code"
-                  value={data?.code}
+                  value={borrower?.code}
                   disabled
                   readOnly
                   className="bg-gray-50"
                 />
                 <Input
                   label="Phone Number"
-                  value={data?.phone}
+                  value={borrower?.phone}
                   disabled
                   readOnly
                   className="bg-gray-50"
                 />
                 <Input
                   label="Aadhaar (last 4)"
-                  value={`XXXX XXXX ${data?.kyc?.aadhaarLast4 || "XXXX"}`}
+                  value={`XXXX XXXX ${borrower?.kyc?.aadhaarLast4 || "XXXX"}`}
                   disabled
                   readOnly
                   className="bg-gray-50"
@@ -704,7 +709,7 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
                 type="date"
                 value={formData.start_date}
                 onChange={(e) => handleChange("start_date", e.target.value)}
-                min={formData.sanctioned_date || today}
+                // min={formData.sanctioned_date || today}
               />
 
               <Input
@@ -1147,4 +1152,3 @@ const CreateLoanModal = ({ customerId, data, isOpen, onClose, onSubmit }) => {
 };
 
 export default CreateLoanModal;
-

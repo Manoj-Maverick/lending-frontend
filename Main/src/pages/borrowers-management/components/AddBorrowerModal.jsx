@@ -4,14 +4,18 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
+import PhoneVerification from "auth/PhoneVerification";
 import { useCreateBorrower } from "hooks/borrowers/useCreateBorrower";
 import { useToast } from "context/ToastContext";
 import { useUIContext } from "context/UIContext";
+
 const AddBorrowerModal = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [addGuarantorNow, setAddGuarantorNow] = useState(false);
   const { mutate: createBorrower, isPending, error } = useCreateBorrower();
   const { showToast } = useToast();
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [guarantorPhoneVerified, setGuarantorPhoneVerified] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "Ravi Kumar",
     dateOfBirth: "1994-08-15",
@@ -112,6 +116,13 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
   }, []);
 
   const handleInputChange = (field, value) => {
+    if (field === "phone") {
+      setPhoneVerified(false);
+    }
+
+    if (field === "guarantorPhone") {
+      setGuarantorPhoneVerified(false);
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -121,53 +132,164 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
   const validateStep = (step) => {
     const newErrors = {};
 
+    /* -----------------------
+STEP 1 — PERSONAL
+----------------------- */
+
     if (step === 1) {
       if (!formData.fullName?.trim())
         newErrors.fullName = "Full name is required";
+
       if (!formData.dateOfBirth)
         newErrors.dateOfBirth = "Date of birth is required";
+
       if (!formData.gender) newErrors.gender = "Gender is required";
+
       if (!formData.phone?.trim()) newErrors.phone = "Phone is required";
       else if (!/^\d{10}$/.test(formData.phone))
-        newErrors.phone = "Invalid phone number";
+        newErrors.phone = "Phone must be 10 digits";
+      else if (!phoneVerified) newErrors.phone = "Phone must be verified";
+
+      if (formData.alternatePhone && !/^\d{10}$/.test(formData.alternatePhone))
+        newErrors.alternatePhone = "Invalid alternate phone";
+
+      if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email))
+        newErrors.email = "Invalid email format";
+
+      if (formData.monthlyIncome && isNaN(formData.monthlyIncome))
+        newErrors.monthlyIncome = "Income must be numeric";
     }
+
+    /* -----------------------
+STEP 2 — ADDRESS
+----------------------- */
 
     if (step === 2) {
       if (!formData.addressLine1?.trim())
         newErrors.addressLine1 = "Address is required";
+
       if (!formData.city?.trim()) newErrors.city = "City is required";
+
       if (!formData.state?.trim()) newErrors.state = "State is required";
+
       if (!formData.pincode?.trim()) newErrors.pincode = "Pincode is required";
       else if (!/^\d{6}$/.test(formData.pincode))
         newErrors.pincode = "Invalid pincode";
+
+      if (formData.yearsAtAddress && isNaN(formData.yearsAtAddress))
+        newErrors.yearsAtAddress = "Must be a number";
     }
+
+    /* -----------------------
+STEP 3 — BANK + KYC
+----------------------- */
 
     if (step === 3) {
       if (!formData.bankName?.trim())
         newErrors.bankName = "Bank name is required";
+
       if (!formData.accountNumber?.trim())
         newErrors.accountNumber = "Account number is required";
+      else if (!/^\d{9,18}$/.test(formData.accountNumber))
+        newErrors.accountNumber = "Invalid account number";
+
       if (!formData.ifscCode?.trim())
         newErrors.ifscCode = "IFSC code is required";
+      else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode))
+        newErrors.ifscCode = "Invalid IFSC code";
+
       if (!formData.accountType)
         newErrors.accountType = "Account type is required";
+
       if (!formData.accountHolderName?.trim())
         newErrors.accountHolderName = "Account holder name is required";
+
+      if (formData.aadhaarNumber && !/^\d{12}$/.test(formData.aadhaarNumber))
+        newErrors.aadhaarNumber = "Aadhaar must be 12 digits";
+
+      if (
+        formData.panNumber &&
+        !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panNumber)
+      )
+        newErrors.panNumber = "Invalid PAN format";
     }
+
+    /* -----------------------
+STEP 4 — GUARANTOR
+----------------------- */
 
     if (step === 4 && addGuarantorNow) {
       if (!formData.guarantorFullName?.trim())
         newErrors.guarantorFullName = "Guarantor name is required";
+
       if (!formData.guarantorPhone?.trim())
         newErrors.guarantorPhone = "Guarantor phone is required";
       else if (!/^\d{10}$/.test(formData.guarantorPhone))
         newErrors.guarantorPhone = "Invalid phone";
+      else if (!guarantorPhoneVerified)
+        newErrors.guarantorPhone = "Verification required";
+
       if (!formData.guarantorRelation)
         newErrors.guarantorRelation = "Relation is required";
+
+      if (
+        formData.guarantorAlternatePhone &&
+        !/^\d{10}$/.test(formData.guarantorAlternatePhone)
+      )
+        newErrors.guarantorAlternatePhone = "Invalid alternate phone";
+
+      if (
+        formData.guarantorEmail &&
+        !/^\S+@\S+\.\S+$/.test(formData.guarantorEmail)
+      )
+        newErrors.guarantorEmail = "Invalid email";
+
+      if (
+        formData.guarantorMonthlyIncome &&
+        isNaN(formData.guarantorMonthlyIncome)
+      )
+        newErrors.guarantorMonthlyIncome = "Income must be numeric";
+
+      if (
+        formData.guarantorPincode &&
+        !/^\d{6}$/.test(formData.guarantorPincode)
+      )
+        newErrors.guarantorPincode = "Invalid pincode";
+
+      if (
+        formData.guarantorAadhaar &&
+        !/^\d{12}$/.test(formData.guarantorAadhaar)
+      )
+        newErrors.guarantorAadhaar = "Invalid Aadhaar";
+
+      if (
+        formData.guarantorPan &&
+        !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.guarantorPan)
+      )
+        newErrors.guarantorPan = "Invalid PAN";
     }
+
+    /* -----------------------
+STEP 5 — DOCUMENTS + BRANCH
+----------------------- */
 
     if (step === 5) {
       if (!formData.branch) newErrors.branch = "Please select a branch";
+
+      if (formData.photo && formData.photo.size > 5 * 1024 * 1024)
+        newErrors.photo = "Photo must be under 5MB";
+
+      if (formData.idProof && formData.idProof.size > 10 * 1024 * 1024)
+        newErrors.idProof = "ID proof must be under 10MB";
+
+      if (
+        formData.addressProof &&
+        formData.addressProof.size > 10 * 1024 * 1024
+      )
+        newErrors.addressProof = "Address proof must be under 10MB";
+
+      if (formData.incomeProof && formData.incomeProof.size > 10 * 1024 * 1024)
+        newErrors.incomeProof = "Income proof must be under 10MB";
     }
 
     setErrors(newErrors);
@@ -387,14 +509,25 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
                 onChange={(v) => handleInputChange("maritalStatus", v)}
               />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Phone Number"
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  required
-                  error={errors.phone}
-                />
+                {/* Phone + Verification in SAME column */}
+                <div className="space-y-4">
+                  <Input
+                    label="Phone Number"
+                    type="tel"
+                    disabled={phoneVerified}
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange("phone", e.target.value)}
+                    required
+                    error={phoneVerified ? "" : errors.phone}
+                  />
+                  <PhoneVerification
+                    phone={formData.phone}
+                    verified={phoneVerified}
+                    onVerified={() => setPhoneVerified(true)}
+                  />
+                </div>
+
+                {/* Alternate Phone stays in the second column */}
                 <Input
                   label="Alternate Phone"
                   type="tel"
@@ -427,297 +560,6 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
                   }
                 />
               </div>
-            </div>
-          )}
-
-          {currentStep === 2 && (
-            <div className="space-y-6">
-              <Input
-                label="Address Line 1"
-                value={formData.addressLine1}
-                onChange={(e) =>
-                  handleInputChange("addressLine1", e.target.value)
-                }
-                required
-                error={errors.addressLine1}
-              />
-              <Input
-                label="Address Line 2 (optional)"
-                value={formData.addressLine2}
-                onChange={(e) =>
-                  handleInputChange("addressLine2", e.target.value)
-                }
-              />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Input
-                  label="City"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  required
-                  error={errors.city}
-                />
-                <Input
-                  label="State"
-                  value={formData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
-                  required
-                  error={errors.state}
-                />
-                <Input
-                  label="Pincode"
-                  value={formData.pincode}
-                  onChange={(e) => handleInputChange("pincode", e.target.value)}
-                  required
-                  error={errors.pincode}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Select
-                  label="Residence Type"
-                  options={residenceTypeOptions}
-                  value={formData.residenceType}
-                  onChange={(v) => handleInputChange("residenceType", v)}
-                />
-                <Input
-                  label="Years at this Address"
-                  type="number"
-                  value={formData.yearsAtAddress}
-                  onChange={(e) =>
-                    handleInputChange("yearsAtAddress", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-          )}
-
-          {currentStep === 3 && (
-            <div className="space-y-6">
-              <Input
-                label="Bank Name"
-                value={formData.bankName}
-                onChange={(e) => handleInputChange("bankName", e.target.value)}
-                required
-                error={errors.bankName}
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Account Number"
-                  value={formData.accountNumber}
-                  onChange={(e) =>
-                    handleInputChange("accountNumber", e.target.value)
-                  }
-                  required
-                  error={errors.accountNumber}
-                />
-                <Input
-                  label="IFSC Code"
-                  value={formData.ifscCode}
-                  onChange={(e) =>
-                    handleInputChange("ifscCode", e.target.value)
-                  }
-                  required
-                  error={errors.ifscCode}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Select
-                  label="Account Type"
-                  options={accountTypeOptions}
-                  value={formData.accountType}
-                  onChange={(v) => handleInputChange("accountType", v)}
-                  required
-                  error={errors.accountType}
-                />
-                <Input
-                  label="Account Holder Name"
-                  value={formData.accountHolderName}
-                  onChange={(e) =>
-                    handleInputChange("accountHolderName", e.target.value)
-                  }
-                  required
-                  error={errors.accountHolderName}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Input
-                  label="Aadhaar Number"
-                  value={formData.aadhaarNumber}
-                  onChange={(e) =>
-                    handleInputChange("aadhaarNumber", e.target.value)
-                  }
-                  maxLength={12}
-                />
-                <Input
-                  label="PAN Number"
-                  value={formData.panNumber}
-                  onChange={(e) =>
-                    handleInputChange("panNumber", e.target.value)
-                  }
-                  maxLength={10}
-                />
-              </div>
-            </div>
-          )}
-
-          {currentStep === 4 && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Guarantor Information
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    {addGuarantorNow
-                      ? "Enter guarantor details now"
-                      : "You can add a guarantor later from the borrower profile"}
-                  </p>
-                </div>
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setAddGuarantorNow(false)}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      !addGuarantorNow
-                        ? "bg-gray-800 text-white shadow-md"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    Add Later
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAddGuarantorNow(true)}
-                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      addGuarantorNow
-                        ? "bg-blue-600 text-white shadow-md"
-                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
-                    }`}
-                  >
-                    Add Now
-                  </button>
-                </div>
-              </div>
-
-              {addGuarantorNow && (
-                <div className="space-y-6 pt-4 animate-fade-in">
-                  <Input
-                    label="Guarantor Full Name"
-                    value={formData.guarantorFullName}
-                    onChange={(e) =>
-                      handleInputChange("guarantorFullName", e.target.value)
-                    }
-                    required
-                    error={errors.guarantorFullName}
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                      label="Phone Number"
-                      type="tel"
-                      value={formData.guarantorPhone}
-                      onChange={(e) =>
-                        handleInputChange("guarantorPhone", e.target.value)
-                      }
-                      required
-                      error={errors.guarantorPhone}
-                    />
-                    <Select
-                      label="Relation"
-                      options={relationOptions}
-                      value={formData.guarantorRelation}
-                      onChange={(v) =>
-                        handleInputChange("guarantorRelation", v)
-                      }
-                      required
-                      error={errors.guarantorRelation}
-                    />
-                  </div>
-                  <Input
-                    label="Address"
-                    value={formData.guarantorAddress}
-                    onChange={(e) =>
-                      handleInputChange("guarantorAddress", e.target.value)
-                    }
-                  />
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                      label="Occupation"
-                      value={formData.guarantorOccupation}
-                      onChange={(e) =>
-                        handleInputChange("guarantorOccupation", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="Monthly Income (₹)"
-                      type="number"
-                      value={formData.guarantorMonthlyIncome}
-                      onChange={(e) =>
-                        handleInputChange(
-                          "guarantorMonthlyIncome",
-                          e.target.value,
-                        )
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <Input
-                      label="City"
-                      value={formData.guarantorCity}
-                      onChange={(e) =>
-                        handleInputChange("guarantorCity", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="State"
-                      value={formData.guarantorState}
-                      onChange={(e) =>
-                        handleInputChange("guarantorState", e.target.value)
-                      }
-                    />
-                    <Input
-                      label="Pincode"
-                      value={formData.guarantorPincode}
-                      onChange={(e) =>
-                        handleInputChange("guarantorPincode", e.target.value)
-                      }
-                      maxLength={6}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Input
-                      label="Aadhaar Number"
-                      value={formData.guarantorAadhaar}
-                      onChange={(e) =>
-                        handleInputChange("guarantorAadhaar", e.target.value)
-                      }
-                      maxLength={12}
-                    />
-                    <Input
-                      label="PAN Number"
-                      value={formData.guarantorPan}
-                      onChange={(e) =>
-                        handleInputChange("guarantorPan", e.target.value)
-                      }
-                      maxLength={10}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {!addGuarantorNow && (
-                <div className="py-10 text-center text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl">
-                  <Icon
-                    name="Users"
-                    size={48}
-                    className="mx-auto mb-4 opacity-60"
-                  />
-                  <p className="text-lg font-medium">
-                    No guarantor added at this time
-                  </p>
-                  <p className="text-sm mt-2">
-                    You can add one later from the borrower profile page
-                  </p>
-                </div>
-              )}
             </div>
           )}
 
@@ -804,4 +646,3 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
 };
 
 export default AddBorrowerModal;
-

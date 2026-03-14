@@ -5,7 +5,7 @@ import Button from "../../../components/ui/Button";
 import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
 import { API_BASE_URL } from "api/client";
 
-const PersonalInfoTab = ({ customerId: borrowerId, onEdit }) => {
+const PersonalInfoTab = ({ borrowerId, onEdit }) => {
   const {
     data: borrower,
     isLoading,

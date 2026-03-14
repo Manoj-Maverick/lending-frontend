@@ -4,13 +4,11 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { useBorrowerLoans } from "hooks/borrowers/useBorrowerDetails";
 import CreateLoanModal from "pages/loans-management/components/CreateLoanModal";
-import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
-const LoansTab = ({ customerId }) => {
+const LoansTab = ({ borrowerId }) => {
   const navigate = useNavigate();
 
   // 🔌 Fetch loans + stats using hook
-  const { data: borrower } = useBorrowerDetails(customerId);
-  const { data, isLoading, isError, error } = useBorrowerLoans(customerId);
+  const { data, isLoading, isError, error } = useBorrowerLoans(borrowerId);
   const [isCreateLoanOpen, setIsCreateLoanOpen] = useState(false);
   if (isLoading) {
     return <div className="p-6 text-muted-foreground">Loading loans...</div>;
@@ -259,13 +257,9 @@ const LoansTab = ({ customerId }) => {
       </div>
       {isCreateLoanOpen && (
         <CreateLoanModal
-          customerId={customerId}
+          borrowerId={borrowerId}
           isOpen={isCreateLoanOpen}
-          data={borrower}
           onClose={() => setIsCreateLoanOpen(false)}
-          onSubmit={() => {
-            setIsCreateLoanOpen(false);
-          }}
         />
       )}
     </>
@@ -273,4 +267,3 @@ const LoansTab = ({ customerId }) => {
 };
 
 export default LoansTab;
-

@@ -2,91 +2,35 @@ import React from "react";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
+import { useTodayPayments } from "hooks/dashboard/useTodayPayments";
+import { useNavigate } from "react-router-dom";
+import { useUIContext } from "context/UIContext";
 
 const TodayPaymentsTable = () => {
-  const todayPayments = [
-    {
-      id: "PAY-001",
-      borrowerName: "Sarah Johnson",
-      borrowerCode: "CLI-1024",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_1456eb2f9-1763294356174.png",
-      avatarAlt:
-        "Professional headshot of Caucasian woman with blonde hair in business attire",
-      loanCode: "LN-2024-001",
-      dueAmount: 250,
-      status: "pending",
-      branch: "Main Branch",
-    },
-    {
-      id: "PAY-002",
-      borrowerName: "Michael Chen",
-      borrowerCode: "CLI-1025",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_1a75f5670-1763292878816.png",
-      avatarAlt:
-        "Professional headshot of Asian man with short black hair in formal suit",
-      loanCode: "LN-2024-002",
-      dueAmount: 180,
-      status: "paid",
-      branch: "North Branch",
-    },
-    {
-      id: "PAY-003",
-      borrowerName: "Emily Rodriguez",
-      borrowerCode: "CLI-1026",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_13817b13e-1763295856027.png",
-      avatarAlt:
-        "Professional headshot of Hispanic woman with long brown hair in blue blouse",
-      loanCode: "LN-2024-003",
-      dueAmount: 320,
-      status: "pending",
-      branch: "South Branch",
-    },
-    {
-      id: "PAY-004",
-      borrowerName: "David Thompson",
-      borrowerCode: "CLI-1027",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_12c942d4c-1763294979358.png",
-      avatarAlt:
-        "Professional headshot of African American man with short hair in gray suit",
-      loanCode: "LN-2024-004",
-      dueAmount: 275,
-      status: "overdue",
-      branch: "East Branch",
-    },
-    {
-      id: "PAY-005",
-      borrowerName: "Lisa Anderson",
-      borrowerCode: "CLI-1028",
-      avatar:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_1c2d3f8ee-1763296078446.png",
-      avatarAlt:
-        "Professional headshot of Caucasian woman with red hair in professional attire",
-      loanCode: "LN-2024-005",
-      dueAmount: 195,
-      status: "paid",
-      branch: "West Branch",
-    },
-  ];
+  const { selectedBranch } = useUIContext();
+  const navigate = useNavigate();
+
+  const {
+    data: todayPayments = [],
+    isLoading,
+    isError,
+  } = useTodayPayments(selectedBranch?.id || "all");
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      paid: {
+      PAID: {
         label: "Paid",
         className:
           "bg-emerald-100 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400",
         icon: "CheckCircle2",
       },
-      pending: {
+      PENDING: {
         label: "Pending",
         className:
           "bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-400",
         icon: "Clock",
       },
-      overdue: {
+      DELAYED: {
         label: "Overdue",
         className:
           "bg-red-100 dark:bg-red-950/30 text-red-700 dark:text-red-400",
@@ -94,20 +38,37 @@ const TodayPaymentsTable = () => {
       },
     };
 
-    const config = statusConfig?.[status] || statusConfig?.pending;
+    const config = statusConfig?.[status] || statusConfig?.PENDING;
 
     return (
       <span
-        className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${config?.className}`}
+        className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium ${config.className}`}
       >
-        <Icon name={config?.icon} size={12} />
-        {config?.label}
+        <Icon name={config.icon} size={12} />
+        {config.label}
       </span>
     );
   };
 
+  if (isLoading) {
+    return (
+      <div className="p-6 text-center text-muted-foreground">
+        Loading today's payments...
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-6 text-center text-red-500">
+        Failed to load payments
+      </div>
+    );
+  }
+
   return (
     <div className="glass-surface-soft motion-hover-lift bg-card border border-border rounded-lg overflow-hidden mb-5">
+      {/* Header */}
       <div className="p-4 md:p-5 lg:p-6 border-b border-border">
         <div className="flex items-center justify-between">
           <div>
@@ -115,14 +76,17 @@ const TodayPaymentsTable = () => {
               Today's Payments
             </h2>
             <p className="text-xs md:text-sm text-muted-foreground mt-1">
-              {todayPayments?.length} payments due today
+              {todayPayments?.data.length} payments due today
             </p>
           </div>
+
           <Button variant="outline" size="sm" iconName="Download">
             Export
           </Button>
         </div>
       </div>
+
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-muted/30">
@@ -147,59 +111,115 @@ const TodayPaymentsTable = () => {
               </th>
             </tr>
           </thead>
+
           <tbody>
-            {todayPayments?.map((payment, index) => (
+            {/* Data Rows */}
+            {todayPayments?.data.map((payment, index) => (
               <tr
-                key={payment?.id}
+                key={payment.schedule_id}
                 className={`border-b border-border hover:bg-muted/20 transition-colors ${
-                  index === todayPayments?.length - 1 ? "border-b-0" : ""
+                  index === todayPayments?.data.length - 1 ? "border-b-0" : ""
                 }`}
               >
+                {/* Borrower */}
                 <td className="px-4 py-3 md:py-4">
                   <div className="flex items-center gap-2 md:gap-3">
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden flex-shrink-0">
                       <Image
-                        src={payment?.avatar}
-                        alt={payment?.avatarAlt}
+                        src={
+                          payment.avatar || "https://i.pravatar.cc/150?img=10"
+                        }
+                        alt={payment.borrower_name}
                         className="w-full h-full object-cover"
                       />
                     </div>
+
                     <div className="min-w-0">
                       <p className="text-xs md:text-sm font-medium text-foreground truncate">
-                        {payment?.borrowerName}
+                        {payment.borrower_name}
                       </p>
+
                       <p className="text-xs text-muted-foreground truncate">
-                        {payment?.borrowerCode}
+                        {payment.customer_code}
                       </p>
                     </div>
                   </div>
                 </td>
+
+                {/* Loan Code */}
                 <td className="px-4 py-3 md:py-4 text-xs md:text-sm text-foreground">
-                  {payment?.loanCode}
+                  {payment.loan_code}
                 </td>
+
+                {/* Branch */}
                 <td className="px-4 py-3 md:py-4 text-xs md:text-sm text-muted-foreground">
-                  {payment?.branch}
+                  {payment.branch_name}
                 </td>
+
+                {/* Amount */}
                 <td className="px-4 py-3 md:py-4 text-right text-xs md:text-sm font-medium text-foreground whitespace-nowrap">
-                  Rs {payment?.dueAmount?.toLocaleString()}
+                  ₹ {Number(payment.due_amount).toLocaleString()}
                 </td>
+
+                {/* Status */}
                 <td className="px-4 py-3 md:py-4 text-center">
-                  {getStatusBadge(payment?.status)}
+                  {getStatusBadge(payment.status)}
                 </td>
+
+                {/* Actions */}
                 <td className="px-4 py-3 md:py-4">
                   <div className="flex items-center justify-center gap-1 md:gap-2">
-                    {payment?.status !== "paid" && (
-                      <Button variant="ghost" size="sm" iconName="DollarSign">
+                    {payment.status !== "PAID" && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        iconName="IndianRupee"
+                        onClick={() =>
+                          navigate(`/loan-details/${payment.loan_id}?pay=true`)
+                        }
+                      >
                         Pay
                       </Button>
                     )}
-                    <Button variant="ghost" size="sm" iconName="Eye">
+
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconName="Eye"
+                      onClick={() => {
+                        (navigate(`/loan-details/${payment.loan_id}`),
+                          {
+                            state: { openPayment: true },
+                          });
+                      }}
+                    >
                       View
                     </Button>
                   </div>
                 </td>
               </tr>
             ))}
+
+            {/* Animated Empty State */}
+            {todayPayments?.data.length === 0 && (
+              <tr>
+                <td colSpan="6" className="py-12">
+                  <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
+                    <div className="animate-bounce">
+                      <Icon name="Wallet" size={36} className="opacity-70" />
+                    </div>
+
+                    <p className="text-sm md:text-base font-medium animate-pulse">
+                      No payments due today
+                    </p>
+
+                    <p className="text-xs text-muted-foreground/70">
+                      Looks like all collections are clear for today 🎉
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

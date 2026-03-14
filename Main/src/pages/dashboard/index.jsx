@@ -86,7 +86,7 @@ const Dashboard = () => {
 
         <StatCard
           title="Today Due vs Collected"
-          value={`\u20B9${Math.floor(Number(data?.data.today_collected)).toLocaleString("en-IN")} / \u20B9${Math.floor(Number(data?.data.today_due)).toLocaleString("en-IN")}`}
+          value={`\u20B9${Math.floor(Number(data?.data.today_due)).toLocaleString("en-IN")} / \u20B9${Math.floor(Number(data?.data.today_collected)).toLocaleString("en-IN")}`}
           icon="Calendar"
           color="blue"
         />
@@ -96,6 +96,12 @@ const Dashboard = () => {
           value={`\u20B9${Math.floor(Number(data?.data.weekly_collection)).toLocaleString("en-IN")}`}
           icon="BarChart3"
           color="purple"
+        />
+        <StatCard
+          title={"Monthly Collection"}
+          value={`\u20B9${Math.floor(Number(data?.data.weekly_collection * 4)).toLocaleString("en-IN")}`}
+          icon="BarChart"
+          color="blue"
         />
       </div>
 
@@ -123,4 +129,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

@@ -8,48 +8,50 @@ import LoansTab from "./components/LoansTab";
 import { useParams } from "react-router-dom";
 const BorrowerProfile = () => {
   const navigate = useNavigate();
-  const { clientId: borrowerId } = useParams();
+  const { borrowerId: routeBorrowerId } = useParams();
   const location = useLocation();
+  const borrowerId = routeBorrowerId || location?.state?.borrowerId;
   const [activeTab, setActiveTab] = useState("personal");
 
-  // Get client data from state or use mock data
-  const borrowerData = location?.state?.borrowerData || location?.state?.clientData || {
-    id: "CL-001",
-    name: "Sarah Mitchell",
-    phone: "+1 (555) 234-5678",
-    email: "sarah.mitchell@email.com",
-    branch: "Main Branch",
-    memberSince: "January 15, 2024",
-    loanStatus: "Active",
-    photo:
-      "https://img.rocket.new/generatedImages/rocket_gen_img_170699746-1763294878713.png",
-    photoAlt:
-      "Professional headshot of woman with shoulder-length brown hair wearing navy blue blazer and white blouse smiling warmly at camera",
-    dateOfBirth: "March 12, 1985",
-    gender: "Female",
-    maritalStatus: "Married",
-    occupation: "Small Business Owner",
-    monthlyIncome: 4500,
-    nationalId: "SSN-123-45-6789",
-    address: {
-      street: "456 Oak Avenue, Apartment 3B",
-      city: "Springfield",
-      state: "Illinois",
-      zipCode: "62701",
-    },
-    bankInfo: {
-      bankName: "First National Bank",
-      accountNumber: "****5678",
-      accountHolderName: "Sarah Mitchell",
-      ifscCode: "FNB0001234",
-    },
-    stats: {
-      totalLoans: 3,
-      activeLoans: 1,
-      totalDisbursed: 25000,
-      outstanding: 8500,
-    },
-  };
+  // Get borrower data from state or use mock data
+  const borrowerData = location?.state?.borrowerData ||
+    location?.state?.borrowerDataLegacy || {
+      id: "CL-001",
+      name: "Sarah Mitchell",
+      phone: "+1 (555) 234-5678",
+      email: "sarah.mitchell@email.com",
+      branch: "Main Branch",
+      memberSince: "January 15, 2024",
+      loanStatus: "Active",
+      photo:
+        "https://img.rocket.new/generatedImages/rocket_gen_img_170699746-1763294878713.png",
+      photoAlt:
+        "Professional headshot of woman with shoulder-length brown hair wearing navy blue blazer and white blouse smiling warmly at camera",
+      dateOfBirth: "March 12, 1985",
+      gender: "Female",
+      maritalStatus: "Married",
+      occupation: "Small Business Owner",
+      monthlyIncome: 4500,
+      nationalId: "SSN-123-45-6789",
+      address: {
+        street: "456 Oak Avenue, Apartment 3B",
+        city: "Springfield",
+        state: "Illinois",
+        zipCode: "62701",
+      },
+      bankInfo: {
+        bankName: "First National Bank",
+        accountNumber: "****5678",
+        accountHolderName: "Sarah Mitchell",
+        ifscCode: "FNB0001234",
+      },
+      stats: {
+        totalLoans: 3,
+        activeLoans: 1,
+        totalDisbursed: 25000,
+        outstanding: 8500,
+      },
+    };
 
   const mockGuarantors = [
     {
@@ -222,11 +224,11 @@ const BorrowerProfile = () => {
       {/* Tab Content */}
       <div className="transition-opacity duration-250">
         {activeTab === "personal" && (
-          <PersonalInfoTab customerId={borrowerId} onEdit={handleEdit} />
+          <PersonalInfoTab borrowerId={borrowerId} onEdit={handleEdit} />
         )}
         {activeTab === "guarantors" && (
           <GuarantorsTab
-            customerId={borrowerId}
+            borrowerId={borrowerId}
             onAddGuarantor={handleAddGuarantor}
           />
         )}
@@ -239,7 +241,7 @@ const BorrowerProfile = () => {
           />
         )}
         {activeTab === "loans" && (
-          <LoansTab customerId={borrowerId} onCreateLoan={handleCreateLoan} />
+          <LoansTab borrowerId={borrowerId} onCreateLoan={handleCreateLoan} />
         )}
       </div>
     </>
@@ -247,4 +249,3 @@ const BorrowerProfile = () => {
 };
 
 export default BorrowerProfile;
-

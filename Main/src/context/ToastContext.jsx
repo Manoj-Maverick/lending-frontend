@@ -23,6 +23,12 @@ const TOAST_STYLES = {
     icon: "ℹ️",
     title: "Info",
   },
+  warning: {
+    border: "border-yellow-500",
+    bg: "bg-yellow-50",
+    icon: "AlertTriangle",
+    text: "text-yellow-800",
+  },
 };
 
 export function ToastProvider({ children }) {

@@ -7,7 +7,9 @@ export async function getBranchById(branchId) {
 }
 
 export async function getBranchPerformance(branchId) {
-  const { data } = await api.get(ENDPOINTS.BRANCH_DETAILS.performance(branchId));
+  const { data } = await api.get(
+    ENDPOINTS.BRANCH_DETAILS.performance(branchId),
+  );
   return data;
 }
 
@@ -25,7 +27,7 @@ export async function getBranchCustomers({
   page = 1,
   pageSize = 5,
 }) {
-  const { data } = await api.get(ENDPOINTS.BRANCH_DETAILS.customers(branchId), {
+  const { data } = await api.get(ENDPOINTS.BRANCH_DETAILS.borrowers(branchId), {
     params: {
       search,
       status,
@@ -42,5 +44,14 @@ export async function getWeeklyLoanSummary(branchId) {
   const { data } = await api.get(
     ENDPOINTS.BRANCH_DETAILS.weeklyLoanSummary(branchId),
   );
+  return data;
+}
+
+export async function getBranchTodayPayments(branchId) {
+  const { data } = await api.get(ENDPOINTS.BRANCH_DETAILS.branchTodayPayments, {
+    params: {
+      branch: branchId,
+    },
+  });
   return data;
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
@@ -7,22 +7,43 @@ import LoanInfoTab from "./components/LoanInfoTab";
 import PaymentScheduleTab from "./components/PaymentScheduleTab";
 import TransactionHistoryTab from "./components/TransactionHistoryTab";
 import DocumentsTab from "./components/DocumentsTab";
+import ForecloseModal from "./components/ForeCloseModal";
 import { useLoanDetails } from "hooks/loans/useLoanDetails";
 import { formatCurrencyINR } from "utils/format";
-
+import { useLocation } from "react-router-dom";
 function capitalizeFirst(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 }
+const getStatusColor = (status) => {
+  const colors = {
+    ACTIVE:
+      "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+    OVERDUE: "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
+    CLOSED:
+      "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
+    Pending:
+      "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+    FORECLOSED:
+      "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
+  };
+  return colors?.[status] || colors?.["Active"];
+};
 
 const LoanDetails = () => {
   const { loanId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("info");
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
-
+  const [isForecloseModalOpen, setIsForecloseModalOpen] = useState(false);
+  const location = useLocation();
   const { data, isLoading, isError, error } = useLoanDetails(loanId);
-
+  const parms = new URLSearchParams(location.search);
+  useEffect(() => {
+    if (!isLoading && parms.get("pay") === "true") {
+      setIsPaymentModalOpen(true);
+    }
+  }, [isLoading, location?.state]);
   if (isLoading) {
     return (
       <div className="p-4 text-muted-foreground">Loading loan info...</div>
@@ -42,6 +63,7 @@ const LoanDetails = () => {
   }
 
   const loanData = {
+    clientId: data.client_id,
     loanId: loanId,
     id: data.loan_code,
     status: data.status,
@@ -58,6 +80,7 @@ const LoanDetails = () => {
     purpose: data.purpose || "-",
     disbursedDate: data.start_date,
     maturityDate: data.last_due_date,
+    totalPayable: Number(data.total_payable),
   };
 
   const tabs = [
@@ -79,7 +102,7 @@ const LoanDetails = () => {
         </button>
       </div>
 
-      <div className="max-w-7xl mx-auto space-y-6 min-w-0">
+      <div className=" mx-auto space-y-6 min-w-0">
         <div className="bg-card border border-border rounded-lg p-4 md:p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="min-w-0">
@@ -89,11 +112,9 @@ const LoanDetails = () => {
                   Loan {loanData.id}
                 </h1>
                 <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                    loanData.status === "ACTIVE"
-                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
-                      : "bg-gray-100 text-gray-700 dark:bg-gray-950/30 dark:text-gray-400"
-                  }`}
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                    loanData.status,
+                  )}`}
                 >
                   {loanData.status}
                 </span>
@@ -112,11 +133,20 @@ const LoanDetails = () => {
                 <Icon name="CreditCard" size={16} className="mr-2" />
                 Process Payment
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsForecloseModalOpen(true)}
+                disabled={loanData.status !== "ACTIVE"}
+              >
+                <Icon name="Lock" size={16} className="mr-2" />
+                Foreclose / Settle Early
+              </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
             <Stat label="Loan Amount" value={loanData.loanAmount} />
+            <Stat label="Total Payable" value={loanData.totalPayable} />
             <Stat label="Remaining Balance" value={loanData.remainingBalance} />
             <Stat
               label={`${capitalizeFirst(loanData.repaymentType)} Installment`}
@@ -160,6 +190,11 @@ const LoanDetails = () => {
       <AddPaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
+        loanData={loanData}
+      />
+      <ForecloseModal
+        isOpen={isForecloseModalOpen}
+        onClose={() => setIsForecloseModalOpen(false)}
         loanData={loanData}
       />
     </>

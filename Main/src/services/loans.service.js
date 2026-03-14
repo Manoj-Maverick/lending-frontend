@@ -8,6 +8,7 @@ export async function getLoans(filters = {}) {
     search: filters.searchQuery,
     loanType: filters.loanType,
     page: filters.page,
+    collectionDay: filters.collectionDay,
     pageSize: filters.pageSize,
   };
 
@@ -37,4 +38,18 @@ export async function getLoanDetails(loanId) {
 export async function getLoanSchedule(loanId) {
   const { data } = await api.get(ENDPOINTS.LOANS.schedule(loanId));
   return data?.data ?? data;
+}
+
+export async function foreCloseLoan(payload) {
+  const { data } = await api.post(
+    ENDPOINTS.LOANS.foreCloseLoan(payload.loan_id),
+    {
+      loan_id: payload.loan_id,
+      paid_amount: payload.paid_amount,
+      payment_mode: payload.payment_mode,
+      reference_no: payload.reference_no || null,
+    },
+  );
+
+  return data;
 }

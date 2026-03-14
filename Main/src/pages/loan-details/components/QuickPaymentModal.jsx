@@ -6,47 +6,111 @@ import Select from "../../../components/ui/Select";
 import { useLoanSchedule } from "hooks/loans/useLoanDetails";
 import { useCreatePayment } from "hooks/payments/useCreatePayment";
 import { useToast } from "context/ToastContext";
+
 const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
-  const {
-    data = [],
-    isLoading,
-    isError,
-    error,
-  } = useLoanSchedule(loanData?.loanId);
+  const { data = [], isLoading } = useLoanSchedule(loanData?.loanId);
 
   const { mutate: addPayment } = useCreatePayment();
   const { showToast } = useToast();
+
   const today = new Date().toLocaleDateString("en-CA");
 
-  const todayDue = data.find((item) => {
-    const dueLocal = new Date(item.due_date).toLocaleDateString("en-CA");
-    return dueLocal === today && item.status !== "PAID";
-  });
-
+  const [mode, setMode] = useState("today");
+  const [selectedInstallmentId, setSelectedInstallmentId] = useState(null);
   const [amount, setAmount] = useState(0);
   const [displayAmount, setDisplayAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [referenceId, setReferenceId] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    if (todayDue) {
-      setAmount(todayDue.due_amount);
-    }
-  }, [todayDue]);
+  /* -------------------------
+     Reset modal state
+  ------------------------- */
 
-  // Amount animation
+  const resetState = () => {
+    setMode("today");
+    setSelectedInstallmentId(null);
+    setAmount(0);
+    setDisplayAmount(0);
+    setReferenceId("");
+    setPaymentMethod("CASH");
+    setIsProcessing(false);
+  };
+
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
+
+  /* -------------------------
+     Installment categories
+  ------------------------- */
+
+  const todayInstallments = data.filter((i) => {
+    const due = new Date(i.due_date).toLocaleDateString("en-CA");
+    return due === today && i.status !== "PAID" && i.status !== "DELAYED";
+  });
+
+  const overdueInstallments = data.filter((i) => {
+    const due = new Date(i.due_date).toLocaleDateString("en-CA");
+    return due < today && i.status !== "PAID" && i.status !== "DELAYED";
+  });
+
+  const futureInstallments = data.filter((i) => {
+    const due = new Date(i.due_date).toLocaleDateString("en-CA");
+    return due > today && i.status !== "PAID" && i.status !== "DELAYED";
+  });
+
+  let visibleInstallments = [];
+
+  if (mode === "today") visibleInstallments = todayInstallments;
+  if (mode === "overdue") visibleInstallments = overdueInstallments;
+  if (mode === "advance") visibleInstallments = futureInstallments;
+
+  /* -------------------------
+     Default selection
+  ------------------------- */
+
+  useEffect(() => {
+    if (visibleInstallments.length > 0) {
+      setSelectedInstallmentId(visibleInstallments[0].id);
+    } else {
+      setSelectedInstallmentId(null);
+    }
+  }, [mode, data]);
+
+  /* -------------------------
+     Set amount
+  ------------------------- */
+
+  useEffect(() => {
+    const selected = visibleInstallments.find(
+      (i) => i.id === selectedInstallmentId,
+    );
+
+    if (selected) {
+      setAmount(
+        Number(selected.due_amount) + Number(selected.fine_amount || 0),
+      );
+    } else {
+      setAmount(0);
+    }
+  }, [selectedInstallmentId, visibleInstallments]);
+
+  /* -------------------------
+     Amount animation
+  ------------------------- */
+
   useEffect(() => {
     if (!amount) {
       setDisplayAmount(0);
       return;
     }
 
-    const targetAmount = parseInt(amount) || 0;
-    let currentAmount = displayAmount;
-
-    const difference = targetAmount - currentAmount;
-    const step = difference / 20;
+    const target = parseInt(amount);
+    let current = displayAmount;
+    const diff = target - current;
+    const step = diff / 20;
 
     let frame = 0;
 
@@ -54,10 +118,10 @@ const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
       frame++;
 
       if (frame < 20) {
-        currentAmount += step;
-        setDisplayAmount(Math.floor(currentAmount));
+        current += step;
+        setDisplayAmount(Math.floor(current));
       } else {
-        setDisplayAmount(targetAmount);
+        setDisplayAmount(target);
         clearInterval(interval);
       }
     }, 20);
@@ -65,14 +129,21 @@ const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
     return () => clearInterval(interval);
   }, [amount]);
 
+  /* -------------------------
+     Submit payment
+  ------------------------- */
+
   const handleAddPayment = () => {
-    if (!todayDue) return;
+    if (!selectedInstallmentId) {
+      showToast("No installment selected", "error");
+      return;
+    }
 
     setIsProcessing(true);
 
     addPayment(
       {
-        schedule_id: todayDue.id,
+        schedule_id: selectedInstallmentId,
         paid_amount: Number(amount),
         paid_date: today,
         payment_mode: paymentMethod,
@@ -81,15 +152,13 @@ const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
       {
         onSuccess: () => {
           showToast("Payment added successfully", "success");
-          setReferenceId("");
-          setIsProcessing(false);
+          resetState();
 
           setTimeout(() => {
             onClose();
-          }, 1000);
+          }, 800);
         },
-
-        onError: (err) => {
+        onError: () => {
           showToast("Payment failed", "error");
           setIsProcessing(false);
         },
@@ -101,13 +170,10 @@ const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
 
   return (
     <>
-      <div
-        className="form-modal-overlay fixed inset-0 bg-black/50 z-40"
-        onClick={onClose}
-      />
+      <div className="fixed inset-0 bg-black/50 z-40" onClick={handleClose} />
 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="form-modal-panel bg-card rounded-lg shadow-lg max-w-md w-full p-6 md:p-8 border border-border">
+        <div className="bg-card rounded-lg shadow-lg max-w-md w-full p-6 border border-border">
           {/* Header */}
 
           <div className="flex items-center justify-between mb-6">
@@ -115,109 +181,140 @@ const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Icon name="CreditCard" size={20} className="text-primary" />
               </div>
-
-              <h2 className="text-2xl font-bold text-foreground">
-                Add Payment
-              </h2>
+              <h2 className="text-xl font-bold">Add Payment</h2>
             </div>
 
-            <button onClick={onClose}>
-              <Icon name="X" size={24} />
+            <button onClick={handleClose}>
+              <Icon name="X" size={22} />
             </button>
           </div>
 
-          {isLoading && (
-            <div className="flex justify-center py-10">
-              <Icon name="Loader" size={28} className="animate-spin" />
+          {/* Borrower */}
+
+          <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
+            <p className="text-xs text-muted-foreground mb-2">
+              Borrower Information
+            </p>
+            <p className="font-semibold">{loanData?.clientName}</p>
+            <p className="text-sm text-muted-foreground">
+              {loanData?.clientCode} • Loan: {loanData?.loanId}
+            </p>
+          </div>
+
+          {/* No due today */}
+
+          {mode === "today" && todayInstallments.length === 0 && (
+            <div className="flex flex-col items-center py-8 text-center">
+              <Icon
+                name="CheckCircle2"
+                size={44}
+                className="text-emerald-500 animate-pulse mb-4"
+              />
+
+              <h3 className="font-semibold mb-2">No Due Today 🎉</h3>
+
+              <p className="text-sm text-muted-foreground mb-6">
+                You can still collect overdue or advance payments
+              </p>
+
+              <div className="flex gap-3">
+                <Button variant="outline" onClick={() => setMode("overdue")}>
+                  Collect Overdue
+                </Button>
+
+                <Button variant="outline" onClick={() => setMode("advance")}>
+                  Collect Advance
+                </Button>
+              </div>
             </div>
           )}
 
-          {isError && (
-            <div className="text-center py-6 text-red-500">
-              {error?.message || "Failed to load schedule"}
+          {/* No overdue */}
+
+          {mode === "overdue" && overdueInstallments.length === 0 && (
+            <div className="flex flex-col items-center py-8 text-center">
+              <Icon
+                name="CheckCircle"
+                size={40}
+                className="text-emerald-500 mb-4"
+              />
+
+              <h3 className="font-semibold mb-2">No Overdue Payments</h3>
+
+              <p className="text-sm text-muted-foreground mb-6">
+                All installments are up to date
+              </p>
+
+              <Button variant="outline" onClick={() => setMode("today")}>
+                Go Back
+              </Button>
             </div>
           )}
 
-          {!isLoading && !isError && todayDue && (
-            <>
-              {/* Borrower Info */}
+          {/* Payment form */}
 
-              <div className="mb-6 p-4 bg-muted/50 rounded-lg border border-border">
-                <p className="text-xs text-muted-foreground mb-2">
-                  Borrower Information
-                </p>
+          {visibleInstallments.length > 0 && (
+            <div className="space-y-5">
+              {mode !== "today" && (
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">
+                    {mode === "overdue"
+                      ? "Overdue Installments"
+                      : "Future Installments"}
+                  </p>
 
-                <p className="font-semibold text-foreground">
-                  {loanData?.clientName}
-                </p>
-
-                <p className="text-sm text-muted-foreground">
-                  {loanData?.clientCode} • Loan: {loanData?.loanId}
-                </p>
-              </div>
-
-              {/* Form */}
-
-              <div className="space-y-4 mb-6">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Amount (₹)
-                  </label>
-
-                  <Input
-                    type="number"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setMode("today")}
+                  >
+                    Back
+                  </Button>
                 </div>
+              )}
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Payment Method
-                  </label>
+              <Select
+                value={selectedInstallmentId}
+                onChange={setSelectedInstallmentId}
+                options={visibleInstallments.map((i) => ({
+                  value: i.id,
+                  label: `#${i.installment_no} • Due ${new Date(
+                    i.due_date,
+                  ).toLocaleDateString("en-IN")}`,
+                }))}
+              />
 
-                  <Select
-                    value={paymentMethod}
-                    onChange={(value) => setPaymentMethod(value)}
-                    options={[
-                      { value: "CASH", label: "Cash" },
-                      { value: "ONLINE", label: "Online" },
-                    ]}
-                  />
-                </div>
+              <Input label="Amount" value={amount} readOnly />
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">
-                    Reference ID
-                  </label>
+              <Select
+                label="Payment Method"
+                value={paymentMethod}
+                onChange={setPaymentMethod}
+                options={[
+                  { value: "CASH", label: "Cash" },
+                  { value: "ONLINE", label: "Online" },
+                ]}
+              />
 
-                  <Input
-                    type="text"
-                    placeholder="Transaction reference"
-                    value={referenceId}
-                    onChange={(e) => setReferenceId(e.target.value)}
-                  />
-                </div>
-              </div>
+              <Input
+                label="Reference ID"
+                value={referenceId}
+                onChange={(e) => setReferenceId(e.target.value)}
+              />
 
-              {/* Amount Display */}
-
-              <div className="mb-6 p-4 rounded-lg bg-primary/10 border border-primary/20">
+              <div className="p-4 rounded-lg bg-primary/10 border border-primary/20">
                 <p className="text-sm text-center mb-1">Payment Amount</p>
-
-                <p className="text-4xl font-bold text-center text-primary">
+                <p className="text-3xl font-bold text-center text-primary">
                   ₹{displayAmount.toLocaleString("en-IN")}
                 </p>
               </div>
 
-              {/* Buttons */}
-
               <div className="flex gap-3">
                 <Button
                   variant="outline"
-                  onClick={onClose}
-                  className="flex-1"
+                  onClick={handleClose}
                   disabled={isProcessing}
+                  className="flex-1"
                 >
                   Cancel
                 </Button>
@@ -225,39 +322,11 @@ const AddPaymentModal = ({ isOpen, onClose, loanData }) => {
                 <Button
                   className="flex-1"
                   onClick={handleAddPayment}
-                  disabled={isProcessing || !amount}
+                  disabled={!selectedInstallmentId || isProcessing}
                 >
-                  {isProcessing ? (
-                    <>
-                      <Icon
-                        name="Loader"
-                        size={16}
-                        className="mr-2 animate-spin"
-                      />
-                      Processing...
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="CheckCircle" size={16} className="mr-2" />
-                      Add ₹{amount}
-                    </>
-                  )}
+                  {isProcessing ? "Processing..." : `Pay ₹${amount}`}
                 </Button>
               </div>
-            </>
-          )}
-
-          {!isLoading && !isError && !todayDue && (
-            <div className="flex flex-col items-center py-10 text-center">
-              <Icon
-                name="CheckCircle2"
-                size={40}
-                className="text-green-500 mb-4"
-              />
-              <h3 className="text-lg font-semibold mb-1">All Clear Today 🎉</h3>
-              <p className="text-sm text-muted-foreground">
-                No installments due today
-              </p>
             </div>
           )}
         </div>

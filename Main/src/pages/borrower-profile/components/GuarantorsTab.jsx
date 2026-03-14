@@ -8,19 +8,19 @@ import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
  * GuarantorsTab
  *
  * What it does:
- * - Fetches guarantors for a given customer using useGuarantors hook
+ * - Fetches guarantors for a given borrower using useGuarantors hook
  * - Shows loading state while fetching
  * - Shows error state if fetch fails
  * - Shows empty state if no guarantors
  * - Renders list of guarantors if available
  */
-const GuarantorsTab = ({ customerId, onAddGuarantor }) => {
+const GuarantorsTab = ({ borrowerId, onAddGuarantor }) => {
   const {
     data: guarantors = [],
     isLoading,
     isError,
     error,
-  } = useBorrowerGuarantors(customerId);
+  } = useBorrowerGuarantors(borrowerId);
 
   const avatarUrl = useMemo(() => {
     const id = guarantors[0]?.id;

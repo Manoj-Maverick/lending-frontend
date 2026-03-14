@@ -16,6 +16,17 @@ export const queryKeys = {
       "summary",
       normalizeBranchId(branchId),
     ],
+    dailyCollectionSummary: (branchId) => [
+      "dashboard",
+      "dailyCollectionSummary",
+      normalizeBranchId(branchId),
+    ],
+    todayPayments: (branchId) => [
+      "dashboard",
+      "todayPayments",
+      normalizeBranchId(branchId),
+    ],
+    branchComparison: ["dashboard", "branch-comparison"],
   },
   branches: {
     all: ["branches"],
@@ -34,6 +45,11 @@ export const queryKeys = {
     weeklyLoanSummary: (branchId) => [
       "branches",
       "weekly-loan-summary",
+      branchId,
+    ],
+    branchTodayPayments: (branchId) => [
+      "branches",
+      "branch-today-payments",
       branchId,
     ],
   },
