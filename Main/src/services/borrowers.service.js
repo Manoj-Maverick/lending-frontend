@@ -41,3 +41,11 @@ export async function updateBorrower(borrowerId, payload) {
   );
   return data;
 }
+
+export async function getIsBlocked(borrowerId) {
+  const { data } = await api.get(ENDPOINTS.BORROWERS.isBlocked(borrowerId));
+  if (data?.success === false) {
+    throw new Error(data?.message || "Failed to fetch block status");
+  }
+  return data?.data;
+}

@@ -14,6 +14,7 @@ export const ENDPOINTS = {
     loans: (borrowerId) => `/api/borrower-profile/${borrowerId}/loans`,
     guarantors: (borrowerId) =>
       `/api/borrower-profile/${borrowerId}/guarantors`,
+    isBlocked: (borrowerId) => `/api/get-block-status/${borrowerId}/isBlocked`,
   },
   LOANS: {
     list: "/api/loans-management/loans-list",

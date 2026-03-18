@@ -6,159 +6,20 @@ import GuarantorsTab from "./components/GuarantorsTab";
 import DocumentsTab from "./components/DocumentsTab";
 import LoansTab from "./components/LoansTab";
 import { useParams } from "react-router-dom";
+import { useGetISBlocked } from "hooks/borrowers/useGetIsBlocked";
+import { useUIContext } from "context/UIContext";
 const BorrowerProfile = () => {
   const navigate = useNavigate();
   const { borrowerId: routeBorrowerId } = useParams();
   const location = useLocation();
-  const borrowerId = routeBorrowerId || location?.state?.borrowerId;
+  const borrowerId = routeBorrowerId;
+  const { data: isBlocked } = useGetISBlocked(borrowerId);
   const [activeTab, setActiveTab] = useState("personal");
-
-  // Get borrower data from state or use mock data
-  const borrowerData = location?.state?.borrowerData ||
-    location?.state?.borrowerDataLegacy || {
-      id: "CL-001",
-      name: "Sarah Mitchell",
-      phone: "+1 (555) 234-5678",
-      email: "sarah.mitchell@email.com",
-      branch: "Main Branch",
-      memberSince: "January 15, 2024",
-      loanStatus: "Active",
-      photo:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_170699746-1763294878713.png",
-      photoAlt:
-        "Professional headshot of woman with shoulder-length brown hair wearing navy blue blazer and white blouse smiling warmly at camera",
-      dateOfBirth: "March 12, 1985",
-      gender: "Female",
-      maritalStatus: "Married",
-      occupation: "Small Business Owner",
-      monthlyIncome: 4500,
-      nationalId: "SSN-123-45-6789",
-      address: {
-        street: "456 Oak Avenue, Apartment 3B",
-        city: "Springfield",
-        state: "Illinois",
-        zipCode: "62701",
-      },
-      bankInfo: {
-        bankName: "First National Bank",
-        accountNumber: "****5678",
-        accountHolderName: "Sarah Mitchell",
-        ifscCode: "FNB0001234",
-      },
-      stats: {
-        totalLoans: 3,
-        activeLoans: 1,
-        totalDisbursed: 25000,
-        outstanding: 8500,
-      },
-    };
-
-  const mockGuarantors = [
-    {
-      id: 1,
-      name: "Michael Thompson",
-      relationship: "Spouse",
-      phone: "+1 (555) 234-5679",
-      email: "michael.thompson@email.com",
-      address: "456 Oak Avenue, Apartment 3B, Springfield, IL 62701",
-      occupation: "Software Engineer",
-      monthlyIncome: 6500,
-      photo:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_1bfef8bd5-1763295388609.png",
-      photoAlt:
-        "Professional headshot of man with short dark hair wearing gray suit and blue tie with confident smile",
-    },
-    {
-      id: 2,
-      name: "Jennifer Davis",
-      relationship: "Sister",
-      phone: "+1 (555) 345-6789",
-      email: "jennifer.davis@email.com",
-      address: "789 Maple Street, Springfield, IL 62702",
-      occupation: "Teacher",
-      monthlyIncome: 3800,
-      photo:
-        "https://img.rocket.new/generatedImages/rocket_gen_img_1985c262f-1763294244026.png",
-      photoAlt:
-        "Professional headshot of woman with long blonde hair wearing burgundy cardigan and pearl necklace with warm smile",
-    },
-  ];
-
-  const mockDocuments = [
-    {
-      id: 1,
-      name: "National ID Card",
-      type: "ID Proof",
-      uploadDate: "01/15/2024",
-      size: 2457600,
-    },
-    {
-      id: 2,
-      name: "Utility Bill - January 2024",
-      type: "Address Proof",
-      uploadDate: "01/15/2024",
-      size: 1843200,
-    },
-    {
-      id: 3,
-      name: "Business Income Statement",
-      type: "Income Proof",
-      uploadDate: "01/16/2024",
-      size: 3276800,
-    },
-    {
-      id: 4,
-      name: "Passport Photo",
-      type: "Photo",
-      uploadDate: "01/15/2024",
-      size: 512000,
-    },
-    {
-      id: 5,
-      name: "Bank Statement - December 2023",
-      type: "Bank Statement",
-      uploadDate: "01/16/2024",
-      size: 2867200,
-    },
-  ];
-
-  const mockLoans = [
-    {
-      id: 1,
-      loanCode: "LN-2024-001",
-      principal: 10000,
-      interestRate: 12,
-      totalPayable: 11200,
-      outstanding: 8500,
-      status: "Active",
-      startDate: "01/20/2024",
-    },
-    {
-      id: 2,
-      loanCode: "LN-2023-045",
-      principal: 8000,
-      interestRate: 10,
-      totalPayable: 8800,
-      outstanding: 0,
-      status: "Closed",
-      startDate: "06/15/2023",
-    },
-    {
-      id: 3,
-      loanCode: "LN-2023-012",
-      principal: 7000,
-      interestRate: 11,
-      totalPayable: 7770,
-      outstanding: 0,
-      status: "Closed",
-      startDate: "02/10/2023",
-    },
-  ];
+  const { showToast } = useUIContext();
 
   const tabs = [
     { id: "personal", label: "Personal Info", icon: "User" },
     { id: "guarantors", label: "Guarantors", icon: "Users" },
-    { id: "documents", label: "Documents", icon: "FileText" },
     { id: "loans", label: "Loans", icon: "Wallet" },
   ];
 
@@ -230,18 +91,17 @@ const BorrowerProfile = () => {
           <GuarantorsTab
             borrowerId={borrowerId}
             onAddGuarantor={handleAddGuarantor}
-          />
-        )}
-        {activeTab === "documents" && (
-          <DocumentsTab
-            documents={mockDocuments}
-            onUpload={handleUploadDocument}
-            onDownload={handleDownloadDocument}
-            onDelete={handleDeleteDocument}
+            isBlocked={isBlocked}
+            showToast={showToast}
           />
         )}
         {activeTab === "loans" && (
-          <LoansTab borrowerId={borrowerId} onCreateLoan={handleCreateLoan} />
+          <LoansTab
+            borrowerId={borrowerId}
+            onCreateLoan={handleCreateLoan}
+            isBlocked={isBlocked}
+            showToast={showToast}
+          />
         )}
       </div>
     </>

@@ -29,6 +29,13 @@ const TOAST_STYLES = {
     icon: "AlertTriangle",
     text: "text-yellow-800",
   },
+  blocked: {
+    border: "border-red-600",
+    bg: "bg-red-100",
+    text: "text-red-800",
+    icon: "🚫",
+    title: "Blocked",
+  },
 };
 
 export function ToastProvider({ children }) {

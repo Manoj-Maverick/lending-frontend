@@ -12,7 +12,6 @@ import tamilNaduPincodes from "../../../dataSet/tamil_nadu_pincode_lookup.json";
 const AddBranchModal = ({ isOpen, onClose }) => {
   const { showToast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
-
   const { mutate: generateBranchCode, isPending: isGenerating } =
     useGenerateBranchCode();
   const { mutate: createBranch, isPending: isCreating } = useCreateBranch();
@@ -33,6 +32,7 @@ const AddBranchModal = ({ isOpen, onClose }) => {
   });
 
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
   const [areaOptions, setAreaOptions] = useState([]);
 
   // Prevent duplicate toasts for same invalid pincode
@@ -52,6 +52,68 @@ const AddBranchModal = ({ isOpen, onClose }) => {
 
   const FALLBACK_CODE_PREFIX = "TEST-BRN-";
 
+  // ─── VALIDATION RULES ────────────────────────────────────────────────────
+  const validateField = (name, value) => {
+    switch (name) {
+      case "name":
+        if (!value?.trim()) return "Branch name is required";
+        if (value.trim().length < 4)
+          return "Branch name must be at least 4 characters";
+        return "";
+
+      case "phone":
+        if (!value?.trim()) return "Phone number is required";
+        if (!/^[6-9]\d{9}$/.test(value.trim())) {
+          return "Enter a valid 10-digit Indian mobile number (starts with 6–9)";
+        }
+        return "";
+
+      case "email":
+        if (!value?.trim()) return "";
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())) {
+          return "Please enter a valid email address";
+        }
+        return "";
+
+      case "address":
+        if (!value?.trim()) return "Street address is required";
+        return "";
+
+      case "pincode":
+        if (!value?.trim()) return "PIN code is required";
+        if (value.length !== 6 || !/^\d{6}$/.test(value)) {
+          return "Enter a valid 6-digit PIN code";
+        }
+        return "";
+
+      case "area":
+        if (!value?.trim()) return "Area/locality is required";
+        return "";
+
+      case "city":
+        if (!value?.trim()) return "City/District is required";
+        return "";
+
+      case "state":
+        if (!value?.trim()) return "State is required";
+        return "";
+
+      case "branchType":
+        if (!value) return "Branch type is required";
+        return "";
+
+      case "code":
+        if (!value?.trim()) return "Branch code is required";
+        if (value.startsWith(FALLBACK_CODE_PREFIX)) {
+          return "Using temporary test code (generator unavailable)";
+        }
+        return "";
+
+      default:
+        return "";
+    }
+  };
+
   // ─── PINCODE LOOKUP ──────────────────────────────────────────────────────
   useEffect(() => {
     const pin = (formData.pincode || "").trim();
@@ -63,14 +125,14 @@ const AddBranchModal = ({ isOpen, onClose }) => {
       return;
     }
 
-    if (lastWarnedPinRef.current === pin) return;
-
     const entry = tamilNaduPincodes[pin];
 
     if (!entry || !Array.isArray(entry) || entry.length === 0) {
+      if (lastWarnedPinRef.current !== pin) {
+        showToast("PIN code not found in Tamil Nadu records", "warning");
+        lastWarnedPinRef.current = pin;
+      }
       setAreaOptions([]);
-      showToast("PIN code not found in Tamil Nadu records", "warning");
-      lastWarnedPinRef.current = pin;
       return;
     }
 
@@ -93,142 +155,56 @@ const AddBranchModal = ({ isOpen, onClose }) => {
         ? { area: first.value }
         : {}),
     }));
-  }, [formData.pincode]);
+  }, [formData.pincode, showToast]);
 
-  // ─── AUTO-GENERATE / RE-GENERATE BRANCH CODE WHEN REQUIRED FIELDS CHANGE ──
-  // ─── AUTO-GENERATE / RE-GENERATE BRANCH CODE WHEN INPUTS CHANGE ───────────
+  // ─── BRANCH CODE PREVIEW ─────────────────────────────────────────────────
   useEffect(() => {
-    const name = (formData.name || "").trim();
     const city = (formData.city || "").trim();
     const branchType = formData.branchType;
 
-    // Missing required inputs → clear code
-    if (!name || !city || !branchType) {
-      setFormData((prev) => (prev.code ? { ...prev, code: "" } : prev));
+    if (!city || !branchType) {
+      setFormData((prev) => ({ ...prev, code: "" }));
       return;
     }
 
-    // ── Always (re)generate when these change ───────────────────────────────
-    // We removed the "if already have valid code → skip" check
-    // because branch code should follow current inputs
+    const typeMap = { HEAD: "HD", MAIN: "MN", REGULAR: "RG" };
+    const typeCode = typeMap[branchType] || "XX";
 
-    // Optional: show temporary state during generation
-    setFormData((prev) => ({ ...prev, code: "Generating..." }));
+    const districtCode = city
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "")
+      .slice(0, 3)
+      .padEnd(3, "X");
 
-    generateBranchCode(
-      {
-        branchType,
-        district: city,
-        area: (formData.area || "").trim() || undefined,
-      },
-      {
-        onSuccess: (generatedCode) => {
-          const newCode = String(generatedCode ?? "").trim();
-          setFormData((prev) => ({ ...prev, code: newCode || "" }));
-          if (newCode) {
-            setErrors((prev) => ({ ...prev, code: "" }));
-          }
-        },
-        onError: (err) => {
-          const cityShort = city.toUpperCase().replace(/\s+/g, "").slice(0, 6);
-          const typeShort = branchType;
-          const randomPart = Date.now().toString().slice(-5);
-          const fallback = `${FALLBACK_CODE_PREFIX}${typeShort}-${cityShort}-${randomPart}`;
+    const areaCode = (formData.area || "")
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "")
+      .replace(/[AEIOU]/g, "")
+      .slice(0, 3)
+      .padEnd(3, "X");
 
-          setFormData((prev) => ({ ...prev, code: fallback }));
-          showToast(
-            err?.response?.data?.message ||
-              "Code generator failed – using temp code",
-            "warning",
-          );
-        },
-      },
-    );
-  }, [
-    formData.name, // change name → new code
-    formData.city, // change district/city → new code
-    formData.area, // optional, but include if it affects code
-    formData.branchType, // change type (HEAD/MAIN/REGULAR) → new code
-    generateBranchCode,
-    // Do NOT include formData.code here → would cause loop
-  ]);
+    const preview = `${typeCode}-${districtCode}${areaCode}###`;
 
-  // ─── VALIDATION ──────────────────────────────────────────────────────────
-  const validateStep = (step) => {
-    const newErrors = {};
+    setFormData((prev) => ({ ...prev, code: preview }));
+  }, [formData.city, formData.area, formData.branchType]);
 
-    if (step === 1) {
-      if (!formData.name?.trim()) newErrors.name = "Branch name is required";
-      if (!formData.phone?.trim()) newErrors.phone = "Phone number is required";
-    }
-
-    if (step === 2) {
-      if (!formData.address?.trim())
-        newErrors.address = "Street address is required";
-      if (!formData.pincode?.trim()) newErrors.pincode = "PIN code is required";
-      else if (
-        formData.pincode.length !== 6 ||
-        !/^\d{6}$/.test(formData.pincode)
-      )
-        newErrors.pincode = "Enter a valid 6-digit PIN";
-      if (!formData.area?.trim()) newErrors.area = "Area/locality is required";
-      if (!formData.city?.trim()) newErrors.city = "City is required";
-      if (!formData.state?.trim()) newErrors.state = "State is required";
-    }
-
-    if (step === 3) {
-      if (!formData.branchType)
-        newErrors.branchType = "Branch type is required";
-      if (!formData.code?.trim()) newErrors.code = "Branch code is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, steps.length));
-    }
-  };
-
-  const handlePrevious = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
-  };
-
-  const handleSubmit = () => {
-    if (!validateStep(currentStep)) return;
-
-    createBranch(
-      {
-        code: (formData.code || "").trim(),
-        name: (formData.name || "").trim(),
-        phone: (formData.phone || "").trim(),
-        email: formData.email?.trim() || undefined,
-        address: (formData.address || "").trim(),
-        city: (formData.city || "").trim(),
-        state: (formData.state || "").trim(),
-        zipCode: (formData.pincode || "").trim(),
-        branchType: formData.branchType,
-      },
-      {
-        onSuccess: () => {
-          showToast("Branch created successfully", "success");
-          setTimeout(onClose, 1400);
-        },
-        onError: (err) => {
-          showToast(
-            err?.response?.data?.message || "Failed to create branch",
-            "error",
-          );
-        },
-      },
-    );
+  // ─── VALIDATION ON CHANGE / BLUR ─────────────────────────────────────────
+  const validateAndSetError = (field, value) => {
+    const errorMsg = validateField(field, value);
+    setErrors((prev) => ({ ...prev, [field]: errorMsg }));
   };
 
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+
+    if (touched[field]) {
+      validateAndSetError(field, value);
+    }
+  };
+
+  const handleBlur = (field) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    validateAndSetError(field, formData[field]);
   };
 
   const handleAreaChange = (selectedValue) => {
@@ -239,7 +215,141 @@ const AddBranchModal = ({ isOpen, onClose }) => {
         area: selected.value,
         city: prev.city?.trim() ? prev.city : selected.district,
       }));
+
+      if (touched.area) validateAndSetError("area", selected.value);
     }
+  };
+
+  const validateStep = (step) => {
+    const newErrors = {};
+    let isValid = true;
+
+    if (step === 1) {
+      ["name", "phone", "email"].forEach((field) => {
+        const err = validateField(field, formData[field]);
+        if (err) {
+          newErrors[field] = err;
+          isValid = false;
+        }
+      });
+    }
+
+    if (step === 2) {
+      ["address", "pincode", "area", "city", "state"].forEach((field) => {
+        const err = validateField(field, formData[field]);
+        if (err) {
+          newErrors[field] = err;
+          isValid = false;
+        }
+      });
+    }
+
+    if (step === 3) {
+      ["branchType", "code"].forEach((field) => {
+        const err = validateField(field, formData[field]);
+        if (err) {
+          newErrors[field] = err;
+          isValid = false;
+        }
+      });
+    }
+
+    setErrors((prev) => ({ ...prev, ...newErrors }));
+    return isValid;
+  };
+
+  const isStepValid = (step) => {
+    if (step === 1) return !errors.name && !errors.phone && !errors.email;
+    if (step === 2)
+      return (
+        !errors.address &&
+        !errors.pincode &&
+        !errors.area &&
+        !errors.city &&
+        !errors.state
+      );
+    if (step === 3) return !errors.branchType && !errors.code;
+    return false;
+  };
+
+  const handleNext = () => {
+    // Mark all fields in current step as touched
+    const fieldsToTouch =
+      currentStep === 1
+        ? ["name", "phone", "email"]
+        : currentStep === 2
+          ? ["address", "pincode", "area", "city", "state"]
+          : ["branchType", "code"];
+
+    fieldsToTouch.forEach((f) =>
+      setTouched((prev) => ({ ...prev, [f]: true })),
+    );
+
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) => Math.min(prev + 1, steps.length));
+    } else {
+      showToast("Please fix the errors before proceeding", "warning");
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = () => {
+    if (!validateStep(3)) {
+      showToast("Please complete all required fields correctly", "warning");
+      return;
+    }
+
+    generateBranchCode(
+      {
+        branchType: formData.branchType,
+        district: (formData.city || "").trim(),
+        area: (formData.area || "").trim(),
+      },
+      {
+        onSuccess: (realCode) => {
+          const finalCode = (realCode || "").trim();
+          if (!finalCode) {
+            showToast("Branch code generation returned empty value", "error");
+            return;
+          }
+
+          createBranch(
+            {
+              code: finalCode,
+              name: (formData.name || "").trim(),
+              phone: (formData.phone || "").trim(),
+              email: formData.email?.trim() || undefined,
+              address: (formData.address || "").trim(),
+              city: (formData.city || "").trim(),
+              state: (formData.state || "").trim(),
+              zipCode: (formData.pincode || "").trim(),
+              branchType: formData.branchType,
+            },
+            {
+              onSuccess: () => {
+                showToast("Branch created successfully!", "success");
+                setTimeout(onClose, 1600);
+              },
+              onError: (err) => {
+                showToast(
+                  err?.response?.data?.message || "Failed to create branch",
+                  "error",
+                );
+              },
+            },
+          );
+        },
+        onError: (err) => {
+          showToast(
+            err?.response?.data?.message || "Failed to generate branch code",
+            "error",
+          );
+        },
+      },
+    );
   };
 
   const handleClose = () => {
@@ -258,8 +368,9 @@ const AddBranchModal = ({ isOpen, onClose }) => {
       branchPhoto: null,
       registrationDoc: null,
     });
-    setAreaOptions([]);
     setErrors({});
+    setTouched({});
+    setAreaOptions([]);
     lastWarnedPinRef.current = null;
     onClose();
   };
@@ -332,24 +443,36 @@ const AddBranchModal = ({ isOpen, onClose }) => {
               <Input
                 label="Branch Name"
                 value={formData.name}
+                placeholder={"Branch Name"}
                 onChange={(e) => handleInputChange("name", e.target.value)}
+                onBlur={() => handleBlur("name")}
                 required
-                error={errors.name}
+                error={touched.name && errors.name}
               />
               <Input
                 label="Phone Number"
                 type="tel"
+                placeholder={"Phone Number"}
                 value={formData.phone}
-                onChange={(e) => handleInputChange("phone", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange(
+                    "phone",
+                    e.target.value.replace(/\D/g, "").slice(0, 10),
+                  )
+                }
+                onBlur={() => handleBlur("phone")}
                 required
-                error={errors.phone}
+                error={touched.phone && errors.phone}
+                maxLength={10}
               />
               <Input
                 label="Email Address (optional)"
                 type="email"
+                placeholder={"email address"}
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
-                error={errors.email}
+                onBlur={() => handleBlur("email")}
+                error={touched.email && errors.email}
               />
             </div>
           )}
@@ -360,8 +483,9 @@ const AddBranchModal = ({ isOpen, onClose }) => {
                 label="Street Address"
                 value={formData.address}
                 onChange={(e) => handleInputChange("address", e.target.value)}
+                onBlur={() => handleBlur("address")}
                 required
-                error={errors.address}
+                error={touched.address && errors.address}
                 placeholder="Building name, street, landmark..."
               />
 
@@ -375,14 +499,17 @@ const AddBranchModal = ({ isOpen, onClose }) => {
                       e.target.value.replace(/\D/g, "").slice(0, 6),
                     )
                   }
+                  onBlur={() => handleBlur("pincode")}
                   required
-                  error={errors.pincode}
+                  error={touched.pincode && errors.pincode}
                   placeholder="600001"
                   maxLength={6}
                   helperText={
                     areaOptions.length > 0
                       ? `${areaOptions.length} area${areaOptions.length > 1 ? "s" : ""} found`
-                      : ""
+                      : formData.pincode.length === 6
+                        ? "No areas found for this PIN"
+                        : ""
                   }
                 />
 
@@ -393,12 +520,12 @@ const AddBranchModal = ({ isOpen, onClose }) => {
                   onChange={handleAreaChange}
                   placeholder={
                     areaOptions.length === 0
-                      ? "Enter PIN code first..."
+                      ? "Enter valid PIN code first..."
                       : "Select area..."
                   }
                   disabled={areaOptions.length === 0}
                   required
-                  error={errors.area}
+                  error={touched.area && errors.area}
                 />
               </div>
 
@@ -407,9 +534,10 @@ const AddBranchModal = ({ isOpen, onClose }) => {
                   label="City / District"
                   value={formData.city}
                   onChange={(e) => handleInputChange("city", e.target.value)}
+                  onBlur={() => handleBlur("city")}
                   disabled={areaOptions.length > 0 && !!formData.area}
                   required
-                  error={errors.city}
+                  error={touched.city && errors.city}
                   helperText={
                     areaOptions.length > 0 && !formData.city?.trim()
                       ? "Auto-filled from PIN code"
@@ -422,7 +550,7 @@ const AddBranchModal = ({ isOpen, onClose }) => {
                   value={formData.state}
                   disabled
                   required
-                  error={errors.state}
+                  error={touched.state && errors.state}
                   helperText="Tamil Nadu (auto-filled)"
                 />
               </div>
@@ -435,9 +563,12 @@ const AddBranchModal = ({ isOpen, onClose }) => {
                 label="Branch Type"
                 options={branchTypeOptions}
                 value={formData.branchType}
-                onChange={(v) => handleInputChange("branchType", v)}
+                onChange={(v) => {
+                  handleInputChange("branchType", v);
+                  if (touched.branchType) validateAndSetError("branchType", v);
+                }}
                 required
-                error={errors.branchType}
+                error={touched.branchType && errors.branchType}
                 placeholder="Select branch type..."
               />
 
@@ -446,29 +577,20 @@ const AddBranchModal = ({ isOpen, onClose }) => {
                 value={formData.code}
                 readOnly
                 disabled
-                placeholder={
-                  isGenerating
-                    ? "Generating code..."
-                    : formData.code
-                      ? formData.code.startsWith(FALLBACK_CODE_PREFIX)
-                        ? "Temporary test code"
-                        : "Generated"
-                      : "Will be generated automatically"
-                }
+                placeholder="Will be generated automatically"
                 helperText={
                   formData.code?.startsWith(FALLBACK_CODE_PREFIX)
                     ? "Using temporary test code – generator unavailable"
                     : formData.code
                       ? "Auto-generated branch code"
-                      : "Code will be generated once name, city & type are filled"
+                      : "Code will be generated once type, city & area are filled"
                 }
-                error={errors.code}
+                error={touched.code && errors.code}
               />
 
               <div className="bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-800 text-sm text-blue-800 dark:text-blue-300">
-                Branch code is{" "}
-                <strong>automatically generated / updated</strong> when branch
-                name, city/district or type changes.
+                Branch code is <strong>automatically generated</strong> when
+                branch type, city/district or area changes.
               </div>
             </div>
           )}
@@ -484,12 +606,17 @@ const AddBranchModal = ({ isOpen, onClose }) => {
           </Button>
 
           {currentStep < steps.length ? (
-            <Button onClick={handleNext}>Next</Button>
+            <Button
+              onClick={handleNext}
+              disabled={!isStepValid(currentStep) || isGenerating}
+            >
+              Next
+            </Button>
           ) : (
             <Button
               variant="primary"
               onClick={handleSubmit}
-              disabled={isCreating || isGenerating || !formData.code?.trim()}
+              disabled={isCreating || !formData.code?.trim() || !isStepValid(3)}
               loading={isCreating}
             >
               {isCreating ? "Creating Branch..." : "Create Branch"}

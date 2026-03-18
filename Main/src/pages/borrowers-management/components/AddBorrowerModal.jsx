@@ -8,6 +8,9 @@ import PhoneVerification from "auth/PhoneVerification";
 import { useCreateBorrower } from "hooks/borrowers/useCreateBorrower";
 import { useToast } from "context/ToastContext";
 import { useUIContext } from "context/UIContext";
+import { useGenerateCustomerCode } from "hooks/generators/useGenerateCustomerCode";
+
+import pincodeLookup from "../../../DataSet/tamil_nadu_pincode_lookup.json";
 
 const AddBorrowerModal = ({ isOpen, onClose }) => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -16,6 +19,12 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
   const { showToast } = useToast();
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [guarantorPhoneVerified, setGuarantorPhoneVerified] = useState(false);
+  const { mutate: generateCustomerCode } = useGenerateCustomerCode();
+
+  // Dynamic area options populated from pincode lookup
+  const [borrowerAreas, setBorrowerAreas] = useState([]);
+  const [guarantorAreas, setGuarantorAreas] = useState([]);
+
   const [formData, setFormData] = useState({
     fullName: "Ravi Kumar",
     dateOfBirth: "1994-08-15",
@@ -30,7 +39,8 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
     panNumber: "ABCDE1234F",
     addressLine1: "12, MG Road",
     addressLine2: "Near Bus Stand",
-    city: "Coimbatore",
+    area: "", // renamed from city
+    district: "", // new field
     state: "Tamil Nadu",
     pincode: "641001",
     residenceType: "Owned",
@@ -50,7 +60,8 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
     guarantorPan: "",
     guarantorAlternatePhone: "",
     guarantorEmail: "",
-    guarantorCity: "",
+    guarantorArea: "", // renamed from guarantorCity
+    guarantorDistrict: "", // new field
     guarantorState: "",
     guarantorPincode: "",
     photo: null,
@@ -81,7 +92,6 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
     { value: "single", label: "Single" },
     { value: "married", label: "Married" },
     { value: "divorced", label: "Divorced" },
-    { value: "widowed", label: "Widowed" },
   ];
 
   const residenceTypeOptions = [
@@ -108,12 +118,107 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
     { value: "other", label: "Other" },
   ];
 
+  // Existing customer code preview logic (unchanged)
   useEffect(() => {
-    if (!formData.customerCode) {
-      const code = `CUST-${Math.floor(100000 + Math.random() * 900000)}`;
-      setFormData((prev) => ({ ...prev, customerCode: code }));
+    if (!formData.branch) return;
+    console.log(branches);
+
+    const selectedBranch = branches.find((b) => b.id === formData.branch);
+
+    if (!selectedBranch?.branch_code) return;
+
+    const cityArea = selectedBranch.branch_code.split("-")[1].slice(0, 6);
+
+    const year = new Date().getFullYear();
+
+    const preview = `${cityArea}${year}####`;
+
+    setFormData((prev) => ({
+      ...prev,
+      customerCode: preview,
+    }));
+  }, [formData.branch, branches]);
+
+  // ==================== AUTO-POPULATE LOGIC FOR BORROWER ====================
+  useEffect(() => {
+    const pin = formData.pincode;
+    if (!pin || pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+      setBorrowerAreas([]);
+      setFormData((prev) => ({ ...prev, district: "", area: "" }));
+      return;
     }
-  }, []);
+
+    const data = pincodeLookup[pin];
+    if (data && data.length > 0) {
+      const districtVal = data[0].district;
+      const areasList = data.map((item) => ({
+        value: item.area,
+        label: item.area,
+      }));
+
+      setBorrowerAreas(areasList);
+
+      setFormData((prev) => ({
+        ...prev,
+        district: districtVal,
+        state: "Tamil Nadu",
+      }));
+    } else {
+      setBorrowerAreas([]);
+      setFormData((prev) => ({ ...prev, district: "", area: "" }));
+      showToast(
+        "Invalid Pincode! This pincode is not found in our Tamil Nadu database.",
+        "error",
+      );
+    }
+  }, [formData.pincode]);
+
+  // ==================== AUTO-POPULATE LOGIC FOR GUARANTOR ====================
+  useEffect(() => {
+    const pin = formData.guarantorPincode;
+    if (!pin || pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+      setGuarantorAreas([]);
+      setFormData((prev) => ({
+        ...prev,
+        guarantorDistrict: "",
+        guarantorArea: "",
+      }));
+      return;
+    }
+
+    const data = pincodeLookup[pin];
+    if (data && data.length > 0) {
+      const districtVal = data[0].district;
+      const areasList = data.map((item) => ({
+        value: item.area,
+        label: item.area,
+      }));
+
+      setGuarantorAreas(areasList);
+
+      setFormData((prev) => ({
+        ...prev,
+        guarantorDistrict: districtVal,
+        guarantorState: "Tamil Nadu",
+        guarantorArea:
+          prev.guarantorArea &&
+          areasList.some((a) => a.value === prev.guarantorArea)
+            ? prev.guarantorArea
+            : areasList[0]?.value || "",
+      }));
+    } else {
+      setGuarantorAreas([]);
+      setFormData((prev) => ({
+        ...prev,
+        guarantorDistrict: "",
+        guarantorArea: "",
+      }));
+      showToast(
+        "Invalid Pincode for Guarantor! This pincode is not found in our Tamil Nadu database.",
+        "error",
+      );
+    }
+  }, [formData.guarantorPincode]);
 
   const handleInputChange = (field, value) => {
     if (field === "phone") {
@@ -161,23 +266,23 @@ STEP 1 — PERSONAL
     }
 
     /* -----------------------
-STEP 2 — ADDRESS
+STEP 2 — ADDRESS (with auto-populated Area + District)
 ----------------------- */
 
     if (step === 2) {
       if (!formData.addressLine1?.trim())
         newErrors.addressLine1 = "Address is required";
 
-      if (!formData.city?.trim()) newErrors.city = "City is required";
+      if (!formData.area?.trim()) newErrors.area = "Area is required";
+
+      if (!formData.district?.trim())
+        newErrors.district = "District is required";
 
       if (!formData.state?.trim()) newErrors.state = "State is required";
 
       if (!formData.pincode?.trim()) newErrors.pincode = "Pincode is required";
       else if (!/^\d{6}$/.test(formData.pincode))
         newErrors.pincode = "Invalid pincode";
-
-      if (formData.yearsAtAddress && isNaN(formData.yearsAtAddress))
-        newErrors.yearsAtAddress = "Must be a number";
     }
 
     /* -----------------------
@@ -215,7 +320,7 @@ STEP 3 — BANK + KYC
     }
 
     /* -----------------------
-STEP 4 — GUARANTOR
+STEP 4 — GUARANTOR (with auto-populated Area + District)
 ----------------------- */
 
     if (step === 4 && addGuarantorNow) {
@@ -231,6 +336,13 @@ STEP 4 — GUARANTOR
 
       if (!formData.guarantorRelation)
         newErrors.guarantorRelation = "Relation is required";
+
+      // New required fields for guarantor (consistent with borrower)
+      if (!formData.guarantorArea?.trim())
+        newErrors.guarantorArea = "Area is required";
+
+      if (!formData.guarantorDistrict?.trim())
+        newErrors.guarantorDistrict = "District is required";
 
       if (
         formData.guarantorAlternatePhone &&
@@ -307,48 +419,76 @@ STEP 5 — DOCUMENTS + BRANCH
   };
 
   const handleSubmit = () => {
-    if (validateStep(currentStep)) {
-      const fd = new FormData();
+    if (!validateStep(currentStep)) return;
 
-      // Append text fields
-      Object.entries(formData).forEach(([key, value]) => {
-        if (
-          value !== null &&
-          value !== undefined &&
-          key !== "photo" &&
-          key !== "idProof" &&
-          key !== "addressProof" &&
-          key !== "incomeProof"
-        ) {
-          fd.append(key, value);
-        }
-      });
+    const selectedBranch = branches.find((b) => b.id === formData.branch);
 
-      // Append files
-      if (formData.photo) fd.append("photo", formData.photo);
-      if (formData.idProof) fd.append("idProof", formData.idProof);
-      if (formData.addressProof)
-        fd.append("addressProof", formData.addressProof);
-      if (formData.incomeProof) fd.append("incomeProof", formData.incomeProof);
-      createBorrower(fd, {
-        onSuccess: () => {
-          showToast("Borrower created successfully", "success");
-
-          // ⏱ Close modal after 1 second
-          setTimeout(() => {
-            handleClose();
-          }, 1000);
-        },
-        onError: (err) => {
-          console.error("Create borrower failed:", err);
-
-          showToast(
-            err?.message || "Failed to create borrower. Please try again.",
-            "error",
-          );
-        },
-      });
+    if (!selectedBranch?.branch_code) {
+      showToast("Invalid branch selected", "error");
+      return;
     }
+
+    console.log(selectedBranch, selectedBranch.branch_Code);
+
+    // Generate REAL customer code
+    generateCustomerCode(
+      {
+        branchCode: selectedBranch.branch_code,
+      },
+      {
+        onSuccess: (realCustomerCode) => {
+          const fd = new FormData();
+
+          // Append text fields (now includes "area" and "district")
+          Object.entries(formData).forEach(([key, value]) => {
+            if (
+              value !== null &&
+              value !== undefined &&
+              key !== "photo" &&
+              key !== "idProof" &&
+              key !== "addressProof" &&
+              key !== "incomeProof"
+            ) {
+              fd.append(key, value);
+            }
+          });
+
+          // overwrite preview with real code
+          fd.set("customerCode", realCustomerCode);
+
+          // Append files
+          if (formData.photo) fd.append("photo", formData.photo);
+          if (formData.idProof) fd.append("idProof", formData.idProof);
+          if (formData.addressProof)
+            fd.append("addressProof", formData.addressProof);
+          if (formData.incomeProof)
+            fd.append("incomeProof", formData.incomeProof);
+
+          createBorrower(fd, {
+            onSuccess: () => {
+              showToast("Borrower created successfully", "success");
+
+              setTimeout(() => {
+                handleClose();
+              }, 1000);
+            },
+            onError: (err) => {
+              console.error("Create borrower failed:", err);
+
+              showToast(
+                err?.message || "Failed to create borrower. Please try again.",
+                "error",
+              );
+            },
+          });
+        },
+
+        onError: (err) => {
+          console.error("Customer code generation failed:", err);
+          showToast("Failed to generate customer code", "error");
+        },
+      },
+    );
   };
 
   const handleClose = () => {
@@ -368,7 +508,8 @@ STEP 5 — DOCUMENTS + BRANCH
       panNumber: "",
       addressLine1: "",
       addressLine2: "",
-      city: "",
+      area: "",
+      district: "",
       state: "",
       pincode: "",
       residenceType: "",
@@ -388,7 +529,8 @@ STEP 5 — DOCUMENTS + BRANCH
       guarantorPan: "",
       guarantorAlternatePhone: "",
       guarantorEmail: "",
-      guarantorCity: "",
+      guarantorArea: "",
+      guarantorDistrict: "",
       guarantorState: "",
       guarantorPincode: "",
       photo: null,
@@ -398,7 +540,11 @@ STEP 5 — DOCUMENTS + BRANCH
       branch: "",
       customerCode: "",
     });
+    setPhoneVerified(false);
+    setGuarantorPhoneVerified(false);
     setErrors({});
+    setBorrowerAreas([]);
+    setGuarantorAreas([]);
     onClose();
   };
 
@@ -563,6 +709,339 @@ STEP 5 — DOCUMENTS + BRANCH
             </div>
           )}
 
+          {currentStep === 2 && (
+            <div className="space-y-6">
+              <Input
+                label="Address Line 1"
+                value={formData.addressLine1}
+                onChange={(e) =>
+                  handleInputChange("addressLine1", e.target.value)
+                }
+                required
+                error={errors.addressLine1}
+              />
+              <Input
+                label="Address Line 2 (optional)"
+                value={formData.addressLine2}
+                onChange={(e) =>
+                  handleInputChange("addressLine2", e.target.value)
+                }
+              />
+
+              {/* Pincode first (triggers auto-population) */}
+              <Input
+                label="Pincode"
+                value={formData.pincode}
+                onChange={(e) => handleInputChange("pincode", e.target.value)}
+                required
+                error={errors.pincode}
+                maxLength={6}
+              />
+
+              {/* Area (Select populated from JSON) + District + State */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Select
+                  label="Area"
+                  options={borrowerAreas}
+                  value={formData.area}
+                  onChange={(v) => handleInputChange("area", v)}
+                  required
+                  error={errors.area}
+                />
+                <Input
+                  label="District"
+                  value={formData.district}
+                  onChange={(e) =>
+                    handleInputChange("district", e.target.value)
+                  }
+                  required
+                  error={errors.district}
+                />
+                <Input
+                  label="State"
+                  value={formData.state}
+                  onChange={(e) => handleInputChange("state", e.target.value)}
+                  required
+                  error={errors.state}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Select
+                  label="Residence Type"
+                  options={residenceTypeOptions}
+                  value={formData.residenceType}
+                  onChange={(v) => handleInputChange("residenceType", v)}
+                />
+                <Input
+                  label="Years at this Address"
+                  type="number"
+                  value={formData.yearsAtAddress}
+                  onChange={(e) =>
+                    handleInputChange("yearsAtAddress", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+          )}
+
+          {currentStep === 3 && (
+            <div className="space-y-6">
+              <Input
+                label="Bank Name"
+                value={formData.bankName}
+                onChange={(e) => handleInputChange("bankName", e.target.value)}
+                required
+                error={errors.bankName}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input
+                  label="Account Number"
+                  value={formData.accountNumber}
+                  onChange={(e) =>
+                    handleInputChange("accountNumber", e.target.value)
+                  }
+                  required
+                  error={errors.accountNumber}
+                />
+                <Input
+                  label="IFSC Code"
+                  value={formData.ifscCode}
+                  onChange={(e) =>
+                    handleInputChange("ifscCode", e.target.value)
+                  }
+                  required
+                  error={errors.ifscCode}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Select
+                  label="Account Type"
+                  options={accountTypeOptions}
+                  value={formData.accountType}
+                  onChange={(v) => handleInputChange("accountType", v)}
+                  required
+                  error={errors.accountType}
+                />
+                <Input
+                  label="Account Holder Name"
+                  value={formData.accountHolderName}
+                  onChange={(e) =>
+                    handleInputChange("accountHolderName", e.target.value)
+                  }
+                  required
+                  error={errors.accountHolderName}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Input
+                  label="Aadhaar Number"
+                  value={formData.aadhaarNumber}
+                  onChange={(e) =>
+                    handleInputChange("aadhaarNumber", e.target.value)
+                  }
+                  maxLength={12}
+                />
+                <Input
+                  label="PAN Number"
+                  value={formData.panNumber}
+                  onChange={(e) =>
+                    handleInputChange("panNumber", e.target.value)
+                  }
+                  maxLength={10}
+                />
+              </div>
+            </div>
+          )}
+
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Guarantor Information
+                  </h3>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {addGuarantorNow
+                      ? "Enter guarantor details now"
+                      : "You can add a guarantor later from the borrower profile"}
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setAddGuarantorNow(false)}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      !addGuarantorNow
+                        ? "bg-gray-800 text-white shadow-md"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    Add Later
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddGuarantorNow(true)}
+                    className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      addGuarantorNow
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    Add Now
+                  </button>
+                </div>
+              </div>
+
+              {addGuarantorNow && (
+                <div className="space-y-6 pt-4 animate-fade-in">
+                  <Input
+                    label="Guarantor Full Name"
+                    value={formData.guarantorFullName}
+                    onChange={(e) =>
+                      handleInputChange("guarantorFullName", e.target.value)
+                    }
+                    required
+                    error={errors.guarantorFullName}
+                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <Input
+                        label="Phone Number"
+                        type="tel"
+                        disabled={guarantorPhoneVerified}
+                        value={formData.guarantorPhone}
+                        onChange={(e) =>
+                          handleInputChange("guarantorPhone", e.target.value)
+                        }
+                        required
+                        error={
+                          guarantorPhoneVerified ? "" : errors.guarantorPhone
+                        }
+                      />
+                      <PhoneVerification
+                        phone={formData.guarantorPhone}
+                        verified={guarantorPhoneVerified}
+                        onVerified={() => setGuarantorPhoneVerified(true)}
+                      />
+                    </div>
+
+                    <Select
+                      label="Relation"
+                      options={relationOptions}
+                      value={formData.guarantorRelation}
+                      onChange={(v) =>
+                        handleInputChange("guarantorRelation", v)
+                      }
+                      required
+                      error={errors.guarantorRelation}
+                    />
+                  </div>
+                  <Input
+                    label="Address"
+                    value={formData.guarantorAddress}
+                    onChange={(e) =>
+                      handleInputChange("guarantorAddress", e.target.value)
+                    }
+                  />
+
+                  {/* Guarantor Pincode (triggers auto-population) */}
+                  <Input
+                    label="Pincode"
+                    value={formData.guarantorPincode}
+                    onChange={(e) =>
+                      handleInputChange("guarantorPincode", e.target.value)
+                    }
+                    maxLength={6}
+                    error={errors.guarantorPincode}
+                  />
+
+                  {/* Area (Select) + District + State */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Select
+                      label="Area"
+                      options={guarantorAreas}
+                      value={formData.guarantorArea}
+                      onChange={(v) => handleInputChange("guarantorArea", v)}
+                      error={errors.guarantorArea}
+                    />
+                    <Input
+                      label="District"
+                      value={formData.guarantorDistrict}
+                      onChange={(e) =>
+                        handleInputChange("guarantorDistrict", e.target.value)
+                      }
+                      error={errors.guarantorDistrict}
+                    />
+                    <Input
+                      label="State"
+                      value={formData.guarantorState}
+                      onChange={(e) =>
+                        handleInputChange("guarantorState", e.target.value)
+                      }
+                      error={errors.guarantorState}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Occupation"
+                      value={formData.guarantorOccupation}
+                      onChange={(e) =>
+                        handleInputChange("guarantorOccupation", e.target.value)
+                      }
+                    />
+                    <Input
+                      label="Monthly Income (₹)"
+                      type="number"
+                      value={formData.guarantorMonthlyIncome}
+                      onChange={(e) =>
+                        handleInputChange(
+                          "guarantorMonthlyIncome",
+                          e.target.value,
+                        )
+                      }
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <Input
+                      label="Aadhaar Number"
+                      value={formData.guarantorAadhaar}
+                      onChange={(e) =>
+                        handleInputChange("guarantorAadhaar", e.target.value)
+                      }
+                      maxLength={12}
+                    />
+                    <Input
+                      label="PAN Number"
+                      value={formData.guarantorPan}
+                      onChange={(e) =>
+                        handleInputChange("guarantorPan", e.target.value)
+                      }
+                      maxLength={10}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {!addGuarantorNow && (
+                <div className="py-10 text-center text-gray-500 dark:text-gray-400 bg-gray-50/50 dark:bg-gray-800/30 rounded-xl">
+                  <Icon
+                    name="Users"
+                    size={48}
+                    className="mx-auto mb-4 opacity-60"
+                  />
+                  <p className="text-lg font-medium">
+                    No guarantor added at this time
+                  </p>
+                  <p className="text-sm mt-2">
+                    You can add one later from the borrower profile page
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
           {currentStep === 5 && (
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -601,6 +1080,15 @@ STEP 5 — DOCUMENTS + BRANCH
                 onChange={(v) => handleInputChange("branch", v)}
                 required
                 error={errors.branch}
+              />
+              <Input
+                label="Customer Code"
+                value={formData.customerCode}
+                placeholder={"customer code "}
+                onChange={(e) =>
+                  handleInputChange("customerCode", e.target.value)
+                }
+                disabled
               />
             </div>
           )}

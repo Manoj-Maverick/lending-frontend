@@ -26,6 +26,7 @@ const CollectionTable = ({
   onOpenContacts,
   isCollecting,
 }) => {
+  console.log(rows);
   if (!rows.length) {
     return (
       <div className="p-8 text-center text-muted-foreground bg-card border border-border rounded-lg">
@@ -84,14 +85,13 @@ const CollectionTable = ({
                 </td>
 
                 <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span className="text-sm">{row.phone}</span>
                     <button
                       onClick={(event) => onOpenContacts(event, row)}
-                      className="p-2 rounded-md hover:bg-muted transition"
-                      title="Show contacts"
+                      className="p-2 rounded-full bg-primary/10 text-primary shrink-0"
                     >
-                      <Icon name="Phone" size={16} />
+                      <Icon name="Phone" size={15} />
                     </button>
                   </div>
                 </td>

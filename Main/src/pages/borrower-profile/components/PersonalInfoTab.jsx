@@ -1,10 +1,13 @@
-import React, { useMemo } from "react";
+import React from "react";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
 import { API_BASE_URL } from "api/client";
-
+import DocumentSection from "./DocumentSection";
+import { useUploadDocument } from "hooks/docs/useUploadDoc";
+import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
+import { useToggleBlock } from "hooks/borrowers/useBlockBorrower";
 const PersonalInfoTab = ({ borrowerId, onEdit }) => {
   const {
     data: borrower,
@@ -12,6 +15,7 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     isError,
     error,
   } = useBorrowerDetails(borrowerId);
+  console.log("bid", borrowerId);
   const hashString = (value = "") => {
     let hash = 0;
     for (let i = 0; i < value.length; i += 1) {
@@ -30,7 +34,31 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     const seed = (hashString(base) % 70) + 1;
     return `https://i.pravatar.cc/150?img=${seed}`;
   };
+  const { mutateAsync: uploadDoc } = useUploadDocument();
+  const { mutateAsync: deleteDoc } = useDeleteDocument();
+  const { mutate: toggleBlock, isPending: isBlocking } = useToggleBlock();
+  const isBlocked = borrower?.is_blocked; // ensure backend sends this
+  console.log(isBlocked);
+  const handleUpload = async ({ file, document_type }) => {
+    await uploadDoc({
+      category: "customer",
+      entity_id: borrowerId,
+      document_type,
+      file,
+    });
+  };
+  const handleDelete = async (docId) => {
+    console.log(docId);
+    await deleteDoc({
+      id: docId,
+      category: "customer",
+    });
+  };
 
+  const verifyPassword = async (password) => {
+    // 🔴 Replace with real API later
+    return password === "admin123";
+  };
   if (!borrowerId) return null;
 
   if (isLoading) {
@@ -86,22 +114,53 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
           <div className="flex-1 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
               <div>
-                <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground">
-                  {name}
-                </h2>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold text-foreground">
+                    {name}
+                  </h2>
+
+                  {borrower?.is_blocked && (
+                    <span className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium">
+                      Blocked
+                    </span>
+                  )}
+                </div>
                 <p className="text-sm md:text-base text-muted-foreground mt-1">
                   Borrower ID: {code || id}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                iconName="Edit"
-                iconPosition="left"
-                onClick={onEdit}
-                className="w-full sm:w-auto"
-              >
-                Edit Profile
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  iconName="Edit"
+                  iconPosition="left"
+                  onClick={onEdit}
+                >
+                  Edit Profile
+                </Button>
+
+                <Button
+                  variant={isBlocked ? "success" : "destructive"}
+                  iconName={
+                    isBlocking ? "Loader" : isBlocked ? "Unlock" : "Ban"
+                  }
+                  onClick={() =>
+                    toggleBlock({
+                      borrowerId: borrowerId,
+                      isBlocked: !isBlocked,
+                    })
+                  }
+                  disabled={isBlocking}
+                >
+                  {isBlocking
+                    ? isBlocked
+                      ? "Unblocking"
+                      : "Blocking"
+                    : isBlocked
+                      ? "Unblock"
+                      : "Block"}
+                </Button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
@@ -142,7 +201,10 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
 
       {/* Personal Details */}
       <Section title="Personal Details">
-        <Detail label="Date of Birth" value={dateOfBirth || "-"} />
+        <Detail
+          label="Date of Birth"
+          value={dateOfBirth.split("T")[0] || "-"}
+        />
         <Detail label="Gender" value={gender || "-"} />
         <Detail label="Marital Status" value={maritalStatus || "-"} />
         <Detail label="Occupation" value={occupation || "-"} />
@@ -214,6 +276,14 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
           />
         </div>
       </Section>
+
+      <DocumentSection
+        category="customer"
+        borrowerId={borrowerId}
+        onUpload={handleUpload}
+        onDelete={handleDelete}
+        verifyPassword={verifyPassword}
+      />
     </div>
   );
 };
@@ -278,4 +348,3 @@ const StatMoneyCard = ({ label, amount, color }) => (
 );
 
 export default PersonalInfoTab;
-

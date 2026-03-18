@@ -4,9 +4,8 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { useBorrowerLoans } from "hooks/borrowers/useBorrowerDetails";
 import CreateLoanModal from "pages/loans-management/components/CreateLoanModal";
-const LoansTab = ({ borrowerId }) => {
+const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
   const navigate = useNavigate();
-
   // 🔌 Fetch loans + stats using hook
   const { data, isLoading, isError, error } = useBorrowerLoans(borrowerId);
   const [isCreateLoanOpen, setIsCreateLoanOpen] = useState(false);
@@ -79,7 +78,11 @@ const LoansTab = ({ borrowerId }) => {
             variant="default"
             iconName="Plus"
             iconPosition="left"
-            onClick={() => setIsCreateLoanOpen(true)}
+            onClick={() => {
+              isBlocked?.is_blocked
+                ? showToast("Borrower is Blocked cannot add loan", "blocked")
+                : setIsCreateLoanOpen(true);
+            }}
             className="w-full sm:w-auto"
           >
             Create New Loan
@@ -169,7 +172,16 @@ const LoansTab = ({ borrowerId }) => {
               variant="outline"
               iconName="Plus"
               iconPosition="left"
-              onClick={() => setIsCreateLoanOpen(true)}
+              onClick={() => {
+                {
+                  isBlocked?.is_blocked
+                    ? showToast(
+                        "Borrower is Blocked cannot add loan",
+                        "blocked",
+                      )
+                    : setIsCreateLoanOpen(true);
+                }
+              }}
             >
               Create First Loan
             </Button>

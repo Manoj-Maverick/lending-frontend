@@ -61,6 +61,7 @@ export const queryKeys = {
     profile: (borrowerId) => ["borrowers", "profile", borrowerId],
     loans: (borrowerId) => ["borrowers", "loans", borrowerId],
     guarantors: (borrowerId) => ["borrowers", "guarantors", borrowerId],
+    isBlocked: (borrowerId) => ["borrowers", "isblocked", borrowerId],
   },
   loans: {
     all: ["loans"],

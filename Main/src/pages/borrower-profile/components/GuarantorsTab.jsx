@@ -1,20 +1,18 @@
-import React, { useMemo } from "react";
+import React from "react";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
+import DocumentSection from "./DocumentSection";
 import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
+import { useUploadDocument } from "hooks/docs/useUploadDoc";
+import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
 
-/**
- * GuarantorsTab
- *
- * What it does:
- * - Fetches guarantors for a given borrower using useGuarantors hook
- * - Shows loading state while fetching
- * - Shows error state if fetch fails
- * - Shows empty state if no guarantors
- * - Renders list of guarantors if available
- */
-const GuarantorsTab = ({ borrowerId, onAddGuarantor }) => {
+const GuarantorsTab = ({
+  borrowerId,
+  onAddGuarantor,
+  isBlocked,
+  showToast,
+}) => {
   const {
     data: guarantors = [],
     isLoading,
@@ -22,24 +20,37 @@ const GuarantorsTab = ({ borrowerId, onAddGuarantor }) => {
     error,
   } = useBorrowerGuarantors(borrowerId);
 
-  const avatarUrl = useMemo(() => {
-    const id = guarantors[0]?.id;
-    const genders = ["male", "female"];
-    const randomGender = genders[Math.floor(Math.random() * genders.length)];
+  const { mutateAsync: uploadDoc } = useUploadDocument();
+  const { mutateAsync: deleteDoc } = useDeleteDocument();
 
-    if (!id) return "/images/avatar-placeholder.png";
+  // ✅ Upload handler (IMPORTANT FIX)
+  const handleUpload = async ({ category, file, document_type, entity_id }) => {
+    await uploadDoc({
+      category,
+      entity_id,
+      document_type,
+      file,
+    });
+  };
 
+  const handleDelete = async (docId, guarantorId) => {
+    await deleteDoc({
+      id: docId,
+      category: "guarantor",
+    });
+  };
+
+  const verifyPassword = async (password) => {
+    return password === "admin123";
+  };
+
+  // ✅ Avatar per guarantor (FIXED)
+  const getAvatar = (id) => {
     const seed = Number(id) % 100 || 1;
-    if (randomGender === "male") {
-      return `https://randomuser.me/api/portraits/men/${seed}.jpg`;
-    }
-    if (randomGender === "female") {
-      return `https://randomuser.me/api/portraits/women/${seed}.jpg`;
-    }
-    return "/images/avatar-placeholder.png";
-  }, [guarantors[0]?.id]);
+    return `https://randomuser.me/api/portraits/men/${seed}.jpg`;
+  };
 
-  // 1. Loading state
+  // Loading
   if (isLoading) {
     return (
       <div className="p-6 text-center text-muted-foreground">
@@ -48,7 +59,7 @@ const GuarantorsTab = ({ borrowerId, onAddGuarantor }) => {
     );
   }
 
-  // 2. Error state
+  // Error
   if (isError) {
     return (
       <div className="p-6 text-center text-red-500">
@@ -58,159 +69,120 @@ const GuarantorsTab = ({ borrowerId, onAddGuarantor }) => {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h3 className="text-xl md:text-2xl font-semibold text-foreground">
             Guarantors
           </h3>
-          <p className="text-sm md:text-base text-muted-foreground mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Manage borrower guarantor information
           </p>
         </div>
+
         <Button
           variant="default"
           iconName="UserPlus"
           iconPosition="left"
-          onClick={onAddGuarantor}
-          className="w-full sm:w-auto"
+          onClick={() => {
+            isBlocked?.is_blocked
+              ? showToast("Borrower is Blocked cannot add guarantor", "blocked")
+              : "";
+          }}
         >
           Add Guarantor
         </Button>
       </div>
 
-      {/* 3. Empty state */}
+      {/* Empty */}
       {guarantors.length === 0 ? (
-        <div className="bg-card rounded-lg p-8 md:p-12 text-center shadow-elevation-sm">
-          <div className="w-16 h-16 md:w-20 md:h-20 mx-auto bg-muted/30 rounded-full flex items-center justify-center mb-4">
-            <Icon name="Users" size={32} className="text-muted-foreground" />
-          </div>
-          <h4 className="text-lg md:text-xl font-semibold text-foreground mb-2">
-            No Guarantors Added
-          </h4>
-          <p className="text-sm md:text-base text-muted-foreground mb-6">
-            Add guarantor information to complete the borrower profile
-          </p>
-          <Button
-            variant="outline"
-            iconName="UserPlus"
-            iconPosition="left"
-            onClick={onAddGuarantor}
-          >
-            Add First Guarantor
-          </Button>
+        <div className="bg-card rounded-lg p-10 text-center shadow">
+          <Icon name="Users" size={40} className="mx-auto mb-4 opacity-50" />
+          <p className="text-lg">No Guarantors Added</p>
         </div>
       ) : (
-        // 4. List state
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="space-y-6">
           {guarantors.map((guarantor) => (
             <div
               key={guarantor.id}
-              className="bg-card rounded-lg p-4 md:p-6 shadow-elevation-sm hover:shadow-elevation-md transition-shadow duration-250"
+              className="bg-card rounded-lg p-6 shadow space-y-6"
             >
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex justify-center sm:justify-start">
-                  <Image
-                    src={guarantor.photo || avatarUrl}
-                    alt={guarantor.full_name}
-                    className="w-20 h-20 md:w-24 md:h-24 rounded-lg object-cover"
-                  />
-                </div>
+              {/* Guarantor Info */}
+              <div className="flex flex-col md:flex-row gap-6">
+                <Image
+                  src={guarantor.photo || getAvatar(guarantor.id)}
+                  alt={guarantor.full_name}
+                  className="w-24 h-24 rounded-lg object-cover"
+                />
 
                 <div className="flex-1 space-y-3">
                   <div>
-                    <h4 className="text-lg md:text-xl font-semibold text-foreground">
+                    <h4 className="text-xl font-semibold">
                       {guarantor.full_name}
                     </h4>
-                    <p className="text-sm md:text-base text-muted-foreground">
+                    <p className="text-muted-foreground">
                       {guarantor.relation}
                     </p>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
-                      <Icon
-                        name="Phone"
-                        size={16}
-                        className="text-muted-foreground flex-shrink-0"
-                      />
-                      <span className="text-sm md:text-base text-foreground">
-                        {guarantor.phone}
-                      </span>
+                      <Icon name="Phone" size={16} />
+                      {guarantor.phone}
                     </div>
 
                     {guarantor.email && (
                       <div className="flex items-center gap-2">
-                        <Icon
-                          name="Mail"
-                          size={16}
-                          className="text-muted-foreground flex-shrink-0"
-                        />
-                        <span className="text-sm md:text-base text-foreground truncate">
-                          {guarantor.email}
-                        </span>
-                      </div>
-                    )}
-
-                    {guarantor.address && (
-                      <div className="flex items-start gap-2">
-                        <Icon
-                          name="MapPin"
-                          size={16}
-                          className="text-muted-foreground flex-shrink-0 mt-1"
-                        />
-                        <span className="text-sm md:text-base text-foreground">
-                          {guarantor.address}
-                        </span>
+                        <Icon name="Mail" size={16} />
+                        {guarantor.email}
                       </div>
                     )}
                   </div>
 
-                  <div className="bg-muted/30 rounded-lg p-3">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Occupation
-                        </p>
-                        <p className="text-sm font-medium text-foreground mt-1">
-                          {guarantor.occupation || "-"}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">
-                          Monthly Income
-                        </p>
-                        <p className="text-sm font-medium text-foreground mt-1">
-                          {guarantor.monthly_income != null
-                            ? `Rs ${Number(guarantor.monthly_income).toLocaleString()}`
-                            : "-"}
-                        </p>
-                      </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Occupation</p>
+                      <p>{guarantor.occupation || "-"}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Income</p>
+                      <p>
+                        {guarantor.monthly_income
+                          ? `Rs ${Number(
+                              guarantor.monthly_income,
+                            ).toLocaleString()}`
+                          : "-"}
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      iconName="Edit"
-                      iconPosition="left"
-                      className="flex-1"
-                    >
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline">
                       Edit
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      iconName="Trash2"
-                      iconPosition="left"
-                      className="flex-1"
-                    >
+                    <Button size="sm" variant="ghost">
                       Remove
                     </Button>
                   </div>
                 </div>
               </div>
+
+              {/* 🔥 DOCUMENT SECTION PER GUARANTOR */}
+              <DocumentSection
+                category="guarantor"
+                guarantorId={guarantor.id}
+                onUpload={({ file, document_type }) =>
+                  handleUpload({
+                    category: "guarantor",
+                    file,
+                    document_type,
+                    entity_id: guarantor.id,
+                  })
+                }
+                onDelete={(docId) => handleDelete(docId, guarantor.id)}
+                verifyPassword={verifyPassword}
+              />
             </div>
           ))}
         </div>
@@ -220,4 +192,3 @@ const GuarantorsTab = ({ borrowerId, onAddGuarantor }) => {
 };
 
 export default GuarantorsTab;
-

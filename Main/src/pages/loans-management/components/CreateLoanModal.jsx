@@ -9,30 +9,24 @@ import { useCreateLoan } from "hooks/loans/useCreateLoan";
 import { useToast } from "context/ToastContext";
 import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
 import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
-// Fixed dummy borrower
-const DUMMY_BORROWER = {
-  id: "CUS0418",
-  name: "Rani Das",
-  phone: "8510946946",
-  code: "CUS0418",
-  aadhaar_last4: "6946",
-};
+import { useGenerateLoanCode } from "hooks/generators/useGenerateLoanCode";
 
 const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [guarantorMode, setGuarantorMode] = useState("new"); // only "existing" | "new" now
   const { mutate: createLoan, isPending } = useCreateLoan();
+  const { mutate: generateNewLoanCode } = useGenerateLoanCode();
   const { data: guarantors = [] } = useBorrowerGuarantors(borrowerId);
   const { showToast } = useToast();
   const today = new Date().toISOString().split("T")[0];
   const { data: borrower } = useBorrowerDetails(borrowerId);
-
   const [formData, setFormData] = useState({
     // 1–4 Basic Identity
     loan_code: `LN-CDL-2025-${String(1000 + Math.floor(Math.random() * 9000)).padStart(5, "0")}`,
     customer_id: null,
     branch_id: null,
+    customer_code: null,
     parent_loan_id: oldLoanId ? oldLoanId : null,
 
     // 5–9 Financial Core
@@ -141,10 +135,23 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
     { value: "SAT", label: "Saturday" },
     { value: "SUN", label: "Sunday" },
   ];
+
   useEffect(() => {
     formData.branch_id = borrower?.branchId;
     formData.customer_id = borrower?.id;
+    formData.customer_code = borrower?.code;
   }, [borrower]);
+
+  useEffect(() => {
+    if (!formData.customer_code) return;
+
+    const preview = `${formData.customer_code}-L##`;
+
+    setFormData((prev) => ({
+      ...prev,
+      loan_code: preview,
+    }));
+  }, [formData.customer_code]);
 
   // Sync tenure_unit based on repayment_type
   useEffect(() => {
@@ -327,159 +334,177 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   const handleSubmit = () => {
     if (!validateStep(currentStep)) return;
 
-    const fd = new FormData();
-
-    // ─────────────────────────────
-    // 1️⃣ Calculate derived values
-    // ─────────────────────────────
-    const emi = calculateInstallment();
-    const totalPayable = Number(emi) * Number(formData.tenure_value || 0);
-
-    const interestAmount = (
-      (Number(formData.principal_amount) * Number(formData.interest_rate)) /
-      100
-    ).toFixed(2);
-
-    // ─────────────────────────────
-    // 2️⃣ Build STRUCTURED OBJECTS
-    // ─────────────────────────────
-
-    const loan = {
-      identity: {
-        loan_code: formData.loan_code,
-        customer_id: formData.customer_id,
-        branch_id: formData.branch_id,
-        parent_loan_id: formData.parent_loan_id,
-      },
-
-      financial: {
-        principal_amount: formData.principal_amount,
-        interest_rate: formData.interest_rate,
-        interest_type: formData.interest_type,
-        interest_amount: interestAmount,
-        installment_amount: emi,
-        total_payable: totalPayable.toString(),
-        processing_fee: formData.processing_fee,
-        penalty_rate: formData.penalty_rate,
-        grace_days: formData.grace_days,
-      },
-
-      schedule: {
-        tenure_value: formData.tenure_value,
-        tenure_unit: formData.tenure_unit,
-        repayment_type: formData.repayment_type,
-        repayment_interval: formData.repayment_interval,
-        sanctioned_date: formData.sanctioned_date,
-        start_date: formData.start_date,
-        last_due_date: formData.last_due_date,
-        collection_weekday: formData.collection_weekday,
-      },
-
-      status: {
-        status: "ACTIVE",
-        approved_by: formData.approved_by,
-        approved_at: new Date().toISOString(),
-      },
-    };
-
-    let guarantor = null;
-
-    if (guarantorMode === "new") {
-      guarantor = {
-        personal: {
-          full_name: formData.guarantorFullName,
-          phone: formData.guarantorPhone,
-          alternate_phone: formData.guarantorAlternatePhone,
-          email: formData.guarantorEmail,
-          relation: formData.guarantorRelation,
-        },
-
-        address: {
-          address: formData.guarantorAddress,
-          city: formData.guarantorCity,
-          state: formData.guarantorState,
-          pincode: formData.guarantorPincode,
-        },
-
-        financial: {
-          occupation: formData.guarantorOccupation,
-          monthly_income: formData.guarantorMonthlyIncome,
-        },
-
-        kyc: {
-          aadhaar: formData.guarantorAadhaar,
-          pan: formData.guarantorPan,
-        },
-      };
+    if (!formData.customer_code) {
+      showToast("Customer code missing", "error");
+      return;
     }
 
-    // ─────────────────────────────
-    // 3️⃣ Append JSON Nodes
-    // ─────────────────────────────
+    // STEP 1 — generate loan code first
+    generateNewLoanCode(
+      { customerCode: formData.customer_code },
+      {
+        onSuccess: (data) => {
+          const newLoanCode = data;
+          console.log("Generated loan code response:", data);
 
-    fd.append("loan", JSON.stringify(loan));
+          const fd = new FormData();
 
-    fd.append(
-      "meta",
-      JSON.stringify({
-        guarantor_mode: guarantorMode,
-        guarantor_id:
-          guarantorMode === "existing" ? formData.guarantor_id : null,
-      }),
+          // ─────────────────────────────
+          // Calculate derived values
+          // ─────────────────────────────
+
+          const emi = calculateInstallment();
+          const totalPayable = Number(emi) * Number(formData.tenure_value || 0);
+
+          const interestAmount = (
+            (Number(formData.principal_amount) *
+              Number(formData.interest_rate)) /
+            100
+          ).toFixed(2);
+
+          // ─────────────────────────────
+          // Build loan object
+          // ─────────────────────────────
+
+          const loan = {
+            identity: {
+              loan_code: newLoanCode,
+              customer_id: formData.customer_id,
+              branch_id: formData.branch_id,
+              parent_loan_id: formData.parent_loan_id,
+            },
+
+            financial: {
+              principal_amount: formData.principal_amount,
+              interest_rate: formData.interest_rate,
+              interest_type: formData.interest_type,
+              interest_amount: interestAmount,
+              installment_amount: emi,
+              total_payable: totalPayable.toString(),
+              processing_fee: formData.processing_fee,
+              penalty_rate: formData.penalty_rate,
+              grace_days: formData.grace_days,
+            },
+
+            schedule: {
+              tenure_value: formData.tenure_value,
+              tenure_unit: formData.tenure_unit,
+              repayment_type: formData.repayment_type,
+              repayment_interval: formData.repayment_interval,
+              sanctioned_date: formData.sanctioned_date,
+              start_date: formData.start_date,
+              last_due_date: formData.last_due_date,
+              collection_weekday: formData.collection_weekday,
+            },
+
+            status: {
+              status: "ACTIVE",
+              approved_by: formData.approved_by,
+              approved_at: new Date().toISOString(),
+            },
+          };
+
+          let guarantor = null;
+
+          if (guarantorMode === "new") {
+            guarantor = {
+              personal: {
+                full_name: formData.guarantorFullName,
+                phone: formData.guarantorPhone,
+                alternate_phone: formData.guarantorAlternatePhone,
+                email: formData.guarantorEmail,
+                relation: formData.guarantorRelation,
+              },
+
+              address: {
+                address: formData.guarantorAddress,
+                city: formData.guarantorCity,
+                state: formData.guarantorState,
+                pincode: formData.guarantorPincode,
+              },
+
+              financial: {
+                occupation: formData.guarantorOccupation,
+                monthly_income: formData.guarantorMonthlyIncome,
+              },
+
+              kyc: {
+                aadhaar: formData.guarantorAadhaar,
+                pan: formData.guarantorPan,
+              },
+            };
+          }
+
+          // ─────────────────────────────
+          // Append JSON
+          // ─────────────────────────────
+
+          fd.append("loan", JSON.stringify(loan));
+
+          fd.append(
+            "meta",
+            JSON.stringify({
+              guarantor_mode: guarantorMode,
+              guarantor_id:
+                guarantorMode === "existing" ? formData.guarantor_id : null,
+            }),
+          );
+
+          if (guarantor) {
+            fd.append("guarantor", JSON.stringify(guarantor));
+          }
+
+          // ─────────────────────────────
+          // Append files
+          // ─────────────────────────────
+
+          if (formData.guarantor_photo)
+            fd.append("guarantor_photo", formData.guarantor_photo);
+
+          if (formData.guarantor_aadhar_doc)
+            fd.append("guarantor_aadhar_doc", formData.guarantor_aadhar_doc);
+
+          if (formData.guarantor_pan_doc)
+            fd.append("guarantor_pan_doc", formData.guarantor_pan_doc);
+
+          if (formData.loan_agreement)
+            fd.append("loan_agreement", formData.loan_agreement);
+
+          if (formData.promissory_note)
+            fd.append("promissory_note", formData.promissory_note);
+
+          if (formData.signature_sheet)
+            fd.append("signature_sheet", formData.signature_sheet);
+
+          if (formData.other_document)
+            fd.append("other_document", formData.other_document);
+
+          // ─────────────────────────────
+          // Submit loan
+          // ─────────────────────────────
+
+          createLoan(fd, {
+            onSuccess: (data) => {
+              showToast("Loan created successfully!", "success");
+              console.log("Loan created:", data);
+
+              setTimeout(() => {
+                onClose();
+              }, 800);
+            },
+
+            onError: (error) => {
+              showToast("Error creating loan", "error");
+              console.error(error);
+            },
+          });
+        },
+
+        onError: () => {
+          showToast("Failed to generate loan code", "error");
+        },
+      },
     );
-
-    if (guarantor) {
-      fd.append("guarantor", JSON.stringify(guarantor));
-    }
-
-    // ─────────────────────────────
-    // 4️⃣ Append FILES separately
-    // ─────────────────────────────
-
-    // Guarantor Files
-    if (formData.guarantor_photo)
-      fd.append("guarantor_photo", formData.guarantor_photo);
-
-    if (formData.guarantor_aadhar_doc)
-      fd.append("guarantor_aadhar_doc", formData.guarantor_aadhar_doc);
-
-    if (formData.guarantor_pan_doc)
-      fd.append("guarantor_pan_doc", formData.guarantor_pan_doc);
-
-    // Loan Files
-    if (formData.loan_agreement)
-      fd.append("loan_agreement", formData.loan_agreement);
-
-    if (formData.promissory_note)
-      fd.append("promissory_note", formData.promissory_note);
-
-    if (formData.signature_sheet)
-      fd.append("signature_sheet", formData.signature_sheet);
-
-    if (formData.other_document)
-      fd.append("other_document", formData.other_document);
-
-    // ─────────────────────────────
-    // 5️⃣ Submit
-    // ─────────────────────────────
-
-    console.log("STRUCTURED SUBMISSION:");
-    console.log({ loan, guarantor, mode: guarantorMode });
-
-    createLoan(fd, {
-      onSuccess: (data) => {
-        showToast("Loan created successfully!", "success");
-        console.log("Loan created successfully:", data);
-      },
-      onError: (error) => {
-        showToast("Error creating loan. Please try again.", "error");
-        console.error("Error creating loan:", error);
-      },
-    });
-
-    setTimeout(() => {
-      onClose();
-    }, 800);
   };
 
   const schedule = generatePaymentSchedule();

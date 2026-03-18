@@ -121,6 +121,7 @@ const BorrowersListPage = () => {
     sortDir: sortConfig.direction,
     page: currentPage,
     pageSize: itemsPerPage,
+    blockStatus: filters.blockStatus,
   });
 
   const borrowers = data?.data || [];
@@ -153,6 +154,12 @@ const BorrowersListPage = () => {
     return sortConfig.direction === "asc" ? "ChevronUp" : "ChevronDown";
   };
 
+  const getBlockStatusStyle = (isBlocked) => {
+    return isBlocked
+      ? "bg-red-500/10 text-red-600"
+      : "bg-green-500/10 text-green-600";
+  };
+
   const getStatusColor = (status) => {
     const colors = {
       ACTIVE: "bg-blue-500/10 text-blue-600",
@@ -177,7 +184,9 @@ const BorrowersListPage = () => {
           </div>
           <div className="text-xs md:text-sm text-muted-foreground">
             Showing{" "}
-            <span className="font-semibold text-accent">{borrowers.length}</span>{" "}
+            <span className="font-semibold text-accent">
+              {borrowers.length}
+            </span>{" "}
             of{" "}
             <span className="font-semibold text-foreground">{totalItems}</span>
           </div>
@@ -255,6 +264,15 @@ const BorrowersListPage = () => {
                   <Icon name={getSortIcon("loanStatus")} size={14} />
                 </div>
               </th>
+              <th
+                className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer"
+                onClick={() => handleSort("code")}
+              >
+                <div className="flex items-center gap-2">
+                  status
+                  <Icon name={getSortIcon("code")} size={14} />
+                </div>
+              </th>
               <th className="px-4 py-3 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Actions
               </th>
@@ -262,8 +280,7 @@ const BorrowersListPage = () => {
           </thead>
           <tbody>
             {borrowers.map((borrower) => {
-              const displayName =
-                borrower.name || borrower.client_name || "-";
+              const displayName = borrower.name || borrower.client_name || "-";
               const displayStatus =
                 borrower.loan_status || borrower.loanStatus || "No Loans";
 
@@ -296,7 +313,10 @@ const BorrowersListPage = () => {
                   </td>
 
                   <td className="px-4 py-3 font-mono text-sm">
-                    {borrower.code || borrower.client_code || borrower.id || "-"}
+                    {borrower.code ||
+                      borrower.client_code ||
+                      borrower.id ||
+                      "-"}
                   </td>
 
                   <td className="px-4 py-3">
@@ -315,12 +335,28 @@ const BorrowersListPage = () => {
                     </span>
                   </td>
 
+                  <td className="px-4 py-3">
+                    <span
+                      className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium whitespace-nowrap ${getBlockStatusStyle(
+                        borrower.is_blocked,
+                      )}`}
+                    >
+                      <Icon
+                        name={borrower.is_blocked ? "Ban" : "CheckCircle"}
+                        size={12}
+                      />
+                      {borrower.is_blocked ? "Blocked" : "Active"}
+                    </span>
+                  </td>
+
                   <td className="px-4 py-3 text-right rounded-r-lg">
                     <Button
                       variant="outline"
                       size="sm"
                       iconName="Eye"
-                      onClick={() => navigate(`/borrower-profile/${borrower.id}`)}
+                      onClick={() =>
+                        navigate(`/borrower-profile/${borrower.id}`)
+                      }
                     >
                       View
                     </Button>
@@ -388,4 +424,3 @@ const BorrowersListPage = () => {
 };
 
 export default BorrowersListPage;
-

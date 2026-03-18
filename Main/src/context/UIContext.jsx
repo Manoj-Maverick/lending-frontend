@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-
+import { useToast } from "./ToastContext";
 const UIContext = createContext(null);
 
 export const UIContextProvider = ({ children }) => {
@@ -8,6 +8,7 @@ export const UIContextProvider = ({ children }) => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [branches, setBranches] = useState([]);
   const [currentTheme, setCurrentTheme] = useState("light");
+  const { showToast } = useToast();
 
   return (
     <UIContext.Provider
@@ -22,6 +23,7 @@ export const UIContextProvider = ({ children }) => {
         setSelectedBranch,
         currentTheme,
         setCurrentTheme,
+        showToast,
       }}
     >
       {children}
