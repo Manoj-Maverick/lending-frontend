@@ -26,6 +26,7 @@ export async function getBranchCustomers({
   sortDir = "asc",
   page = 1,
   pageSize = 5,
+  blockStatus = "all",
 }) {
   const { data } = await api.get(ENDPOINTS.BRANCH_DETAILS.borrowers(branchId), {
     params: {
@@ -35,6 +36,7 @@ export async function getBranchCustomers({
       sortDir,
       page,
       pageSize,
+      blockStatus,
     },
   });
   return data;

@@ -62,6 +62,7 @@ export const queryKeys = {
     loans: (borrowerId) => ["borrowers", "loans", borrowerId],
     guarantors: (borrowerId) => ["borrowers", "guarantors", borrowerId],
     isBlocked: (borrowerId) => ["borrowers", "isblocked", borrowerId],
+    stats: (branchId) => ["borrowers", "stats", branchId ?? "all"],
   },
   loans: {
     all: ["loans"],

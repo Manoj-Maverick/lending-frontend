@@ -63,7 +63,7 @@ const getBorrowerAvatar = (borrower) => {
 /* =========================
    COMPONENT
 ========================= */
-const BorrowersListPage = () => {
+const BorrowersListPage = ({ branch, setBranch }) => {
   const navigate = useNavigate();
   const { branches } = useUIContext();
 
@@ -83,7 +83,7 @@ const BorrowersListPage = () => {
 
   const [filters, setFilters] = useState({
     search: "",
-    branch: "all",
+    branch: branch || "all",
     status: "all",
     blockStatus: "all",
   });
@@ -109,6 +109,13 @@ const BorrowersListPage = () => {
 
     return () => clearTimeout(t);
   }, [filters.search]);
+
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      branch: branch || "all",
+    }));
+  }, [branch]);
 
   /* -------------------------
      Fetch from Backend
@@ -136,6 +143,10 @@ const BorrowersListPage = () => {
      Handlers
   ------------------------- */
   const onFilterChange = (key, value) => {
+    if (key === "branch") {
+      setBranch(value === "all" ? null : value); // 🔥 update parent
+    }
+
     setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1);
   };

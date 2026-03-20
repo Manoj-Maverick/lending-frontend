@@ -100,6 +100,7 @@ const BranchClients = () => {
     sortDir: sortConfig.direction,
     page: currentPage,
     pageSize: itemsPerPage,
+    blockStatus: filters.blockStatus,
   });
 
   const clients = data?.data || [];
@@ -118,7 +119,9 @@ const BranchClients = () => {
             <h2 className="font-semibold text-foreground">Filter Borrowers</h2>
           </div>
           <div className="text-sm text-muted-foreground">
-            Showing <span className="font-semibold text-accent">{clients.length}</span> of{" "}
+            Showing{" "}
+            <span className="font-semibold text-accent">{clients.length}</span>{" "}
+            of{" "}
             <span className="font-semibold text-foreground">{totalItems}</span>
           </div>
         </div>
@@ -142,7 +145,11 @@ const BranchClients = () => {
           />
         </div>
 
-        {isFetching && <div className="mt-2 text-xs text-muted-foreground">Updating results...</div>}
+        {isFetching && (
+          <div className="mt-2 text-xs text-muted-foreground">
+            Updating results...
+          </div>
+        )}
       </div>
 
       <div className="bg-card border-x border-border border-t-0 border-b-0">
@@ -177,7 +184,8 @@ const BranchClients = () => {
                   onClick={() => handleSort("loanStatus")}
                 >
                   <div className="flex items-center gap-2">
-                    Loan Status <Icon name={getSortIcon("loanStatus")} size={14} />
+                    Loan Status{" "}
+                    <Icon name={getSortIcon("loanStatus")} size={14} />
                   </div>
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -196,14 +204,24 @@ const BranchClients = () => {
                 >
                   <td className="px-4 py-3 rounded-l-lg">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted ring-2 ring-background border border-border">
-                      <Image src={getClientAvatar(client)} alt={client.name} className="w-full h-full object-cover" />
+                      <Image
+                        src={getClientAvatar(client)}
+                        alt={client.name}
+                        className="w-full h-full object-cover"
+                      />
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-semibold text-foreground">{client.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{getInitials(client.name)} profile</p>
+                    <p className="font-semibold text-foreground">
+                      {client.name}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {getInitials(client.name)} profile
+                    </p>
                   </td>
-                  <td className="px-4 py-3 text-sm text-muted-foreground">{client.phone}</td>
+                  <td className="px-4 py-3 text-sm text-muted-foreground">
+                    {client.phone}
+                  </td>
                   <td className="px-4 py-3 font-mono text-sm">{client.code}</td>
                   <td className="px-4 py-3">
                     <span
@@ -233,7 +251,9 @@ const BranchClients = () => {
                         variant="outline"
                         size="sm"
                         iconName="Eye"
-                        onClick={() => navigate(`/borrower-profile/${client.id}`)}
+                        onClick={() =>
+                          navigate(`/borrower-profile/${client.id}`)
+                        }
                       >
                         View
                       </Button>
@@ -254,7 +274,10 @@ const BranchClients = () => {
 
         <div className="md:hidden p-3 space-y-3">
           {clients.map((client) => (
-            <div key={client.id} className="bg-background rounded-xl border border-border p-3 shadow-sm">
+            <div
+              key={client.id}
+              className="bg-background rounded-xl border border-border p-3 shadow-sm"
+            >
               <div className="flex items-start gap-3">
                 <Image
                   src={getClientAvatar(client)}
@@ -262,7 +285,9 @@ const BranchClients = () => {
                   className="w-11 h-11 rounded-full object-cover border border-border"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-foreground truncate">{client.name}</p>
+                  <p className="font-semibold text-foreground truncate">
+                    {client.name}
+                  </p>
                   <p className="text-xs text-muted-foreground">{client.code}</p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     <span
@@ -286,7 +311,9 @@ const BranchClients = () => {
                   </div>
                 </div>
               </div>
-              <div className="mt-3 text-sm text-muted-foreground">{client.phone}</div>
+              <div className="mt-3 text-sm text-muted-foreground">
+                {client.phone}
+              </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"
@@ -309,10 +336,16 @@ const BranchClients = () => {
         </div>
 
         {!isLoading && clients.length === 0 && (
-          <div className="p-10 text-center text-muted-foreground">No borrowers found</div>
+          <div className="p-10 text-center text-muted-foreground">
+            No borrowers found
+          </div>
         )}
 
-        {isError && <div className="p-10 text-center text-red-600">Failed to load borrowers</div>}
+        {isError && (
+          <div className="p-10 text-center text-red-600">
+            Failed to load borrowers
+          </div>
+        )}
       </div>
 
       <div className="bg-card border border-border rounded-b-xl p-4 flex flex-col md:flex-row items-center gap-4 mb-5">
@@ -358,4 +391,3 @@ const BranchClients = () => {
 };
 
 export default BranchClients;
-

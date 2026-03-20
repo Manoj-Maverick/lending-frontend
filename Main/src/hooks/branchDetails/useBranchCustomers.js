@@ -10,6 +10,7 @@ export function useFetchBranchCustomers({
   sortDir = "asc",
   page = 1,
   pageSize = 5,
+  blockStatus = "all",
 }) {
   return useQuery({
     queryKey: queryKeys.branches.customers(branchId, {
@@ -19,6 +20,7 @@ export function useFetchBranchCustomers({
       sortDir,
       page,
       pageSize,
+      blockStatus,
     }),
     queryFn: () =>
       getBranchCustomers({
@@ -29,6 +31,7 @@ export function useFetchBranchCustomers({
         sortDir,
         page,
         pageSize,
+        blockStatus,
       }),
     enabled: !!branchId,
     keepPreviousData: true,

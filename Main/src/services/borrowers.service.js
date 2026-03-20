@@ -49,3 +49,16 @@ export async function getIsBlocked(borrowerId) {
   }
   return data?.data;
 }
+export async function getBorrowerStats({ branchId } = {}) {
+  const { data } = await api.get(ENDPOINTS.BORROWERS.stats, {
+    params: {
+      branchId, // ✅ explicitly passed
+    },
+  });
+
+  if (data?.success === false) {
+    throw new Error(data?.message || "Failed to fetch borrower stats");
+  }
+
+  return data?.data;
+}
