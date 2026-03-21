@@ -30,6 +30,8 @@ export const ENDPOINTS = {
   },
   COLLECTIONS: {
     list: "/api/today-collections",
+    overdueCount: "/api/collections/overdue-count",
+    overdue: "/api/collections/overdue",
   },
   DASHBOARD: {
     summary: "/api/dashboard/summary",

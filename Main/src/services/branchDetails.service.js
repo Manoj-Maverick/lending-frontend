@@ -22,23 +22,27 @@ export async function getBranchCustomers({
   branchId,
   search = "",
   status = "all",
+  blockStatus = "all",
   sortKey = "name",
   sortDir = "asc",
   page = 1,
   pageSize = 5,
-  blockStatus = "all",
 }) {
-  const { data } = await api.get(ENDPOINTS.BRANCH_DETAILS.borrowers(branchId), {
-    params: {
+  console.log("FINAL URL:", ENDPOINTS.BRANCH_DETAILS.borrowers(branchId));
+  const { data } = await api.post(
+    ENDPOINTS.BRANCH_DETAILS.borrowers(branchId),
+    {
+      branchId,
       search,
       status,
+      blockStatus,
       sortKey,
       sortDir,
       page,
       pageSize,
-      blockStatus,
-    },
-  });
+    }
+  );
+
   return data;
 }
 

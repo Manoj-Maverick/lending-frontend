@@ -7,7 +7,7 @@ import { useCreateBranch } from "hooks/branches/useCreateBranch";
 import { useToast } from "context/ToastContext";
 import { useGenerateBranchCode } from "hooks/generators/useGenerateBranchCode";
 
-import tamilNaduPincodes from "../../../dataSet/tamil_nadu_pincode_lookup.json";
+import tamilNaduPincodes from "../../../DataSet/tamil_nadu_pincode_lookup.json";
 
 const AddBranchModal = ({ isOpen, onClose }) => {
   const { showToast } = useToast();

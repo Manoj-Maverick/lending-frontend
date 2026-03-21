@@ -1,1 +1,1 @@
-export { default } from "pages/todays-collection/TodaysCollection";
+export { default } from "pages/todays-collection/Collections";

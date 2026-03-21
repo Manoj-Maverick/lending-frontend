@@ -5,7 +5,7 @@ import Button from "../../../components/ui/Button";
 import { useTodayPayments } from "hooks/dashboard/useTodayPayments";
 import { useNavigate } from "react-router-dom";
 import { useUIContext } from "context/UIContext";
-
+import { API_BASE_URL } from "api/client";
 const TodayPaymentsTable = () => {
   const { selectedBranch } = useUIContext();
   const navigate = useNavigate();
@@ -126,9 +126,7 @@ const TodayPaymentsTable = () => {
                   <div className="flex items-center gap-2 md:gap-3">
                     <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden flex-shrink-0">
                       <Image
-                        src={
-                          payment.avatar || "https://i.pravatar.cc/150?img=10"
-                        }
+                        src={API_BASE_URL + payment.avatar}
                         alt={payment.borrower_name}
                         className="w-full h-full object-cover"
                       />

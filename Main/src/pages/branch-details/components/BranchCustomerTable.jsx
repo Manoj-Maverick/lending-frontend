@@ -6,7 +6,7 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { useFetchBranchCustomers as useBranchClients } from "hooks/branchDetails/useBranchCustomers";
-
+import { API_BASE_URL } from "api/client";
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "ACTIVE", label: "Active Loans" },
@@ -34,7 +34,8 @@ const hashString = (value = "") => {
 };
 
 const getClientAvatar = (client) => {
-  if (client?.photo || client?.avatar) return client?.photo || client?.avatar;
+  if (client?.photo || client?.avatar)
+    return API_BASE_URL + client?.photo || API_BASE_URL + client?.avatar;
   const base = `${client?.id || ""}-${client?.name || ""}`;
   const seed = (hashString(base) % 70) + 1;
   return `https://i.pravatar.cc/150?img=${seed}`;
@@ -48,11 +49,14 @@ const getInitials = (name) => {
 };
 
 const getLoanStatusColor = (status) => {
+  const normalized = status?.trim().toUpperCase();
+
   const colors = {
     ACTIVE: "bg-blue-500/10 text-blue-600",
-    "No Loans": "bg-gray-500/10 text-gray-600",
+    "NO LOANS": "bg-gray-500/10 text-gray-600",
   };
-  return colors[status] || colors["No Loans"];
+
+  return colors[normalized] || "bg-gray-500/10 text-gray-600";
 };
 
 const BranchClients = () => {

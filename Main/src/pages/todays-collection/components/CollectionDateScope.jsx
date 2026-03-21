@@ -1,8 +1,16 @@
 import React from "react";
 import Button from "../../../components/ui/Button";
+import { Input } from "components/shared";
 
-const CollectionDateScope = ({ scope, customDate, onScopeChange, onCustomDateChange }) => {
-  const items = [
+const CollectionDateScope = ({
+  scope,
+  customDate,
+  onScopeChange,
+  onCustomDateChange,
+  items,
+}) => {
+  // Use passed items or fallback
+  const dateItems = items || [
     { id: "today", label: "Today" },
     { id: "tomorrow", label: "Tomorrow" },
     { id: "next7", label: "Next 7 Days" },
@@ -10,7 +18,7 @@ const CollectionDateScope = ({ scope, customDate, onScopeChange, onCustomDateCha
 
   return (
     <div className="flex flex-wrap gap-2">
-      {items.map((item) => (
+      {dateItems.map((item) => (
         <Button
           key={item.id}
           variant={scope === item.id ? "default" : "outline"}
@@ -19,7 +27,7 @@ const CollectionDateScope = ({ scope, customDate, onScopeChange, onCustomDateCha
           {item.label}
         </Button>
       ))}
-      <input
+      <Input
         type="date"
         value={customDate}
         onChange={(e) => onCustomDateChange(e.target.value)}

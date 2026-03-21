@@ -18,7 +18,7 @@ import Reports from "pages/reports";
 import PaymentsManagement from "pages/payments-management";
 import Login from "pages/login";
 import ProtectedRoute from "auth/ProtectedRoute";
-import TodaysCollection from "pages/todays-collection/TodaysCollection";
+import TodaysCollection from "pages/todays-collection/Collections";
 import { useAuth } from "auth/AuthContext";
 import { Navigate } from "react-router-dom";
 const Routes = () => {
