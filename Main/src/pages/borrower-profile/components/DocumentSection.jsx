@@ -1,14 +1,19 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { Select } from "components/shared";
 import { API_BASE_URL } from "api/client";
+import { toApiAssetUrl } from "utils/helper.js";
 import {
   useCustomerDocuments,
   useGuarantorDocuments,
   useLoanDocuments,
 } from "hooks/docs/useFetchDocs.js";
+import { useUIContext } from "context/UIContext";
+import { useToast } from "context/ToastContext";
+import { compressAnyFile } from "utils/helper.js";
+import { UploadModal } from "./UploadModal";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -17,27 +22,32 @@ const DocumentSection = ({
   borrowerId,
   loanId,
   guarantorId,
-  onUpload, // async (category, file, docType) => Promise<void>
-  onDelete, // (docId) => Promise<void>
-  verifyPassword, // async (password) => Promise<boolean>
+  onUpload, // Now expected to accept: { file, document_type, onProgress }
+  onDelete,
+  verifyPassword,
 }) => {
+  const { setIsSidebarCollapsed } = useUIContext();
+  const { showToast } = useToast();
+
   const [openSection, setOpenSection] = useState(true);
   const [previewDoc, setPreviewDoc] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [deletePassword, setDeletePassword] = useState("");
   const [passwordError, setPasswordError] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isReupload, setIsReupload] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFileType, setSelectedFileType] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState([]);
-  const fileInputRef = useRef(null);
+  const [selectedFiles, setSelectedFiles] = useState([]); // now also has: progress, abortController
   const [uploadedFilesSummary, setUploadedFilesSummary] = useState([]);
 
-  // ── Data hooks (unchanged) ───────────────────────────────────────
+  const fileInputRef = useRef(null);
+
+  // Data hooks
   const { data: borrowerDocuments = [], refetch: refetchCustomer } =
     useCustomerDocuments(category === "customer" ? borrowerId : null);
 
-  const { data: guarantorDocsRaw = [], refetch: refetchGuarantor } =
+  const { data: guarantorDocs = [], refetch: refetchGuarantor } =
     useGuarantorDocuments(
       category === "guarantor" && guarantorId ? guarantorId : null,
     );
@@ -46,7 +56,14 @@ const DocumentSection = ({
     category === "loan" && loanId ? loanId : null,
   );
 
-  // ── Document type definitions (unchanged) ────────────────────────
+  const currentDocs =
+    category === "customer"
+      ? borrowerDocuments
+      : category === "loan"
+        ? loanDocuments
+        : guarantorDocs;
+
+  // ── Document Types & Helpers ───────────────────────────────────────
   const customerDocTypes = [
     { value: "PHOTO", label: "Borrower Photo" },
     { value: "ID Proof", label: "ID Proof (Aadhaar / PAN / Voter)" },
@@ -71,49 +88,39 @@ const DocumentSection = ({
     { value: "Other Loan Document", label: "Other Loan Document" },
   ];
 
-  const getDocTypesForCategory = (cat) => {
-    if (cat === "customer") return customerDocTypes;
-    if (cat === "guarantor") return guarantorDocTypes;
-    if (cat === "loan") return loanDocTypes;
-    return [];
-  };
+  const getDocTypes = () =>
+    category === "customer"
+      ? customerDocTypes
+      : category === "guarantor"
+        ? guarantorDocTypes
+        : category === "loan"
+          ? loanDocTypes
+          : [];
 
-  const getMissingTypes = (cat) => {
-    let uploadedTypes = new Set();
-    if (cat === "customer") {
-      uploadedTypes = new Set(
-        borrowerDocuments.map((d) => d.type?.toLowerCase().trim()),
-      );
-    } else if (cat === "guarantor") {
-      uploadedTypes = new Set(
-        guarantorDocsRaw.map((d) => d.type?.toLowerCase()),
-      );
-    } else if (cat === "loan") {
-      uploadedTypes = new Set(loanDocuments.map((d) => d.type?.toLowerCase()));
-    }
-    return getDocTypesForCategory(cat).filter(
-      (t) => !uploadedTypes.has(t.value.toLowerCase()),
+  const getMissingTypes = () => {
+    const uploaded = new Set(
+      currentDocs.map((d) => d.type?.toLowerCase().trim()),
+    );
+    return getDocTypes().filter(
+      (t) => !uploaded.has(t.value.toLowerCase().trim()),
     );
   };
 
-  // ── File handling (addFiles, removeFile, startUpload) ─────────────
-  // (keeping your original logic – omitted here for brevity)
+  // ── File Handlers ──────────────────────────────────────────────────
   const addFiles = (filesList) => {
     if (!selectedFileType) {
       alert("Please select a document type first.");
       return;
     }
 
-    const missing = getMissingTypes(category);
+    const missing = getMissingTypes();
     if (!isReupload && !missing.some((t) => t.value === selectedFileType)) {
-      alert("This document type is already uploaded");
+      alert("This document type is already uploaded.");
       return;
     }
 
     if (selectedFiles.some((f) => f.type === selectedFileType)) {
-      alert(
-        "You cannot upload multiple files for the same type in one session.",
-      );
+      alert("Only one file per type allowed per session.");
       return;
     }
 
@@ -127,50 +134,103 @@ const DocumentSection = ({
       return {
         id: `file-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         name: file.name,
-        file: new File([file], file.name, { type: file.type }),
+        file,
         size: file.size,
         type: selectedFileType,
         category,
-        status: errors.length > 0 ? "error" : "pending",
-        error: errors.length > 0 ? errors.join(" • ") : null,
+        status: errors.length ? "error" : "compressing", // Start with compressing state
+        error: errors.length ? errors.join(" • ") : null,
+        progress: 0,
+        abortController: new AbortController(),
       };
     });
 
     setSelectedFiles((prev) => [...prev, ...newFiles]);
+
+    // Defer compression to next tick to prevent UI blocking
+    // This allows React to batch updates and the modal to finish rendering
+    newFiles.forEach((fileObj) => {
+      Promise.resolve().then(async () => {
+        // Yield to browser
+        await new Promise((r) => setTimeout(r, 0));
+
+        try {
+          if (fileObj.status === "error") return; // Skip if validation error
+
+          const compressed = await compressAnyFile(fileObj.file);
+
+          setSelectedFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileObj.id
+                ? { ...f, file: compressed, status: "pending" }
+                : f,
+            ),
+          );
+        } catch (err) {
+          setSelectedFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileObj.id
+                ? {
+                    ...f,
+                    status: "error",
+                    error: `Compression failed: ${err.message}`,
+                  }
+                : f,
+            ),
+          );
+        }
+      });
+    });
   };
 
   const removeFile = (id) => {
-    setSelectedFiles((prev) => prev.filter((f) => f.id !== id));
+    setSelectedFiles((prev) => {
+      const file = prev.find((f) => f.id === id);
+      if (file?.abortController) file.abortController.abort();
+      return prev.filter((f) => f.id !== id);
+    });
   };
 
   const startUpload = async () => {
-    const pending = selectedFiles.filter((f) => f.status === "pending");
-    if (pending.length === 0) {
-      alert("No valid files ready to upload.");
-      return;
-    }
+    const toUpload = selectedFiles.filter((f) => f.status === "pending");
+    if (toUpload.length === 0) return;
 
-    for (const fileObj of pending) {
+    // Show upload start toast
+    showToast(`Uploading ${toUpload.length} file${toUpload.length !== 1 ? "s" : ""}...`, "info");
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const fileObj of toUpload) {
       setSelectedFiles((prev) =>
         prev.map((f) =>
-          f.id === fileObj.id ? { ...f, status: "uploading" } : f,
+          f.id === fileObj.id ? { ...f, status: "uploading", progress: 0 } : f,
         ),
       );
 
       try {
-        if (!fileObj.file || fileObj.file.size === 0) {
-          throw new Error("Invalid file (mobile issue)");
-        }
-
+        // File is already compressed in addFiles, use it directly
         await onUpload({
-          category: fileObj.category,
           file: fileObj.file,
           document_type: fileObj.type,
+          onProgress: (percent) => {
+            setSelectedFiles((prev) =>
+              prev.map((f) =>
+                f.id === fileObj.id ? { ...f, progress: percent } : f,
+              ),
+            );
+          },
+          signal: fileObj.abortController.signal,
         });
+
+        // Simulate saving phase with a slight delay (shows user it's being processed)
+        await new Promise((resolve) => setTimeout(resolve, 1000));
 
         setSelectedFiles((prev) =>
           prev.map((f) =>
-            f.id === fileObj.id ? { ...f, status: "completed" } : f,
+            f.id === fileObj.id
+              ? { ...f, status: "completed", progress: 100 }
+              : f,
           ),
         );
 
@@ -187,26 +247,56 @@ const DocumentSection = ({
             }),
           },
         ]);
+
+        // Show success for this file
+        showToast(`✓ ${fileObj.name} uploaded successfully`, "success");
+        successCount++;
       } catch (err) {
-        setSelectedFiles((prev) =>
-          prev.map((f) =>
-            f.id === fileObj.id
-              ? { ...f, status: "error", error: err.message || "Upload failed" }
-              : f,
-          ),
-        );
+        if (err.name === "AbortError") {
+          setSelectedFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileObj.id ? { ...f, status: "cancelled" } : f,
+            ),
+          );
+          showToast(`✕ ${fileObj.name} upload cancelled`, "warning");
+        } else {
+          setSelectedFiles((prev) =>
+            prev.map((f) =>
+              f.id === fileObj.id
+                ? {
+                    ...f,
+                    status: "error",
+                    error: err.message || "Upload failed",
+                    progress: 0,
+                  }
+                : f,
+            ),
+          );
+          showToast(`✕ ${fileObj.name} upload failed: ${err.message}`, "error");
+          errorCount++;
+        }
       }
     }
 
-    // Refetch after all uploads
+    // Refetch after batch
     if (category === "customer") refetchCustomer();
     if (category === "guarantor") refetchGuarantor();
     if (category === "loan") refetchLoan();
 
-    setIsReupload(false);
+    // Show summary toast
+    if (errorCount === 0 && successCount > 0) {
+      showToast(`All documents uploaded successfully!`, "success");
+    } else if (successCount > 0 && errorCount > 0) {
+      showToast(
+        `${successCount} uploaded, ${errorCount} failed`,
+        "warning",
+      );
+    }
   };
 
   const closeModal = () => {
+    // Abort all ongoing uploads
+    selectedFiles.forEach((f) => f.abortController?.abort());
     setShowUploadModal(false);
     setSelectedFileType("");
     setSelectedFiles([]);
@@ -215,11 +305,12 @@ const DocumentSection = ({
 
   const clearSummary = () => setUploadedFilesSummary([]);
 
+  // Formatters (same as before)
   const formatFileSize = (bytes) => {
     if (!bytes) return "—";
     const units = ["B", "KB", "MB", "GB"];
-    let size = bytes;
-    let i = 0;
+    let size = bytes,
+      i = 0;
     while (size >= 1024 && i < units.length - 1) {
       size /= 1024;
       i++;
@@ -227,14 +318,14 @@ const DocumentSection = ({
     return `${size.toFixed(1)} ${units[i]}`;
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "—";
-    return new Date(dateString).toLocaleDateString("en-IN", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
-  };
+  const formatDate = (dateString) =>
+    dateString
+      ? new Date(dateString).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })
+      : "—";
 
   const getDocumentIcon = (type = "") => {
     const map = {
@@ -258,64 +349,61 @@ const DocumentSection = ({
   };
 
   const getCategoryColor = (type = "") => {
-    const lower = type.toLowerCase();
-    if (lower.includes("photo"))
+    const t = type.toLowerCase();
+    if (t.includes("photo"))
       return "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400";
-    if (
-      lower.includes("id") ||
-      lower.includes("pan") ||
-      lower.includes("aadhaar")
-    )
+    if (t.includes("id") || t.includes("pan") || t.includes("aadhaar"))
       return "bg-blue-100 text-blue-700 dark:bg-blue-950/30 dark:text-blue-400";
-    if (lower.includes("address"))
+    if (t.includes("address"))
       return "bg-purple-100 text-purple-700 dark:bg-purple-950/30 dark:text-purple-400";
-    if (
-      lower.includes("income") ||
-      lower.includes("itr") ||
-      lower.includes("salary")
-    )
+    if (t.includes("income") || t.includes("itr") || t.includes("salary"))
       return "bg-orange-100 text-orange-700 dark:bg-orange-950/30 dark:text-orange-400";
-    if (lower.includes("bank"))
+    if (t.includes("bank"))
       return "bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-400";
-    if (lower.includes("agreement"))
+    if (t.includes("agreement"))
       return "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/30 dark:text-indigo-400";
-    if (lower.includes("sanction"))
+    if (t.includes("sanction"))
       return "bg-green-100 text-green-700 dark:bg-green-950/30 dark:text-green-400";
-    if (lower.includes("disbursement"))
+    if (t.includes("disbursement"))
       return "bg-teal-100 text-teal-700 dark:bg-teal-950/30 dark:text-teal-400";
     return "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300";
   };
 
-  const isImage = (doc) =>
-    doc?.name?.toLowerCase().match(/\.(jpg|jpeg|png|gif|webp)$/i) ||
+  const isImageFile = (doc) =>
+    /\.(jpg|jpeg|png|gif|webp)$/i.test(doc?.name || "") ||
     doc?.type?.toLowerCase().includes("photo");
+  const isPDFFile = (doc) =>
+    (doc?.name || "").toLowerCase().endsWith(".pdf") ||
+    (doc?.url || "").toLowerCase().endsWith(".pdf");
 
-  const isPDF = (doc) => {
-    const name = doc?.name?.toLowerCase() || "";
-    const url = doc?.url?.toLowerCase() || "";
+  // Action handlers (same as before, omitted for brevity)
 
-    return name.endsWith(".pdf") || url.endsWith(".pdf");
+  const handlePreview = (doc) => {
+    setPreviewDoc({ ...doc, url: toApiAssetUrl(doc.url) });
+    setIsSidebarCollapsed(true);
   };
 
-  // ── Action handlers ──────────────────────────────────────────────
-  const handlePreview = (doc) => {
-    if (doc?.url) {
-      setPreviewDoc(doc);
+  const handleDownload = async (doc) => {
+    try {
+      const response = await fetch(toApiAssetUrl(doc.url));
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = blobUrl;
+      link.download = doc.name || "document";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Download failed:", err);
     }
   };
-
-  const handleDownload = (doc) => {
-    if (!doc?.url) return;
-    const link = document.createElement("a");
-    link.href = `${API_BASE_URL}${doc.url}`;
-    link.download = doc.name || "document";
-    link.click();
-  };
-
   const handleReupload = (doc) => {
     setSelectedFileType(doc.type);
     setIsReupload(true);
-    setTimeout(() => setShowUploadModal(true), 0);
+    setShowUploadModal(true);
+    showToast(`Ready to replace "${doc.name}"`, "info");
   };
 
   const handleDeleteAttempt = (docId) => {
@@ -326,27 +414,44 @@ const DocumentSection = ({
 
   const confirmDelete = async () => {
     if (!deleteConfirm?.docId) return;
-    const valid = await verifyPassword(deletePassword);
-    if (!valid) {
-      setPasswordError("Incorrect password");
-      return;
+
+    try {
+      setIsDeleting(true);
+      const isValid = await verifyPassword(deletePassword);
+      if (!isValid) {
+        setPasswordError("Incorrect password");
+        showToast("Incorrect password", "error");
+        setIsDeleting(false);
+        return;
+      }
+
+      // Show deletion in progress
+      showToast("Deleting document...", "info");
+
+      // Password verified, proceed with deletion
+      await onDelete(deleteConfirm.docId);
+
+      // Show success
+      showToast("Document deleted successfully", "success");
+
+      setDeleteConfirm(null);
+      setDeletePassword("");
+      setPasswordError("");
+
+      // Refetch data
+      if (category === "customer") refetchCustomer();
+      if (category === "guarantor") refetchGuarantor();
+      if (category === "loan") refetchLoan();
+    } catch (err) {
+      const errorMsg = err.message || "Deletion failed";
+      setPasswordError(errorMsg);
+      showToast(`Deletion failed: ${errorMsg}`, "error");
+    } finally {
+      setIsDeleting(false);
     }
-    await onDelete(deleteConfirm.docId);
-    setDeleteConfirm(null);
-    setDeletePassword("");
-    setPasswordError("");
-    if (category === "customer") refetchCustomer();
-    if (category === "guarantor") refetchGuarantor();
-    if (category === "loan") refetchLoan();
   };
 
-  const currentDocs =
-    category === "customer"
-      ? borrowerDocuments
-      : category === "loan"
-        ? loanDocuments
-        : guarantorDocsRaw;
-
+  // ── RENDER ─────────────────────────────────────────────────────────
   const sectionTitle =
     category === "customer"
       ? "Customer Documents"
@@ -361,10 +466,10 @@ const DocumentSection = ({
         ? "Users"
         : "FileText";
 
-  // ── RENDER ───────────────────────────────────────────────────────
   return (
     <div className="space-y-6 pb-12">
-      {/* Your existing upload progress + summary blocks remain here */}
+      {/* Summary & in-progress cards (same as before) */}
+      {/* ... omitted for brevity ... */}
       <AnimatePresence mode="popLayout">
         {selectedFiles.some((f) => f.status === "uploading") && (
           <div className="space-y-3">
@@ -391,7 +496,7 @@ const DocumentSection = ({
                       </div>
                     </div>
                     <div className="text-sm font-medium text-blue-600">
-                      Uploading...
+                      Uploading…
                     </div>
                   </div>
                 </motion.div>
@@ -400,7 +505,6 @@ const DocumentSection = ({
         )}
       </AnimatePresence>
 
-      {/* Upload Complete Summary */}
       <AnimatePresence>
         {uploadedFilesSummary.length > 0 && (
           <motion.div
@@ -427,9 +531,9 @@ const DocumentSection = ({
             </div>
 
             <div className="space-y-3 max-h-80 overflow-y-auto pr-2 mb-6">
-              {uploadedFilesSummary.map((file, idx) => (
+              {uploadedFilesSummary.map((file, i) => (
                 <div
-                  key={idx}
+                  key={i}
                   className="bg-white dark:bg-gray-800/70 rounded-lg p-4 border border-green-100 dark:border-green-900/50"
                 >
                   <div className="flex justify-between items-start gap-4">
@@ -458,18 +562,18 @@ const DocumentSection = ({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Main Document Card */}
       <div className="bg-card rounded-xl border border-border/60 shadow-sm overflow-hidden">
-        {/* HEADER */}
+        {/* Header */}
         <div
-          className="px-5 py-4 flex items-center justify-between cursor-pointer 
-    bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/40 hover:to-muted/20 transition-colors"
+          className="px-5 py-4 flex items-center justify-between cursor-pointer bg-gradient-to-r from-muted/30 to-muted/10 hover:from-muted/40 hover:to-muted/20 transition-colors"
           onClick={() => setOpenSection(!openSection)}
         >
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Icon name={sectionIcon} size={20} className="text-primary" />
             </div>
-
             <div>
               <h3 className="font-semibold text-lg">{sectionTitle}</h3>
               <p className="text-sm text-muted-foreground">
@@ -499,7 +603,7 @@ const DocumentSection = ({
           </div>
         </div>
 
-        {/* BODY */}
+        {/* Content */}
         <AnimatePresence>
           {openSection && (
             <motion.div
@@ -514,12 +618,10 @@ const DocumentSection = ({
                     {currentDocs.map((doc) => (
                       <div
                         key={doc.id}
-                        className="bg-muted/30 border border-border rounded-lg p-4 
-                  hover:bg-muted/50 transition-colors cursor-pointer group"
+                        className="bg-muted/30 border border-border rounded-lg p-4 hover:bg-muted/50 transition-colors cursor-pointer group"
                         onClick={() => handlePreview(doc)}
                       >
                         <div className="flex items-start gap-3">
-                          {/* ICON */}
                           <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <Icon
                               name={getDocumentIcon(doc.type)}
@@ -528,19 +630,15 @@ const DocumentSection = ({
                             />
                           </div>
 
-                          {/* CONTENT */}
                           <div className="flex-1 min-w-0">
-                            {/* TITLE */}
                             <p className="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">
                               {doc.name}
                             </p>
 
-                            {/* TYPE BADGE (MOVED BELOW TITLE) */}
                             <div className="flex items-center justify-between mt-1 gap-2">
                               <p className="text-xs text-muted-foreground truncate">
                                 {formatFileSize(doc.size)}
                               </p>
-
                               <span
                                 className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium shrink-0 ${getCategoryColor(doc.type)}`}
                               >
@@ -548,21 +646,18 @@ const DocumentSection = ({
                               </span>
                             </div>
 
-                            {/* DATE */}
                             <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
                               <Icon name="Calendar" size={12} />
                               {formatDate(doc.uploaded_at)}
                             </div>
 
-                            {/* ACTIONS */}
                             <div
-                              className="flex items-center gap-2 mt-3"
+                              className="flex items-center gap-2 mt-4 flex-wrap"
                               onClick={(e) => e.stopPropagation()}
                             >
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="flex-1 min-w-0"
                                 onClick={() => handleDownload(doc)}
                               >
                                 <Icon
@@ -576,7 +671,6 @@ const DocumentSection = ({
                               <Button
                                 variant="outline"
                                 size="sm"
-                                className="flex-1 min-w-0"
                                 onClick={() => handleReupload(doc)}
                               >
                                 <Icon
@@ -584,14 +678,15 @@ const DocumentSection = ({
                                   size={14}
                                   className="mr-1"
                                 />
-                                Reupload
+                                Replace
                               </Button>
 
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                className="shrink-0 text-destructive hover:bg-destructive/10"
+                                className="text-destructive hover:bg-destructive/10"
                                 onClick={() => handleDeleteAttempt(doc.id)}
+                                title="Delete document"
                               >
                                 <Icon name="Trash2" size={16} />
                               </Button>
@@ -616,8 +711,7 @@ const DocumentSection = ({
           )}
         </AnimatePresence>
       </div>
-
-      {/* Hidden file input */}
+      {/* Hidden input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -625,182 +719,33 @@ const DocumentSection = ({
         accept=".pdf,.jpg,.jpeg,.png"
         onChange={(e) => {
           if (e.target.files?.length) addFiles(e.target.files);
-          e.target.value = "";
+          // Defer value reset to next tick to prevent synchronous DOM refresh
+          setTimeout(() => {
+            e.target.value = "";
+          }, 0);
         }}
       />
-      <AnimatePresence>
-        {showUploadModal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/65 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            onClick={closeModal}
-          >
-            <motion.div
-              initial={{ scale: 0.94, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.94, y: 20, opacity: 0 }}
-              className="bg-card rounded-2xl p-6 md:p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-2xl font-bold">Upload {sectionTitle}</h3>
-                <Button variant="ghost" size="icon" onClick={closeModal}>
-                  <Icon name="X" size={24} />
-                </Button>
-              </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Document Type
-                  </label>
-                  <Select
-                    options={
-                      isReupload
-                        ? getDocTypesForCategory(category) // 🔥 allow all
-                        : getMissingTypes(category)
-                    }
-                    value={selectedFileType}
-                    onChange={setSelectedFileType}
-                    placeholder="Select document type..."
-                    disabled={isReupload}
-                  />
-                </div>
-                {isReupload && (
-                  <div className="text-sm text-warning">
-                    Replacing: <strong>{selectedFileType}</strong>
-                  </div>
-                )}
+      {/* ── Upload Modal with Progress (Memoized for Performance) ──────────────────── */}
+      <UploadModal
+        showUploadModal={showUploadModal}
+        closeModal={closeModal}
+        sectionTitle={sectionTitle}
+        selectedFileType={selectedFileType}
+        setSelectedFileType={setSelectedFileType}
+        isReupload={isReupload}
+        getMissingTypes={getMissingTypes}
+        getDocTypes={getDocTypes}
+        selectedFiles={selectedFiles}
+        removeFile={removeFile}
+        addFiles={addFiles}
+        getDocumentIcon={getDocumentIcon}
+        formatFileSize={formatFileSize}
+        startUpload={startUpload}
+        fileInputRef={fileInputRef}
+      />
 
-                {selectedFileType && (
-                  <>
-                    <div
-                      className="border-2 border-dashed rounded-xl p-10 text-center transition-all hover:border-primary hover:bg-primary/5 cursor-pointer"
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        addFiles(e.dataTransfer.files);
-                      }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Icon
-                        name="UploadCloud"
-                        size={56}
-                        className="mx-auto text-muted-foreground mb-4"
-                      />
-                      <p className="font-semibold text-lg mb-2">
-                        Click or drag files here
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        PDF, JPG, PNG • max 10 MB • one file per type
-                      </p>
-                    </div>
-
-                    {selectedFiles.length > 0 && (
-                      <div className="mt-6 space-y-4">
-                        <h4 className="font-medium text-lg">Selected Files</h4>
-                        {selectedFiles.map((file) => (
-                          <div
-                            key={file.id}
-                            className={`p-4 rounded-lg border flex items-center justify-between gap-4 ${
-                              file.status === "completed"
-                                ? "bg-green-50 border-green-200"
-                                : file.status === "uploading"
-                                  ? "bg-blue-50 border-blue-200"
-                                  : file.status === "error"
-                                    ? "bg-red-50 border-red-200"
-                                    : "bg-gray-50 border-gray-200"
-                            }`}
-                          >
-                            <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <Icon
-                                name={getDocumentIcon(file.type)}
-                                size={28}
-                                className="text-primary/70 flex-shrink-0"
-                              />
-                              <div className="min-w-0">
-                                <div className="font-medium truncate">
-                                  {file.name}
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-0.5">
-                                  {file.type} • {formatFileSize(file.size)}
-                                </div>
-                                {file.error && (
-                                  <div className="text-xs text-red-600 mt-1">
-                                    {file.error}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {file.status === "pending" && (
-                              <div className="text-sm text-gray-500">Ready</div>
-                            )}
-                            {file.status === "uploading" && (
-                              <div className="text-sm font-medium text-blue-600">
-                                Uploading...
-                              </div>
-                            )}
-                            {file.status === "completed" && (
-                              <div className="text-sm font-medium text-green-600 flex items-center gap-1.5">
-                                <Icon name="CheckCircle" size={16} /> Done
-                              </div>
-                            )}
-                            {file.status === "error" && (
-                              <div className="text-sm font-medium text-red-600">
-                                Failed
-                              </div>
-                            )}
-
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-muted-foreground hover:text-destructive"
-                              onClick={() => removeFile(file.id)}
-                            >
-                              <Icon name="X" size={18} />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-
-                <div className="flex gap-4 pt-6 border-t mt-6">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={closeModal}
-                  >
-                    Cancel
-                  </Button>
-
-                  {selectedFiles.length > 0 &&
-                    selectedFiles.some((f) => f.status === "pending") && (
-                      <Button className="flex-1" onClick={startUpload}>
-                        Start Upload
-                      </Button>
-                    )}
-
-                  {selectedFiles.length === 0 && selectedFileType && (
-                    <Button
-                      className="flex-1"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      Select File
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Preview Modal */}
+      {/* ── Preview Modal ─────────────────────────────────────────────── */}
       <AnimatePresence>
         {previewDoc && (
           <motion.div
@@ -836,15 +781,15 @@ const DocumentSection = ({
               </div>
 
               <div className="p-6 overflow-auto max-h-[calc(90vh-140px)]">
-                {isImage(previewDoc) ? (
+                {isImageFile(previewDoc) ? (
                   <img
-                    src={`${API_BASE_URL}${previewDoc.url}`}
+                    src={previewDoc.url}
                     alt={previewDoc.name}
                     className="max-w-full max-h-[70vh] mx-auto rounded-lg shadow-xl object-contain"
                   />
-                ) : isPDF(previewDoc) ? (
+                ) : isPDFFile(previewDoc) ? (
                   <iframe
-                    src={`${API_BASE_URL}${encodeURI(previewDoc.url)}`}
+                    src={previewDoc.url}
                     className="w-full h-[70vh] rounded-lg border shadow-inner"
                     title={previewDoc.name}
                   />
@@ -872,7 +817,7 @@ const DocumentSection = ({
         )}
       </AnimatePresence>
 
-      {/* Delete Confirmation Modal */}
+      {/* ── Delete Confirmation ───────────────────────────────────────── */}
       <AnimatePresence>
         {deleteConfirm && (
           <motion.div
@@ -895,7 +840,7 @@ const DocumentSection = ({
               </div>
 
               <p className="text-muted-foreground mb-6">
-                This action is permanent. Enter your password to confirm.
+                This action cannot be undone. Enter your password to confirm.
               </p>
 
               <input
@@ -904,6 +849,11 @@ const DocumentSection = ({
                 onChange={(e) => {
                   setDeletePassword(e.target.value);
                   setPasswordError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && deletePassword.trim()) {
+                    confirmDelete();
+                  }
                 }}
                 placeholder="Password"
                 className="w-full px-4 py-3 border rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-destructive/40"
@@ -919,6 +869,7 @@ const DocumentSection = ({
                   variant="outline"
                   className="flex-1"
                   onClick={() => setDeleteConfirm(null)}
+                  disabled={isDeleting}
                 >
                   Cancel
                 </Button>
@@ -926,9 +877,16 @@ const DocumentSection = ({
                   variant="destructive"
                   className="flex-1"
                   onClick={confirmDelete}
-                  disabled={!deletePassword.trim()}
+                  disabled={!deletePassword.trim() || isDeleting}
                 >
-                  Delete Permanently
+                  {isDeleting ? (
+                    <>
+                      <Icon name="Loader2" size={16} className="animate-spin mr-2" />
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Permanently"
+                  )}
                 </Button>
               </div>
             </motion.div>

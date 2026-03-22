@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "api/client";
+import { queryKeys } from "queryKeys/queryKeys";
 
 export const useUploadDocument = () => {
   const queryClient = useQueryClient();
@@ -22,7 +23,9 @@ export const useUploadDocument = () => {
       if (file) formData.append("file", file);
       console.log(formData);
 
-      const res = await apiClient.post("/api/documents", formData);
+      const res = await apiClient.post("/api/documents", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       return res.data;
     },
@@ -32,19 +35,19 @@ export const useUploadDocument = () => {
 
       if (category === "customer") {
         queryClient.invalidateQueries({
-          queryKey: ["documents", "customer", entity_id],
+          queryKey: queryKeys.documents.customer(entity_id),
         });
       }
 
       if (category === "guarantor") {
         queryClient.invalidateQueries({
-          queryKey: ["documents", "guarantor", entity_id],
+          queryKey: queryKeys.documents.guarantor(entity_id),
         });
       }
 
       if (category === "loan") {
         queryClient.invalidateQueries({
-          queryKey: ["documents", "loan", loan_id],
+          queryKey: queryKeys.documents.loan(loan_id),
         });
       }
     },

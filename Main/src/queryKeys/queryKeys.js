@@ -76,6 +76,8 @@ export const queryKeys = {
     all: ["collections"],
     list: (filters = {}) => ["collections", "list", filters],
     detail: (id) => ["collections", "detail", id],
+    overdue: (filters = {}) => ["collections", "overdue", filters],
+    overdueCount: (filters = {}) => ["collections", "overdue-count", filters],
   },
   payments: {
     all: ["payments"],
@@ -87,17 +89,10 @@ export const queryKeys = {
     lists: () => ["staff", "list"],
     list: (filters = {}) => ["staff", "list", filters],
   },
-};
-
-queryKeys.TodaysCollection = {
-  all: queryKeys.collections.all,
-  data: (startDate, endDate, branchId) => [
-    "collections",
-    "list",
-    {
-      start_date: startDate,
-      end_date: endDate,
-      branch_id: normalizeBranchId(branchId),
-    },
-  ],
+  documents: {
+    all: ["documents"],
+    customer: (customerId) => ["documents", "customer", customerId],
+    guarantor: (guarantorId) => ["documents", "guarantor", guarantorId],
+    loan: (loanId) => ["documents", "loan", loanId],
+  },
 };

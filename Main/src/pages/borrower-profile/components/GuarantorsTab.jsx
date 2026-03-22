@@ -4,7 +4,7 @@ import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 import DocumentSection from "./DocumentSection";
 import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
-import { useUploadDocument } from "hooks/docs/useUploadDoc";
+import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
 import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
 
 const GuarantorsTab = ({
@@ -20,16 +20,24 @@ const GuarantorsTab = ({
     error,
   } = useBorrowerGuarantors(borrowerId);
 
-  const { mutateAsync: uploadDoc } = useUploadDocument();
   const { mutateAsync: deleteDoc } = useDeleteDocument();
+  const { uploadDocument } = useUploadWithProgress();
 
-  // ✅ Upload handler (IMPORTANT FIX)
-  const handleUpload = async ({ category, file, document_type, entity_id }) => {
-    await uploadDoc({
-      category,
-      entity_id,
-      document_type,
+  // ✅ Upload handler with progress tracking
+  const handleUpload = async ({
+    file,
+    document_type,
+    onProgress,
+    signal,
+    guarantor,
+  }) => {
+    return uploadDocument({
       file,
+      category: "guarantor",
+      document_type,
+      entity_id: guarantor.id,
+      onProgress,
+      signal,
     });
   };
 
@@ -37,6 +45,7 @@ const GuarantorsTab = ({
     await deleteDoc({
       id: docId,
       category: "guarantor",
+      entity_id: guarantorId,
     });
   };
 
@@ -172,12 +181,13 @@ const GuarantorsTab = ({
               <DocumentSection
                 category="guarantor"
                 guarantorId={guarantor.id}
-                onUpload={({ file, document_type }) =>
+                onUpload={({ file, document_type, onProgress, signal }) =>
                   handleUpload({
-                    category: "guarantor",
                     file,
                     document_type,
-                    entity_id: guarantor.id,
+                    onProgress,
+                    signal,
+                    guarantor,
                   })
                 }
                 onDelete={(docId) => handleDelete(docId, guarantor.id)}

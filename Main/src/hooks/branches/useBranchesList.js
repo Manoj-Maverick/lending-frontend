@@ -7,6 +7,6 @@ export function useBranchesList({ page, limit, search, status, sortBy }) {
     queryKey: queryKeys.branches.list({ page, limit, search, status, sortBy }),
     queryFn: () => getBranchesList({ page, limit, search, status, sortBy }),
     keepPreviousData: true,
-    staleTime: 30 * 1000,
+    staleTime: 60 * 10000,
   });
 }

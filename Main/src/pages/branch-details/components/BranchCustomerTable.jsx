@@ -33,9 +33,9 @@ const hashString = (value = "") => {
   return Math.abs(hash);
 };
 
-const getClientAvatar = (client) => {
-  if (client?.photo || client?.avatar)
-    return API_BASE_URL + client?.photo || API_BASE_URL + client?.avatar;
+const getClientAvatar = (client, test = true) => {
+  if (client?.avatar)
+    return test == true ? API_BASE_URL + client?.avatar : client?.avatar;
   const base = `${client?.id || ""}-${client?.name || ""}`;
   const seed = (hashString(base) % 70) + 1;
   return `https://i.pravatar.cc/150?img=${seed}`;
@@ -106,6 +106,7 @@ const BranchClients = () => {
     pageSize: itemsPerPage,
     blockStatus: filters.blockStatus,
   });
+  console.log("Branch Clients Data:", data);
 
   const clients = data?.data || [];
   const totalItems = data?.total || 0;
@@ -209,7 +210,7 @@ const BranchClients = () => {
                   <td className="px-4 py-3 rounded-l-lg">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted ring-2 ring-background border border-border">
                       <Image
-                        src={getClientAvatar(client)}
+                        src={getClientAvatar(client, false)}
                         alt={client.name}
                         className="w-full h-full object-cover"
                       />
@@ -284,7 +285,7 @@ const BranchClients = () => {
             >
               <div className="flex items-start gap-3">
                 <Image
-                  src={getClientAvatar(client)}
+                  src={getClientAvatar(client, false)}
                   alt={client.name}
                   className="w-11 h-11 rounded-full object-cover border border-border"
                 />

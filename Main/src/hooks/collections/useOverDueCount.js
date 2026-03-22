@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getOverdueCount } from "services/collections.service";
+import { queryKeys } from "queryKeys/queryKeys";
 
 export function useOverdueCount(params = {}) {
   return useQuery({
-    queryKey: ["overdue-count", params],
+    queryKey: queryKeys.collections.overdueCount(params),
     queryFn: () => getOverdueCount(params),
 
     // 🔥 REAL-TIME FEEL

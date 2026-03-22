@@ -9,6 +9,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import ContactPopover from "pages/todays-collection/components/ContactPopover";
 import { motion } from "framer-motion";
 import { API_BASE_URL } from "api/client";
+import { toApiAssetUrl } from "utils/helper";
 const BranchTodayPaymentsTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
@@ -29,7 +30,7 @@ const BranchTodayPaymentsTable = () => {
       schedule_id: p.schedule_id,
       clientName: p.client_name,
       clientCode: p.client_code,
-      avatar: API_BASE_URL + p.avatar || "https://i.pravatar.cc/150?img=10",
+      avatar: toApiAssetUrl(p.avatar),
       loanCode: p.loan_code,
       dueAmount: Number(p.due_amount),
       status: (p.status || "pending").toLowerCase(),

@@ -1,11 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "api/client";
+import { queryKeys } from "queryKeys/queryKeys";
 
 export const useDeleteDocument = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, category }) => {
+    mutationFn: async ({ id, category, entity_id, loan_id }) => {
       const res = await apiClient.delete(`/api/documents/${id}`, {
         data: { category },
       });
@@ -18,19 +19,19 @@ export const useDeleteDocument = () => {
 
       if (category === "customer") {
         queryClient.invalidateQueries({
-          queryKey: ["documents", "customer", entity_id],
+          queryKey: queryKeys.documents.customer(entity_id),
         });
       }
 
       if (category === "guarantor") {
         queryClient.invalidateQueries({
-          queryKey: ["documents", "guarantor", entity_id],
+          queryKey: queryKeys.documents.guarantor(entity_id),
         });
       }
 
       if (category === "loan") {
         queryClient.invalidateQueries({
-          queryKey: ["documents", "loan", loan_id],
+          queryKey: queryKeys.documents.loan(loan_id),
         });
       }
     },

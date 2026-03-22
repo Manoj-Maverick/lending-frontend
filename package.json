@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "browser-image-compression": "^2.0.2",
+    "pdf-lib": "^1.17.1"
+  }
+}

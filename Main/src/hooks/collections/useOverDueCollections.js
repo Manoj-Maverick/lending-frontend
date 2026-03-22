@@ -4,7 +4,7 @@ import { queryKeys } from "queryKeys/queryKeys";
 
 export function useOverdueCollections(params = {}) {
   return useQuery({
-    queryKey: ["collections", params],
+    queryKey: queryKeys.collections.overdue(params),
     queryFn: () => getOverdueCollections(params),
     keepPreviousData: true,
   });

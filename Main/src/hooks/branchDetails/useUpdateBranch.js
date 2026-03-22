@@ -11,10 +11,30 @@ export function useUpdateBranch() {
       return updateBranch(id, data);
     },
     onSuccess: (_, variables) => {
+      const branchId = variables.id;
+
+      // Invalidate specific branch detail
       queryClient.invalidateQueries({
-        queryKey: queryKeys.branches.detail(variables.id),
+        queryKey: queryKeys.branches.detail(branchId),
       });
+
+      // Invalidate all branch lists and related data
       queryClient.invalidateQueries({ queryKey: queryKeys.branches.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.branches.lists() });
+
+      // Invalidate related branch detail pages
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.branches.metrics(branchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.branches.staff(branchId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.branches.customers(branchId),
+      });
+
+      // Invalidate dashboard since branch data affects overall stats
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
     },
   });
 }

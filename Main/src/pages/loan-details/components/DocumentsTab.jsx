@@ -1,19 +1,21 @@
 import React from "react";
 import DocumentSection from "pages/borrower-profile/components/DocumentSection";
-import { useUploadDocument } from "hooks/docs/useUploadDoc";
+import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
 import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
 
 const DocumentsTab = ({ loanId }) => {
   console.log(loanId);
-  const { mutateAsync: uploadDoc } = useUploadDocument();
+  const { uploadDocument } = useUploadWithProgress();
   const { mutateAsync: deleteDoc } = useDeleteDocument();
 
-  const handleUpload = async ({ category, file, document_type }) => {
-    await uploadDoc({
-      category,
-      loan_id: loanId, // ✅ inject here
-      document_type,
+  const handleUpload = async ({ file, document_type, onProgress, signal }) => {
+    return uploadDocument({
       file,
+      category: "loan",
+      document_type,
+      loan_id: loanId, // ✅ inject here
+      onProgress,
+      signal,
     });
   };
 
@@ -21,6 +23,7 @@ const DocumentsTab = ({ loanId }) => {
     await deleteDoc({
       id: docId,
       category: "loan",
+      loan_id: loanId,
     });
   };
 

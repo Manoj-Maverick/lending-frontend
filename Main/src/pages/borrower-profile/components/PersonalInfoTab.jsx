@@ -5,9 +5,9 @@ import Button from "../../../components/ui/Button";
 import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
 import { API_BASE_URL } from "api/client";
 import DocumentSection from "./DocumentSection";
-import { useUploadDocument } from "hooks/docs/useUploadDoc";
 import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
 import { useToggleBlock } from "hooks/borrowers/useBlockBorrower";
+import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
 const PersonalInfoTab = ({ borrowerId, onEdit }) => {
   const {
     data: borrower,
@@ -34,17 +34,20 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     const seed = (hashString(base) % 70) + 1;
     return `https://i.pravatar.cc/150?img=${seed}`;
   };
-  const { mutateAsync: uploadDoc } = useUploadDocument();
   const { mutateAsync: deleteDoc } = useDeleteDocument();
   const { mutate: toggleBlock, isPending: isBlocking } = useToggleBlock();
-  const isBlocked = borrower?.is_blocked; // ensure backend sends this
+  const { uploadDocument } = useUploadWithProgress();
+  const isBlocked = borrower?.is_blocked;
   console.log(isBlocked);
-  const handleUpload = async ({ file, document_type }) => {
-    await uploadDoc({
-      category: "customer",
-      entity_id: borrowerId,
-      document_type,
+
+  const handleUpload = async ({ file, document_type, onProgress, signal }) => {
+    return uploadDocument({
       file,
+      category: "customer",
+      document_type,
+      entity_id: borrowerId,
+      onProgress,
+      signal,
     });
   };
   const handleDelete = async (docId) => {
@@ -52,6 +55,7 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     await deleteDoc({
       id: docId,
       category: "customer",
+      entity_id: borrowerId,
     });
   };
 
