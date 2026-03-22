@@ -1,11 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { getBranchTodayPayments } from "services/branchDetails.service";
-import { queryKeys } from "queryKeys/queryKeys";
+import { queryConfig } from "query/queryConfig";
+import { useAppQuery } from "query/useAppQuery";
 
 export function useBranchTodayPayments(branchId) {
-  return useQuery({
-    queryKey: queryKeys.branches.branchTodayPayments(branchId),
-    queryFn: () => getBranchTodayPayments(branchId),
-    staleTime: 60_000,
-  });
+  return useAppQuery(queryConfig.branches.branchTodayPayments(branchId));
 }

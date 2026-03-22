@@ -1,11 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { getBranchComparison } from "services/dashboard.service";
-import { queryKeys } from "queryKeys/queryKeys";
+import { queryConfig } from "query/queryConfig";
+import { useAppQuery } from "query/useAppQuery";
 
 export function useBranchComparison() {
-  return useQuery({
-    queryKey: queryKeys.dashboard.branchComparison,
-    queryFn: getBranchComparison,
-    staleTime: 60_000,
-  });
+  return useAppQuery(queryConfig.dashboard.branchComparison);
 }

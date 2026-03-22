@@ -8,6 +8,8 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { API_BASE_URL } from "api/client";
+import { queryConfig } from "query/queryConfig";
+import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 
 /* =========================
    OPTIONS
@@ -66,6 +68,13 @@ const getBorrowerAvatar = (borrower) => {
 const BorrowersListPage = ({ branch, setBranch }) => {
   const navigate = useNavigate();
   const { branches } = useUIContext();
+  const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
+    (borrowerId) => [
+      queryConfig.borrowers.profile(borrowerId),
+      queryConfig.borrowers.isBlocked(borrowerId),
+    ],
+    150,
+  );
 
   const branchOptions = useMemo(() => {
     const base = [{ value: "all", label: "All Branches" }];
@@ -299,6 +308,10 @@ const BorrowersListPage = ({ branch, setBranch }) => {
                 <tr
                   key={borrower.id}
                   className="bg-background border border-border shadow-sm hover:shadow-md hover:bg-muted/20 transition-all"
+                  onMouseEnter={() => onMouseEnter(borrower.id)}
+                  onMouseLeave={onMouseLeave}
+                  onFocus={() => onMouseEnter(borrower.id)}
+                  onBlur={onMouseLeave}
                 >
                   <td className="px-4 py-3 rounded-l-lg">
                     <div className="w-11 h-11 rounded-full overflow-hidden bg-muted flex items-center justify-center ring-2 ring-background border border-border">
@@ -365,6 +378,10 @@ const BorrowersListPage = ({ branch, setBranch }) => {
                       variant="outline"
                       size="sm"
                       iconName="Eye"
+                      onMouseEnter={() => onMouseEnter(borrower.id)}
+                      onMouseLeave={onMouseLeave}
+                      onFocus={() => onMouseEnter(borrower.id)}
+                      onBlur={onMouseLeave}
                       onClick={() =>
                         navigate(`/borrower-profile/${borrower.id}`)
                       }

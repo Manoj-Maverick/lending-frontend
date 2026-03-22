@@ -7,6 +7,7 @@ const runtimeBaseUrl =
     : "http://localhost:3001";
 
 export const API_BASE_URL = envBaseUrl || runtimeBaseUrl;
+console.info(`[api] Using API base URL: ${API_BASE_URL}`);
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

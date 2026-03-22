@@ -1,20 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
-import { getLoans, getLoanStats } from "services/loans.service";
-import { queryKeys } from "queryKeys/queryKeys";
+import { queryConfig } from "query/queryConfig";
+import { useAppQuery } from "query/useAppQuery";
 
 export function useLoans(filters = {}) {
-  return useQuery({
-    queryKey: queryKeys.loans.list(filters),
-    queryFn: () => getLoans(filters),
-    keepPreviousData: true,
-    staleTime: 30 * 1000,
-  });
+  return useAppQuery(queryConfig.loans.list(filters));
 }
 
 export function useLoanStats(branch) {
-  return useQuery({
-    queryKey: queryKeys.loans.stats(branch),
-    queryFn: () => getLoanStats(branch),
-    staleTime: 60 * 1000,
-  });
+  return useAppQuery(queryConfig.loans.stats(branch));
 }

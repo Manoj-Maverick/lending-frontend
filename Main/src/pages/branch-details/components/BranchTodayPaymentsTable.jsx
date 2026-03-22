@@ -11,6 +11,8 @@ import { motion } from "framer-motion";
 import { API_BASE_URL } from "api/client";
 import { toApiAssetUrl } from "utils/helper";
 import { TableCardSkeleton } from "components/ui/Skeleton";
+import { queryConfig } from "query/queryConfig";
+import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 const BranchTodayPaymentsTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
@@ -18,6 +20,10 @@ const BranchTodayPaymentsTable = () => {
 
   const { branchId } = useParams();
   const navigate = useNavigate();
+  const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
+    (loanId) => queryConfig.loans.details(loanId),
+    140,
+  );
 
   const {
     data: rawPayments = [],
@@ -159,6 +165,10 @@ const BranchTodayPaymentsTable = () => {
                     <tr
                       key={p.id}
                       className="bg-background border border-border shadow-sm hover:bg-muted/20 transition"
+                      onMouseEnter={() => onMouseEnter(p.id)}
+                      onMouseLeave={onMouseLeave}
+                      onFocus={() => onMouseEnter(p.id)}
+                      onBlur={onMouseLeave}
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
@@ -215,6 +225,10 @@ const BranchTodayPaymentsTable = () => {
                               size="sm"
                               iconName="Wallet"
                               className="bg-gradient-to-r from-primary to-accent text-white"
+                              onMouseEnter={() => onMouseEnter(p.id)}
+                              onMouseLeave={onMouseLeave}
+                              onFocus={() => onMouseEnter(p.id)}
+                              onBlur={onMouseLeave}
                               onClick={() =>
                                 navigate(`/loan-details/${p.id}?pay=true`)
                               }
@@ -227,6 +241,10 @@ const BranchTodayPaymentsTable = () => {
                             variant="outline"
                             size="sm"
                             iconName="Eye"
+                            onMouseEnter={() => onMouseEnter(p.id)}
+                            onMouseLeave={onMouseLeave}
+                            onFocus={() => onMouseEnter(p.id)}
+                            onBlur={onMouseLeave}
                             onClick={() => navigate(`/loan-details/${p.id}`)}
                           />
                         </div>
@@ -279,6 +297,10 @@ const BranchTodayPaymentsTable = () => {
                 <div
                   key={p.id}
                   className="bg-background border border-border rounded-xl p-3 shadow-sm"
+                  onMouseEnter={() => onMouseEnter(p.id)}
+                  onMouseLeave={onMouseLeave}
+                  onFocus={() => onMouseEnter(p.id)}
+                  onBlur={onMouseLeave}
                 >
                   <div className="flex items-start gap-3">
                     <Image
@@ -332,6 +354,10 @@ const BranchTodayPaymentsTable = () => {
                         iconName="Wallet"
                         className="bg-gradient-to-r from-primary to-accent text-white"
                         fullWidth
+                        onMouseEnter={() => onMouseEnter(p.id)}
+                        onMouseLeave={onMouseLeave}
+                        onFocus={() => onMouseEnter(p.id)}
+                        onBlur={onMouseLeave}
                         onClick={() =>
                           navigate(`/loan-details/${p.id}?pay=true`)
                         }
@@ -349,6 +375,10 @@ const BranchTodayPaymentsTable = () => {
                       size="sm"
                       iconName="Eye"
                       fullWidth
+                      onMouseEnter={() => onMouseEnter(p.id)}
+                      onMouseLeave={onMouseLeave}
+                      onFocus={() => onMouseEnter(p.id)}
+                      onBlur={onMouseLeave}
                       onClick={() => navigate(`/loan-details/${p.id}`)}
                     />
                   </div>

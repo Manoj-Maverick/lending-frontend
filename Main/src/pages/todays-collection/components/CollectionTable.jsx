@@ -3,6 +3,8 @@ import Button from "../../../components/ui/Button";
 import Icon from "../../../components/AppIcon";
 import { API_BASE_URL } from "api/client";
 import { TableCardSkeleton } from "components/ui/Skeleton";
+import { queryConfig } from "query/queryConfig";
+import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 
 const statusBadgeClass = (status) => {
   const map = {
@@ -28,6 +30,11 @@ const CollectionTable = ({
   loading,
   mode = "today",
 }) => {
+  const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
+    (loanId) => queryConfig.loans.details(loanId),
+    140,
+  );
+
   if (loading) {
     return (
       <TableCardSkeleton
@@ -85,7 +92,14 @@ const CollectionTable = ({
 
           <tbody className="divide-y divide-border">
             {rows.map((row) => (
-              <tr key={row.id} className="hover:bg-muted/40 transition">
+              <tr
+                key={row.id}
+                className="hover:bg-muted/40 transition"
+                onMouseEnter={() => onMouseEnter(row.loanId)}
+                onMouseLeave={onMouseLeave}
+                onFocus={() => onMouseEnter(row.loanId)}
+                onBlur={onMouseLeave}
+              >
                 {/* ✅ Borrower + Profile Pic */}
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -161,6 +175,10 @@ const CollectionTable = ({
                         size="sm"
                         variant="default"
                         iconName="CreditCard"
+                        onMouseEnter={() => onMouseEnter(row.loanId)}
+                        onMouseLeave={onMouseLeave}
+                        onFocus={() => onMouseEnter(row.loanId)}
+                        onBlur={onMouseLeave}
                         onClick={() => onCollect(row)}
                       >
                         Collect
@@ -182,6 +200,10 @@ const CollectionTable = ({
                       size="sm"
                       variant="ghost"
                       iconName="Eye"
+                      onMouseEnter={() => onMouseEnter(row.loanId)}
+                      onMouseLeave={onMouseLeave}
+                      onFocus={() => onMouseEnter(row.loanId)}
+                      onBlur={onMouseLeave}
                       onClick={() => onViewLoan(row.loanId)}
                     />
                   </div>

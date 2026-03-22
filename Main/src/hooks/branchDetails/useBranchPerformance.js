@@ -1,11 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { getBranchPerformance } from "services/branchDetails.service";
-import { queryKeys } from "queryKeys/queryKeys";
+import { queryConfig } from "query/queryConfig";
+import { useAppQuery } from "query/useAppQuery";
 
 export function useFetchBranchPerformanceMetricsByID(branchId) {
-  return useQuery({
-    queryKey: queryKeys.branches.metrics(branchId),
-    queryFn: () => getBranchPerformance(branchId),
-    enabled: !!branchId,
-  });
+  return useAppQuery(queryConfig.branches.metrics(branchId));
 }

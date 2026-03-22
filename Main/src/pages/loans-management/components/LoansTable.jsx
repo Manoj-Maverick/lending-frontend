@@ -1,9 +1,15 @@
 import React, { useState } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
+import { queryConfig } from "query/queryConfig";
+import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 
 const LoansTable = ({ loans, onViewLoan }) => {
   const [expandedRow, setExpandedRow] = useState(null);
+  const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
+    (loanId) => queryConfig.loans.details(loanId),
+    140,
+  );
 
   const getStatusColor = (status) => {
     const colors = {
@@ -63,6 +69,10 @@ const LoansTable = ({ loans, onViewLoan }) => {
               <tr
                 key={loan?.id}
                 className="hover:bg-muted/30 transition-colors"
+                onMouseEnter={() => onMouseEnter(loan?.loanId)}
+                onMouseLeave={onMouseLeave}
+                onFocus={() => onMouseEnter(loan?.loanId)}
+                onBlur={onMouseLeave}
               >
                 <td className="px-4 py-3">
                   <div className="text-sm font-medium text-foreground">
@@ -111,6 +121,10 @@ const LoansTable = ({ loans, onViewLoan }) => {
                   <Button
                     variant="outline"
                     size="sm"
+                    onMouseEnter={() => onMouseEnter(loan?.loanId)}
+                    onMouseLeave={onMouseLeave}
+                    onFocus={() => onMouseEnter(loan?.loanId)}
+                    onBlur={onMouseLeave}
                     onClick={() => onViewLoan(loan)}
                   >
                     <Icon name="Eye" size={14} />
@@ -129,6 +143,10 @@ const LoansTable = ({ loans, onViewLoan }) => {
           <div
             key={loan?.id}
             className="bg-muted/30 rounded-lg border border-border overflow-hidden"
+            onMouseEnter={() => onMouseEnter(loan?.loanId)}
+            onMouseLeave={onMouseLeave}
+            onFocus={() => onMouseEnter(loan?.loanId)}
+            onBlur={onMouseLeave}
           >
             <div
               className="p-4 cursor-pointer"
@@ -213,6 +231,10 @@ const LoansTable = ({ loans, onViewLoan }) => {
                 <Button
                   variant="outline"
                   size="sm"
+                  onMouseEnter={() => onMouseEnter(loan?.loanId)}
+                  onMouseLeave={onMouseLeave}
+                  onFocus={() => onMouseEnter(loan?.loanId)}
+                  onBlur={onMouseLeave}
                   onClick={() => onViewLoan(loan)}
                   className="w-full"
                 >

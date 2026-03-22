@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
+import { queryConfig } from "query/queryConfig";
+import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 
 const BranchCard = ({ branch, onClick }) => {
   const [expanded, setExpanded] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
+    (branchId) => [
+      queryConfig.branches.detail(branchId),
+      queryConfig.branches.metrics(branchId),
+    ],
+    160,
+  );
 
   useEffect(() => {
     const checkScreen = () => setIsDesktop(window.innerWidth >= 768);
@@ -41,6 +50,10 @@ const BranchCard = ({ branch, onClick }) => {
     <div
       className="bg-card border border-border rounded-lg p-4 md:p-6 hover:shadow-elevation-md transition-all duration-250 cursor-pointer group"
       onClick={() => onClick(branch)}
+      onMouseEnter={() => onMouseEnter(branch?.id)}
+      onMouseLeave={onMouseLeave}
+      onFocus={() => onMouseEnter(branch?.id)}
+      onBlur={onMouseLeave}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {

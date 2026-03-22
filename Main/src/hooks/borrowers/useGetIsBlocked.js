@@ -1,11 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { getIsBlocked } from "services/borrowers.service";
-import { queryKeys } from "queryKeys/queryKeys";
+import { queryConfig } from "query/queryConfig";
+import { useAppQuery } from "query/useAppQuery";
 
 export function useGetISBlocked(borrowerId) {
-  return useQuery({
-    queryKey: queryKeys.borrowers.isBlocked(borrowerId),
-    queryFn: () => getIsBlocked(borrowerId),
-    enabled: !!borrowerId,
-  });
+  return useAppQuery(queryConfig.borrowers.isBlocked(borrowerId));
 }

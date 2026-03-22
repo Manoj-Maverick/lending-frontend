@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createLoan } from "services/loans.service";
-import { queryKeys } from "queryKeys/queryKeys";
+import { getInvalidationKeys, runInvalidation } from "query/invalidate";
 
 export function useCreateLoan() {
   const queryClient = useQueryClient();
@@ -8,9 +8,7 @@ export function useCreateLoan() {
   return useMutation({
     mutationFn: createLoan,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.loans.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.borrowers.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all });
+      runInvalidation(queryClient, getInvalidationKeys("loanCreated"));
     },
   });
 }

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
@@ -7,6 +8,8 @@ import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { useFetchBranchCustomers as useBranchClients } from "hooks/branchDetails/useBranchCustomers";
 import { API_BASE_URL } from "api/client";
+import { queryConfig } from "query/queryConfig";
+import { prefetchQuery } from "query/prefetch";
 const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "ACTIVE", label: "Active Loans" },
@@ -61,6 +64,7 @@ const getLoanStatusColor = (status) => {
 
 const BranchClients = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { branchId } = useParams();
 
   const [filters, setFilters] = useState({
@@ -114,6 +118,11 @@ const BranchClients = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const startItem = totalItems === 0 ? 0 : startIndex + 1;
   const endItem = Math.min(startIndex + itemsPerPage, totalItems);
+
+  const handlePrefetchBorrower = (borrowerId) => {
+    prefetchQuery(queryClient, queryConfig.borrowers.profile(borrowerId));
+    prefetchQuery(queryClient, queryConfig.borrowers.isBlocked(borrowerId));
+  };
 
   return (
     <div className="space-y-0 mb-5">
@@ -206,6 +215,8 @@ const BranchClients = () => {
                 <tr
                   key={client.id}
                   className="bg-background border border-border shadow-sm hover:shadow-md hover:bg-muted/20 transition-all"
+                  onMouseEnter={() => handlePrefetchBorrower(client.id)}
+                  onFocus={() => handlePrefetchBorrower(client.id)}
                 >
                   <td className="px-4 py-3 rounded-l-lg">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted ring-2 ring-background border border-border">
@@ -256,6 +267,8 @@ const BranchClients = () => {
                         variant="outline"
                         size="sm"
                         iconName="Eye"
+                        onMouseEnter={() => handlePrefetchBorrower(client.id)}
+                        onFocus={() => handlePrefetchBorrower(client.id)}
                         onClick={() =>
                           navigate(`/borrower-profile/${client.id}`)
                         }

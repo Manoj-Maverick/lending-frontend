@@ -1,12 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
-import { getBorrowers } from "services/borrowers.service";
-import { queryKeys } from "queryKeys/queryKeys";
+import { queryConfig } from "query/queryConfig";
+import { useAppQuery } from "query/useAppQuery";
 
 export function useBorrowers(filters = {}) {
-  return useQuery({
-    queryKey: queryKeys.borrowers.list(filters),
-    queryFn: () => getBorrowers(filters),
-    keepPreviousData: true,
-  });
+  return useAppQuery(queryConfig.borrowers.list(filters));
 }
-

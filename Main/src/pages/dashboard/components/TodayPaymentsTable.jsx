@@ -5,12 +5,17 @@ import Button from "../../../components/ui/Button";
 import { useTodayPayments } from "hooks/dashboard/useTodayPayments";
 import { useNavigate } from "react-router-dom";
 import { useUIContext } from "context/UIContext";
-import { API_BASE_URL } from "api/client";
 import { toApiAssetUrl } from "utils/helper";
 import { TableCardSkeleton } from "components/ui/Skeleton";
+import { queryConfig } from "query/queryConfig";
+import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 const TodayPaymentsTable = () => {
   const { selectedBranch } = useUIContext();
   const navigate = useNavigate();
+  const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
+    (loanId) => queryConfig.loans.details(loanId),
+    140,
+  );
 
   const {
     data: todayPayments = [],
@@ -118,6 +123,10 @@ const TodayPaymentsTable = () => {
                 className={`border-b border-border hover:bg-muted/20 transition-colors ${
                   index === todayPayments?.data.length - 1 ? "border-b-0" : ""
                 }`}
+                onMouseEnter={() => onMouseEnter(payment.loan_id)}
+                onMouseLeave={onMouseLeave}
+                onFocus={() => onMouseEnter(payment.loan_id)}
+                onBlur={onMouseLeave}
               >
                 {/* Borrower */}
                 <td className="px-4 py-3 md:py-4">
@@ -170,6 +179,10 @@ const TodayPaymentsTable = () => {
                         variant="ghost"
                         size="sm"
                         iconName="IndianRupee"
+                        onMouseEnter={() => onMouseEnter(payment.loan_id)}
+                        onMouseLeave={onMouseLeave}
+                        onFocus={() => onMouseEnter(payment.loan_id)}
+                        onBlur={onMouseLeave}
                         onClick={() =>
                           navigate(`/loan-details/${payment.loan_id}?pay=true`)
                         }
@@ -182,6 +195,10 @@ const TodayPaymentsTable = () => {
                       variant="ghost"
                       size="sm"
                       iconName="Eye"
+                      onMouseEnter={() => onMouseEnter(payment.loan_id)}
+                      onMouseLeave={onMouseLeave}
+                      onFocus={() => onMouseEnter(payment.loan_id)}
+                      onBlur={onMouseLeave}
                       onClick={() => {
                         (navigate(`/loan-details/${payment.loan_id}`),
                           {

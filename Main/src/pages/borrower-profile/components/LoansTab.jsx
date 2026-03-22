@@ -5,8 +5,14 @@ import Button from "../../../components/ui/Button";
 import { useBorrowerLoans } from "hooks/borrowers/useBorrowerDetails";
 import CreateLoanModal from "pages/loans-management/components/CreateLoanModal";
 import { StatCardSkeleton, TableCardSkeleton } from "components/ui/Skeleton";
+import { queryConfig } from "query/queryConfig";
+import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
   const navigate = useNavigate();
+  const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
+    (loanId) => queryConfig.loans.details(loanId),
+    140,
+  );
   // 🔌 Fetch loans + stats using hook
   const { data, isLoading, isError, error } = useBorrowerLoans(borrowerId);
   const [isCreateLoanOpen, setIsCreateLoanOpen] = useState(false);
@@ -230,7 +236,14 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
                 </thead>
                 <tbody className="divide-y divide-border">
                   {loans.map((loan) => (
-                    <tr key={loan.id} className="hover:bg-muted/10">
+                    <tr
+                      key={loan.id}
+                      className="hover:bg-muted/10"
+                      onMouseEnter={() => onMouseEnter(loan.id)}
+                      onMouseLeave={onMouseLeave}
+                      onFocus={() => onMouseEnter(loan.id)}
+                      onBlur={onMouseLeave}
+                    >
                       <td className="px-4 md:px-6 py-3 md:py-4 text-primary font-medium">
                         {loan.loanCode}
                       </td>
@@ -264,6 +277,10 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
                           variant="ghost"
                           size="sm"
                           iconName="Eye"
+                          onMouseEnter={() => onMouseEnter(loan.id)}
+                          onMouseLeave={onMouseLeave}
+                          onFocus={() => onMouseEnter(loan.id)}
+                          onBlur={onMouseLeave}
                           onClick={() => navigate(`/loan-details/${loan.id}`)}
                         >
                           View

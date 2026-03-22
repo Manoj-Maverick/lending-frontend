@@ -1,15 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createUser, disableUser } from "services/settings.service";
-import { batchInvalidateQueries } from "queries/queryClientUtils";
-import { queryKeys } from "queryKeys/queryKeys";
+import { getInvalidationKeys, runInvalidation } from "query/invalidate";
 
 export function useCreateUser() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: createUser,
-    onSuccess: async () => {
-      await batchInvalidateQueries(queryClient, [queryKeys.auth.users()]);
+    onSuccess: () => {
+      runInvalidation(queryClient, getInvalidationKeys("usersUpdated"));
     },
   });
 }
@@ -19,8 +18,8 @@ export function useDisableUser() {
 
   return useMutation({
     mutationFn: disableUser,
-    onSuccess: async () => {
-      await batchInvalidateQueries(queryClient, [queryKeys.auth.users()]);
+    onSuccess: () => {
+      runInvalidation(queryClient, getInvalidationKeys("usersUpdated"));
     },
   });
 }
