@@ -10,6 +10,7 @@ import ContactPopover from "pages/todays-collection/components/ContactPopover";
 import { motion } from "framer-motion";
 import { API_BASE_URL } from "api/client";
 import { toApiAssetUrl } from "utils/helper";
+import { TableCardSkeleton } from "components/ui/Skeleton";
 const BranchTodayPaymentsTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
@@ -69,11 +70,7 @@ const BranchTodayPaymentsTable = () => {
   };
 
   if (isLoading)
-    return (
-      <div className="p-6 text-center text-muted-foreground">
-        Loading today's collections...
-      </div>
-    );
+    return <TableCardSkeleton rows={5} columns={6} />;
 
   if (isError)
     return (

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { useUIContext } from "context/UIContext";
 import { API_BASE_URL } from "api/client";
 import { toApiAssetUrl } from "utils/helper";
+import { TableCardSkeleton } from "components/ui/Skeleton";
 const TodayPaymentsTable = () => {
   const { selectedBranch } = useUIContext();
   const navigate = useNavigate();
@@ -52,11 +53,7 @@ const TodayPaymentsTable = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="p-6 text-center text-muted-foreground">
-        Loading today's payments...
-      </div>
-    );
+    return <TableCardSkeleton rows={5} columns={6} showHeaderAction />;
   }
 
   if (isError) {

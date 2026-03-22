@@ -8,6 +8,38 @@ import { useSaveSettings } from "hooks/settings/useSaveSettings";
 import { useUsers } from "hooks/auth/useUsers";
 import { useCreateUser } from "hooks/auth/useManageUsers";
 import { useToast } from "context/ToastContext";
+import { PageHeaderSkeleton, Skeleton } from "components/ui/Skeleton";
+
+const SettingsSkeleton = () => (
+  <>
+    <PageHeaderSkeleton showAction={false} />
+    <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-4">
+      <div className="lg:col-span-1">
+        <div className="overflow-hidden rounded-lg border border-border bg-card">
+          <div className="border-b border-border p-4">
+            <Skeleton className="h-5 w-24" />
+          </div>
+          <div className="space-y-1 p-2">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Skeleton key={index} className="h-11 w-full rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="space-y-4 rounded-lg border border-border bg-card p-4 md:p-6 lg:col-span-3">
+        <Skeleton className="h-7 w-48" />
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <div key={index} className="space-y-2">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-11 w-full rounded-xl" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </>
+);
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("general");
@@ -216,7 +248,7 @@ const Settings = () => {
   };
 
   if (isLoading) {
-    return <div>Loading settings...</div>;
+    return <SettingsSkeleton />;
   }
   if (isError) {
     return <div>Error loading settings. Please try again later.</div>;
@@ -1209,4 +1241,3 @@ const Settings = () => {
 };
 
 export default Settings;
-

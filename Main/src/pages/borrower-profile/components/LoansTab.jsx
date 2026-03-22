@@ -4,13 +4,23 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { useBorrowerLoans } from "hooks/borrowers/useBorrowerDetails";
 import CreateLoanModal from "pages/loans-management/components/CreateLoanModal";
+import { StatCardSkeleton, TableCardSkeleton } from "components/ui/Skeleton";
 const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
   const navigate = useNavigate();
   // 🔌 Fetch loans + stats using hook
   const { data, isLoading, isError, error } = useBorrowerLoans(borrowerId);
   const [isCreateLoanOpen, setIsCreateLoanOpen] = useState(false);
   if (isLoading) {
-    return <div className="p-6 text-muted-foreground">Loading loans...</div>;
+    return (
+      <div className="space-y-4 md:space-y-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <StatCardSkeleton key={index} />
+          ))}
+        </div>
+        <TableCardSkeleton rows={4} columns={5} showAvatar={false} />
+      </div>
+    );
   }
 
   if (isError) {

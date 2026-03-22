@@ -9,6 +9,44 @@ import EmptyState from "./components/EmptyState";
 import Button from "../../components/ui/Button";
 import Icon from "../../components/AppIcon";
 import { useBranchesList } from "hooks/branches/useBranchesList";
+import {
+  PageHeaderSkeleton,
+  Skeleton,
+} from "components/ui/Skeleton";
+
+const BranchesManagementSkeleton = () => (
+  <>
+    <PageHeaderSkeleton />
+    <div className="mb-6 rounded-xl border border-border bg-card p-4 md:p-5">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Skeleton className="h-11 w-full rounded-xl md:col-span-2" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+      </div>
+    </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 md:gap-6">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <div
+          key={index}
+          className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+        >
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div className="space-y-2">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+            <Skeleton className="h-10 w-10 rounded-xl" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-4/5" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+          </div>
+        </div>
+      ))}
+    </div>
+  </>
+);
 
 const BranchesManagement = () => {
   const navigate = useNavigate();
@@ -64,6 +102,10 @@ const BranchesManagement = () => {
 
   const hasActiveFilters = filters.search || filters.status !== "all";
 
+  if (isLoading) {
+    return <BranchesManagementSkeleton />;
+  }
+
   return (
     <>
       {/* HEADER */}
@@ -98,9 +140,7 @@ const BranchesManagement = () => {
       <FilterControls filters={filters} onFilterChange={handleFilterChange} />
 
       {/* CONTENT */}
-      {isLoading ? (
-        <div className="p-6 text-muted-foreground">Loading branches...</div>
-      ) : branches.length > 0 ? (
+      {branches.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {branches.map((branch) => (

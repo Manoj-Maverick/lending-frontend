@@ -1,6 +1,7 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
 import { useLoanSchedule } from "hooks/loans/useLoanDetails";
+import { TableCardSkeleton } from "components/ui/Skeleton";
 
 const STATUS_STYLES = {
   PAID: {
@@ -53,7 +54,7 @@ const PaymentScheduleTab = ({ loanId }) => {
     });
 
   if (isLoading) {
-    return <div className="p-4 text-muted-foreground">Loading schedule...</div>;
+    return <TableCardSkeleton rows={6} columns={6} showAvatar={false} />;
   }
 
   if (isError) {

@@ -10,6 +10,7 @@ import {
 } from "recharts";
 import Icon from "../../../components/AppIcon";
 import { useBranchComparison } from "hooks/dashboard/useBranchComparison";
+import { ChartCardSkeleton } from "components/ui/Skeleton";
 
 const BranchComparisonChart = () => {
   const { data: branchData, isLoading } = useBranchComparison();
@@ -28,6 +29,10 @@ const BranchComparisonChart = () => {
     //   };
     // }),
   ];
+
+  if (isLoading) {
+    return <ChartCardSkeleton />;
+  }
 
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload?.length) {

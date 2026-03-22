@@ -7,6 +7,21 @@ import AddStaffModal from "./components/AddStaffModal";
 import EditStaffModal from "./components/EditStaffModal";
 import Pagination from "./components/Pagination";
 import { useGetStaffList } from "hooks/staff/useStaffList";
+import { PageHeaderSkeleton, Skeleton, TableCardSkeleton } from "components/ui/Skeleton";
+
+const StaffManagementSkeleton = () => (
+  <>
+    <PageHeaderSkeleton />
+    <div className="mb-6 rounded-lg border border-border bg-card p-4 md:mb-8 md:p-6">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+      </div>
+    </div>
+    <TableCardSkeleton rows={6} columns={6} />
+  </>
+);
 
 const StaffManagement = () => {
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
@@ -102,6 +117,10 @@ const StaffManagement = () => {
         Failed to load staff: {error?.message}
       </div>
     );
+  }
+
+  if (isLoading) {
+    return <StaffManagementSkeleton />;
   }
 
   return (

@@ -9,6 +9,33 @@ import Icon from "../../components/AppIcon";
 import Select from "components/ui/Select";
 import { useLoans, useLoanStats } from "hooks/loans/useLoans";
 import { useUIContext } from "context/UIContext";
+import {
+  PageHeaderSkeleton,
+  Skeleton,
+  StatCardSkeleton,
+  TableCardSkeleton,
+} from "components/ui/Skeleton";
+
+const LoansManagementSkeleton = () => (
+  <div className="mx-auto space-y-6">
+    <PageHeaderSkeleton />
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 md:gap-6">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <StatCardSkeleton key={index} />
+      ))}
+    </div>
+    <div className="rounded-lg border border-border bg-card p-4 md:p-6">
+      <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+      </div>
+      <TableCardSkeleton rows={6} columns={6} className="border-0 shadow-none" />
+    </div>
+  </div>
+);
 
 const LoansManagement = () => {
   const navigate = useNavigate();
@@ -100,6 +127,10 @@ const LoansManagement = () => {
     );
   }
 
+  if (isLoansLoading && isStatsLoading) {
+    return <LoansManagementSkeleton />;
+  }
+
   // 🧱 Map backend → UI shape
   const loans = rawLoans.map((l) => ({
     id: l.loan_code,
@@ -185,7 +216,9 @@ const LoansManagement = () => {
         {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {isStatsLoading
-            ? "Loading stats..."
+            ? Array.from({ length: 4 }).map((_, index) => (
+                <StatCardSkeleton key={index} />
+              ))
             : loanStats.map((stat, index) => (
                 <StatCard key={index} {...stat} />
               ))}
@@ -200,7 +233,7 @@ const LoansManagement = () => {
           />
 
           {isLoansLoading ? (
-            <div className="p-4 text-muted-foreground">Loading loans...</div>
+            <TableCardSkeleton rows={6} columns={6} className="border-0 shadow-none" />
           ) : (
             <>
               <LoansTable loans={loans} onViewLoan={handleViewLoan} />

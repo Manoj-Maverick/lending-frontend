@@ -12,6 +12,12 @@ import { useUIContext } from "context/UIContext";
 import { useAuth } from "auth/AuthContext";
 import PageShell from "components/ui/PageShell";
 import AnimatedSection from "components/ui/AnimatedSection";
+import {
+  ChartCardSkeleton,
+  PageHeaderSkeleton,
+  StatCardSkeleton,
+  TableCardSkeleton,
+} from "components/ui/Skeleton";
 
 const Dashboard = () => {
   const { selectedBranch } = useUIContext();
@@ -31,7 +37,25 @@ const Dashboard = () => {
   const { data, isLoading, isError, error } = useDashboardSummary(branchId);
 
   if (isLoading || !data) {
-    return <p className="p-6">Loading dashboard...</p>;
+    return (
+      <PageShell className="pb-2 md:pb-4">
+        <PageHeaderSkeleton showAction={false} />
+        <div className="mb-6 mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:mb-8 lg:grid-cols-3 lg:gap-5">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <StatCardSkeleton key={index} />
+          ))}
+        </div>
+        <div className="mb-6 grid grid-cols-1 gap-4 md:gap-5 lg:mb-8 lg:grid-cols-2 lg:gap-6">
+          <TableCardSkeleton rows={7} columns={5} showAvatar={false} />
+          <TableCardSkeleton rows={5} columns={6} showHeaderAction />
+        </div>
+        <div className="mb-6 grid grid-cols-1 gap-4 md:gap-5 lg:mb-8 lg:grid-cols-2 lg:gap-6">
+          <ChartCardSkeleton />
+          <ChartCardSkeleton />
+        </div>
+        <ChartCardSkeleton />
+      </PageShell>
+    );
   }
 
   if (isError) {

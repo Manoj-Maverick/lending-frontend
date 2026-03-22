@@ -2,6 +2,7 @@ import React from "react";
 import Button from "../../../components/ui/Button";
 import Icon from "../../../components/AppIcon";
 import { API_BASE_URL } from "api/client";
+import { TableCardSkeleton } from "components/ui/Skeleton";
 
 const statusBadgeClass = (status) => {
   const map = {
@@ -28,7 +29,12 @@ const CollectionTable = ({
   mode = "today",
 }) => {
   if (loading) {
-    return <div className="p-8 text-center">Loading collections...</div>;
+    return (
+      <TableCardSkeleton
+        rows={6}
+        columns={mode === "overdue" ? 8 : 6}
+      />
+    );
   }
 
   if (!rows.length) {

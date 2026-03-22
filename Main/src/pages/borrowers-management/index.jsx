@@ -5,6 +5,53 @@ import BorrowersListPage from "./components/borrowersListPage";
 import AddBorrowerModal from "./components/AddBorrowerModal";
 import BlocklistModal from "./components/BlocklistModal";
 import { useBorrowerStats } from "hooks/borrowers/useBorrowerStats";
+import { PageHeaderSkeleton, Skeleton, StatCardSkeleton } from "components/ui/Skeleton";
+
+const BorrowersManagementSkeleton = () => (
+  <>
+    <PageHeaderSkeleton />
+    <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5 md:mb-8 md:gap-6">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <StatCardSkeleton key={index} />
+      ))}
+    </div>
+    <div className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="border-b border-border p-4 md:p-6">
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+          <Skeleton className="h-11 w-full rounded-xl lg:col-span-2" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+        </div>
+      </div>
+      <div className="space-y-3 p-4">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-between gap-4 rounded-xl border border-border bg-background p-4"
+          >
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-full" />
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+            </div>
+            <div className="hidden gap-4 md:flex">
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-20" />
+              <Skeleton className="h-4 w-20" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </>
+);
 
 const BorrowersManagement = () => {
   const [isAddBorrowerModalOpen, setIsAddBorrowerModalOpen] = useState(false);
@@ -25,6 +72,10 @@ const BorrowersManagement = () => {
       isUnblocking: false,
     });
   };
+
+  if (isLoading) {
+    return <BorrowersManagementSkeleton />;
+  }
 
   return (
     <>
@@ -53,11 +104,7 @@ const BorrowersManagement = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 md:gap-6 mb-6 md:mb-8">
-        {isLoading ? (
-          <div className="col-span-full text-muted-foreground">
-            Loading stats...
-          </div>
-        ) : isError ? (
+        {isError ? (
           <div className="col-span-full text-destructive">
             Failed to load stats
           </div>

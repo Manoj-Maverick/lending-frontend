@@ -1,6 +1,7 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
 import { useGetWeeklyLoanSummary } from "hooks/branchDetails/useBranchWeeklySummary";
+import { CardGridSkeleton } from "components/ui/Skeleton";
 
 const DailyCollectionsWeekly = ({ branchId }) => {
   const { data: branchData, isLoading } = useGetWeeklyLoanSummary(branchId);
@@ -12,7 +13,7 @@ const DailyCollectionsWeekly = ({ branchId }) => {
   }));
 
   if (isLoading) {
-    return <div className="p-6 bg-card rounded-xl border border-border">Loading weekly data...</div>;
+    return <CardGridSkeleton count={7} />;
   }
 
   return (

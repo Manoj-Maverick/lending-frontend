@@ -2,6 +2,7 @@ import React from "react";
 import Icon from "../../../components/AppIcon";
 import { useDailyCollectionSummary } from "hooks/dashboard/useDailyCollectionSummary";
 import { useUIContext } from "context/UIContext";
+import { TableCardSkeleton } from "components/ui/Skeleton";
 
 const DailyCollectionTable = () => {
   const { selectedBranch } = useUIContext();
@@ -56,11 +57,7 @@ const DailyCollectionTable = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="bg-card border border-border rounded-lg p-6 text-center text-muted-foreground">
-        Loading collection summary...
-      </div>
-    );
+    return <TableCardSkeleton rows={7} columns={5} showAvatar={false} />;
   }
 
   const formattedData = (dailyData?.data || []).map((item) => {

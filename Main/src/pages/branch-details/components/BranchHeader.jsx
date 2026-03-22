@@ -2,6 +2,7 @@ import React from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import { useFetchBranchById } from "hooks/branchDetails/useBranchHeader";
+import { Skeleton } from "components/ui/Skeleton";
 
 const BranchHeader = ({ branchId, branch, onEdit, onStatusToggle }) => {
   const getStatusColor = (status) => {
@@ -19,7 +20,37 @@ const BranchHeader = ({ branchId, branch, onEdit, onStatusToggle }) => {
   };
 
   const { data, isLoading } = useFetchBranchById(branchId);
-  if (isLoading) return <div className="p-6 bg-card rounded-xl border border-border">Loading branch...</div>;
+  if (isLoading)
+    return (
+      <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-sm md:mb-6 md:p-7 lg:p-8">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between md:gap-6">
+          <div className="flex-1">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-11 w-11 rounded-xl" />
+                <Skeleton className="h-8 w-56 md:h-10 md:w-72" />
+              </div>
+              <Skeleton className="h-7 w-24 rounded-full" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <Skeleton className="h-10 w-10 rounded-xl md:h-11 md:w-11" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-4 w-full max-w-[160px]" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex gap-2 sm:flex-col md:gap-3 lg:min-w-[160px]">
+            <Skeleton className="h-10 flex-1 rounded-xl sm:w-36" />
+            <Skeleton className="h-10 flex-1 rounded-xl sm:w-36" />
+          </div>
+        </div>
+      </div>
+    );
 
   const statusText = data?.is_active ? "Active" : "Inactive";
   const statusTone = getStatusColor(statusText);

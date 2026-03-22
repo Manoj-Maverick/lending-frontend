@@ -11,6 +11,64 @@ import ForecloseModal from "./components/ForeCloseModal";
 import { useLoanDetails } from "hooks/loans/useLoanDetails";
 import { formatCurrencyINR } from "utils/format";
 import { useLocation } from "react-router-dom";
+import { Skeleton } from "components/ui/Skeleton";
+
+const LoanDetailsSkeleton = () => (
+  <>
+    <div className="mb-4 md:mb-6">
+      <Skeleton className="h-5 w-40" />
+    </div>
+
+    <div className="mx-auto min-w-0 space-y-6">
+      <div className="rounded-lg border border-border bg-card p-4 md:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-8 w-48 md:h-10 md:w-60" />
+              <Skeleton className="h-7 w-24 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-56 md:w-80" />
+          </div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Skeleton className="h-10 w-full rounded-xl sm:w-40" />
+            <Skeleton className="h-10 w-full rounded-xl sm:w-44" />
+          </div>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="rounded-lg bg-muted/50 p-4">
+              <Skeleton className="mb-2 h-4 w-24" />
+              <Skeleton className="h-7 w-28" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-lg border border-border bg-card">
+        <div className="border-b border-border px-4 py-4 md:px-6">
+          <div className="flex gap-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Skeleton key={index} className="h-8 w-28 rounded-xl" />
+            ))}
+          </div>
+        </div>
+        <div className="space-y-4 p-4 md:p-6">
+          <Skeleton className="h-6 w-48" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <div key={index} className="space-y-2 rounded-lg border border-border p-4">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-5 w-40" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  </>
+);
 function capitalizeFirst(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -45,9 +103,7 @@ const LoanDetails = () => {
     }
   }, [isLoading, location?.state]);
   if (isLoading) {
-    return (
-      <div className="p-4 text-muted-foreground">Loading loan info...</div>
-    );
+    return <LoanDetailsSkeleton />;
   }
 
   if (isError) {

@@ -6,6 +6,7 @@ import DocumentSection from "./DocumentSection";
 import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
 import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
 import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
+import { Skeleton } from "components/ui/Skeleton";
 
 const GuarantorsTab = ({
   borrowerId,
@@ -62,8 +63,25 @@ const GuarantorsTab = ({
   // Loading
   if (isLoading) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
-        Loading guarantors...
+      <div className="space-y-6">
+        {Array.from({ length: 2 }).map((_, index) => (
+          <div key={index} className="space-y-6 rounded-lg bg-card p-6 shadow">
+            <div className="flex flex-col gap-6 md:flex-row">
+              <Skeleton className="h-24 w-24 rounded-lg" />
+              <div className="flex-1 space-y-3">
+                <div className="space-y-2">
+                  <Skeleton className="h-7 w-48" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-52" />
+                  <Skeleton className="h-4 w-44" />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

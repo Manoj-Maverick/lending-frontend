@@ -3,6 +3,7 @@ import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Image from "../../../components/AppImage";
 import { useFetchBranchStaffListById } from "hooks/branchDetails/useBranchStaff";
+import { Skeleton } from "components/ui/Skeleton";
 
 const hashString = (value = "") => {
   let hash = 0;
@@ -69,7 +70,28 @@ const StaffManagement = ({ branchId, onAddStaff, onToggleStatus, onRemoveStaff }
       </div>
 
       {isLoading ? (
-        <div className="text-sm text-muted-foreground">Loading staff...</div>
+        <div className="space-y-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div
+              key={index}
+              className="rounded-xl border border-border bg-background p-3 md:p-4"
+            >
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex flex-1 items-center gap-3">
+                  <Skeleton className="h-11 w-11 rounded-full md:h-12 md:w-12" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-32" />
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-4 w-36" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div className="space-y-3">
           {filteredStaff.length > 0 ? (

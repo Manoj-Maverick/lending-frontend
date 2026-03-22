@@ -1,12 +1,13 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
 import { useFetchBranchPerformanceMetricsByID } from "hooks/branchDetails/useBranchPerformance";
+import { CardGridSkeleton } from "components/ui/Skeleton";
 
 const PerformanceMetrics = ({ branchId }) => {
   const { data, isLoading } = useFetchBranchPerformanceMetricsByID(branchId);
 
   if (isLoading) {
-    return <div className="p-6 bg-card rounded-xl border border-border">Loading branch data...</div>;
+    return <CardGridSkeleton count={6} />;
   }
 
   const totalClients = Number(data?.total_clients || 0);
