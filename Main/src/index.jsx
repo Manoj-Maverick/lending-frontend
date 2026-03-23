@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { UIContextProvider } from "context/UIContext";
 import { AuthProvider } from "auth/AuthContext";
 import { ToastProvider } from "context/ToastContext";
+import FullScreenLoader from "components/ui/FullScreenLoader";
 import App from "./App";
 import "./styles/tailwind.css";
 import "./styles/index.css";
@@ -18,7 +19,9 @@ root.render(
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <UIContextProvider>
-          <App />
+          <React.Suspense fallback={<FullScreenLoader />}>
+            <App />
+          </React.Suspense>
         </UIContextProvider>
       </AuthProvider>
     </QueryClientProvider>

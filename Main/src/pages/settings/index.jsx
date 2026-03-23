@@ -43,7 +43,6 @@ const SettingsSkeleton = () => (
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("general");
-  const [isSaving, setIsSaving] = useState(false);
   const [newUserForm, setNewUserForm] = useState({
     name: "",
     email: "",
@@ -55,6 +54,7 @@ const Settings = () => {
   const { showToast } = useToast();
   const { data, isLoading, isError } = useSettings();
   const saveMutation = useSaveSettings();
+  const isSaving = saveMutation.isPending;
   const [showAddUserForm, setShowAddUserForm] = useState(false);
 
   const {
@@ -151,8 +151,6 @@ const Settings = () => {
   };
 
   const handleSave = () => {
-    setIsSaving(true);
-
     showToast("Saving settings...", "info");
 
     saveMutation.mutate(
@@ -164,11 +162,9 @@ const Settings = () => {
       },
       {
         onSuccess: () => {
-          setIsSaving(false);
           showToast("Settings saved successfully!", "success");
         },
         onError: () => {
-          setIsSaving(false);
           showToast("Failed to save settings", "error");
         },
       },
@@ -430,11 +426,18 @@ const Settings = () => {
                   <Button
                     variant="default"
                     onClick={handleSave}
+                    loading={isSaving}
                     disabled={isSaving}
                   >
                     {isSaving ? "Saving..." : "Save Changes"}
                   </Button>
-                  <Button variant="outline">Cancel</Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelChanges}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
                 </div>
               </div>
             )}
@@ -607,11 +610,18 @@ const Settings = () => {
                   <Button
                     variant="default"
                     onClick={handleSave}
+                    loading={isSaving}
                     disabled={isSaving}
                   >
                     {isSaving ? "Saving..." : "Save Changes"}
                   </Button>
-                  <Button variant="outline">Cancel</Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleCancelChanges}
+                    disabled={isSaving}
+                  >
+                    Cancel
+                  </Button>
                 </div>
               </div>
             )}
@@ -778,11 +788,16 @@ const Settings = () => {
                   <Button
                     variant="default"
                     onClick={handleSave}
+                    loading={isSaving}
                     disabled={isSaving}
                   >
                     {isSaving ? "Saving..." : "Save Changes"}
                   </Button>
-                  <Button variant="outline" onClick={handleTestEmailConnection}>
+                  <Button
+                    variant="outline"
+                    onClick={handleTestEmailConnection}
+                    disabled={isSaving}
+                  >
                     Test Connection
                   </Button>
                 </div>
@@ -959,11 +974,16 @@ const Settings = () => {
                   <Button
                     variant="default"
                     onClick={handleSave}
+                    loading={isSaving}
                     disabled={isSaving}
                   >
                     {isSaving ? "Saving..." : "Save Changes"}
                   </Button>
-                  <Button variant="outline" onClick={handleResetPassword}>
+                  <Button
+                    variant="outline"
+                    onClick={handleResetPassword}
+                    disabled={isSaving}
+                  >
                     Reset Your Password
                   </Button>
                 </div>
@@ -1103,7 +1123,8 @@ const Settings = () => {
                       <Button
                         variant="default"
                         size="sm"
-                        iconName={isPending ? "Loader" : "Plus"}
+                        iconName={isPending ? null : "Plus"}
+                        loading={isPending}
                         disabled={isPending}
                         onClick={handleAddUser}
                       >
@@ -1135,7 +1156,20 @@ const Settings = () => {
                     </Button>
                   </div>
 
-                  {usersLoading && <p>Loading users…</p>}
+                  {usersLoading && (
+                    <div className="space-y-3">
+                      {Array.from({ length: 3 }).map((_, index) => (
+                        <div
+                          key={index}
+                          className="rounded-lg border border-border p-3"
+                        >
+                          <Skeleton className="mb-2 h-4 w-40" />
+                          <Skeleton className="mb-2 h-3 w-56" />
+                          <Skeleton className="h-3 w-32" />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                   {usersError && (
                     <p className="text-error">Failed to load users</p>
                   )}
