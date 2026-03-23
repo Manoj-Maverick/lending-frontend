@@ -38,7 +38,7 @@ const Routes = () => {
   const IndexRedirect = () => {
     const { user, authLoading } = useAuth();
 
-    if (authLoading) {
+    if (authLoading && !user) {
       return <FullScreenLoader />;
     }
 
