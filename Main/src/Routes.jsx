@@ -21,6 +21,7 @@ import ProtectedRoute from "auth/ProtectedRoute";
 import TodaysCollection from "pages/todays-collection/Collections";
 import { useAuth } from "auth/AuthContext";
 import { Navigate } from "react-router-dom";
+import Unauthorized from "pages/Unauthorized";
 const Routes = () => {
   const IndexRedirect = () => {
     const { user } = useAuth();
@@ -43,24 +44,37 @@ const Routes = () => {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/branches-management" element={<BranchesManagement />} />
           <Route path="/branch-details/:branchId" element={<BranchDetails />} />
-          <Route path="/borrowers-management" element={<BorrowersManagement />} />
-          <Route path="/borrower-profile/:borrowerId" element={<BorrowerProfile />} />
+          <Route
+            path="/borrowers-management"
+            element={<BorrowersManagement />}
+          />
+          <Route
+            path="/borrower-profile/:borrowerId"
+            element={<BorrowerProfile />}
+          />
           <Route path="/loans-management" element={<LoansManagement />} />
           <Route path="/loan-details/:loanId" element={<LoanDetails />} />
           <Route path="/staff-management" element={<StaffManagement />} />
           <Route path="/todays-collection" element={<TodaysCollection />} />
           <Route path="/staff-profile/:staffId" element={<StaffProfile />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute roles={["ADMIN"]}>
+                <Settings />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/reports" element={<Reports />} />
           <Route path="/payments-management" element={<PaymentsManagement />} />
         </Route>
 
         {/* 404 */}
         <Route path="*" element={<NotFound />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
       </RouterRoutes>
     </BrowserRouter>
   );
 };
 
 export default Routes;
-

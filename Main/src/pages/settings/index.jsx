@@ -63,7 +63,7 @@ const Settings = () => {
     isError: usersError,
   } = useUsers(activeTab === "users");
 
-  const createUserMutation = useCreateUser();
+  const { mutate: createUserMutation, isPending } = useCreateUser();
 
   // General Settings
   const [generalSettings, setGeneralSettings] = useState({
@@ -214,7 +214,7 @@ const Settings = () => {
       return;
     }
 
-    createUserMutation.mutate(newUserForm, {
+    createUserMutation(newUserForm, {
       onSuccess: () => {
         showToast(`User "${newUserForm.name}" added successfully!`, "success");
         setNewUserForm({
@@ -1103,9 +1103,11 @@ const Settings = () => {
                       <Button
                         variant="default"
                         size="sm"
+                        iconName={isPending ? "Loader" : "Plus"}
+                        disabled={isPending}
                         onClick={handleAddUser}
                       >
-                        Add User
+                        {isPending ? "Adding..." : "Add User"}
                       </Button>
                       <Button
                         variant="outline"
