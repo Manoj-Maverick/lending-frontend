@@ -1,4 +1,4 @@
-import React, { Suspense, lazy, useEffect } from "react";
+import React from "react";
 import {
   BrowserRouter,
   Navigate,
@@ -11,47 +11,35 @@ import AppLayout from "layouts/AppLayout";
 import ProtectedRoute from "auth/ProtectedRoute";
 import { useAuth } from "auth/AuthContext";
 import FullScreenLoader from "components/ui/FullScreenLoader";
-import PageLoader from "components/ui/PageLoader";
 
-const Dashboard = lazy(() => import("./pages/dashboard"));
-const BranchesManagement = lazy(() => import("pages/branches-management"));
-const BranchDetails = lazy(() => import("pages/branch-details"));
-const BorrowersManagement = lazy(() => import("pages/borrowers-management"));
-const BorrowerProfile = lazy(() => import("pages/borrower-profile"));
-const LoansManagement = lazy(() => import("pages/loans-management"));
-const LoanDetails = lazy(() => import("pages/loan-details"));
-const StaffManagement = lazy(() => import("pages/staff-management"));
-const StaffProfile = lazy(() => import("pages/staff-profile"));
-const Settings = lazy(() => import("pages/settings"));
-const Reports = lazy(() => import("pages/reports"));
-const PaymentsManagement = lazy(() => import("pages/payments-management"));
-const Login = lazy(() => import("pages/login"));
-const TodaysCollection = lazy(
-  () => import("pages/todays-collection/Collections"),
-);
-const NotFound = lazy(() => import("pages/NotFound"));
-const Unauthorized = lazy(() => import("pages/Unauthorized"));
-
-const preloadDashboard = () => import("./pages/dashboard");
+// ✅ normal imports (no lazy)
+import Dashboard from "./pages/dashboard";
+import BranchesManagement from "pages/branches-management";
+import BranchDetails from "pages/branch-details";
+import BorrowersManagement from "pages/borrowers-management";
+import BorrowerProfile from "pages/borrower-profile";
+import LoansManagement from "pages/loans-management";
+import LoanDetails from "pages/loan-details";
+import StaffManagement from "pages/staff-management";
+import StaffProfile from "pages/staff-profile";
+import Settings from "pages/settings";
+import Reports from "pages/reports";
+import PaymentsManagement from "pages/payments-management";
+import Login from "pages/login";
+import TodaysCollection from "pages/todays-collection/Collections";
+import NotFound from "pages/NotFound";
+import Unauthorized from "pages/Unauthorized";
 
 const Routes = () => {
   const IndexRedirect = () => {
     const { user, authLoading } = useAuth();
 
-    if (authLoading && !user) {
+    if (authLoading) {
       return <FullScreenLoader />;
     }
 
     return <Navigate to={user ? "/dashboard" : "/login"} replace />;
   };
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      preloadDashboard();
-    }, 180);
-
-    return () => window.clearTimeout(timeoutId);
-  }, []);
 
   return (
     <BrowserRouter>
@@ -60,6 +48,7 @@ const Routes = () => {
         <RouterRoutes>
           <Route path="/" element={<IndexRedirect />} />
           <Route path="/login" element={<Login />} />
+
           <Route
             element={
               <ProtectedRoute>
@@ -103,9 +92,9 @@ const Routes = () => {
               element={<PaymentsManagement />}
             />
           </Route>
+
           <Route path="/unauthorized" element={<Unauthorized />} />
           <Route path="*" element={<NotFound />} />
-          <Route path="/loader" element={<FullScreenLoader />} />
         </RouterRoutes>
       </ErrorBoundary>
     </BrowserRouter>
