@@ -57,7 +57,9 @@ const Routes = () => {
     <BrowserRouter>
       <ScrollToTop />
       <ErrorBoundary>
-        <Suspense fallback={<FullScreenLoader />}>
+        <Suspense
+          fallback={<PageLoader message="Loading route..." delay={150} />}
+        >
           <RouterRoutes>
             <Route path="/" element={<IndexRedirect />} />
             <Route path="/login" element={<Login />} />
