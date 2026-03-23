@@ -5,7 +5,7 @@ import FullScreenLoader from "components/ui/FullScreenLoader";
 const ProtectedRoute = ({ children, roles = [] }) => {
   const { user, authLoading } = useAuth();
 
-  if (authLoading) {
+  if (authLoading && !user) {
     return <FullScreenLoader />;
   }
 
