@@ -57,61 +57,56 @@ const Routes = () => {
     <BrowserRouter>
       <ScrollToTop />
       <ErrorBoundary>
-        <Suspense fallback={null}>
-          <RouterRoutes>
-            <Route path="/" element={<IndexRedirect />} />
-            <Route path="/login" element={<Login />} />
+        <RouterRoutes>
+          <Route path="/" element={<IndexRedirect />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route
+              path="/branches-management"
+              element={<BranchesManagement />}
+            />
+            <Route
+              path="/branch-details/:branchId"
+              element={<BranchDetails />}
+            />
+            <Route
+              path="/borrowers-management"
+              element={<BorrowersManagement />}
+            />
+            <Route
+              path="/borrower-profile/:borrowerId"
+              element={<BorrowerProfile />}
+            />
+            <Route path="/loans-management" element={<LoansManagement />} />
+            <Route path="/loan-details/:loanId" element={<LoanDetails />} />
+            <Route path="/staff-management" element={<StaffManagement />} />
+            <Route path="/todays-collection" element={<TodaysCollection />} />
+            <Route path="/staff-profile/:staffId" element={<StaffProfile />} />
+            <Route
+              path="/settings"
               element={
-                <ProtectedRoute>
-                  <AppLayout />
+                <ProtectedRoute roles={["ADMIN"]}>
+                  <Settings />
                 </ProtectedRoute>
               }
-            >
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route
-                path="/branches-management"
-                element={<BranchesManagement />}
-              />
-              <Route
-                path="/branch-details/:branchId"
-                element={<BranchDetails />}
-              />
-              <Route
-                path="/borrowers-management"
-                element={<BorrowersManagement />}
-              />
-              <Route
-                path="/borrower-profile/:borrowerId"
-                element={<BorrowerProfile />}
-              />
-              <Route path="/loans-management" element={<LoansManagement />} />
-              <Route path="/loan-details/:loanId" element={<LoanDetails />} />
-              <Route path="/staff-management" element={<StaffManagement />} />
-              <Route path="/todays-collection" element={<TodaysCollection />} />
-              <Route
-                path="/staff-profile/:staffId"
-                element={<StaffProfile />}
-              />
-              <Route
-                path="/settings"
-                element={
-                  <ProtectedRoute roles={["ADMIN"]}>
-                    <Settings />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/reports" element={<Reports />} />
-              <Route
-                path="/payments-management"
-                element={<PaymentsManagement />}
-              />
-            </Route>
-            <Route path="/unauthorized" element={<Unauthorized />} />
-            <Route path="*" element={<NotFound />} />
-            <Route path="/loader" element={<FullScreenLoader />} />
-          </RouterRoutes>
-        </Suspense>
+            />
+            <Route path="/reports" element={<Reports />} />
+            <Route
+              path="/payments-management"
+              element={<PaymentsManagement />}
+            />
+          </Route>
+          <Route path="/unauthorized" element={<Unauthorized />} />
+          <Route path="*" element={<NotFound />} />
+          <Route path="/loader" element={<FullScreenLoader />} />
+        </RouterRoutes>
       </ErrorBoundary>
     </BrowserRouter>
   );
