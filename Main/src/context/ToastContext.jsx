@@ -75,7 +75,7 @@ export function ToastProvider({ children }) {
 
           return (
             <div
-              key={toast.id}
+              key={crypto.randomUUID()}
               className={`
                 w-[340px]
                 rounded-xl border-l-4 ${style.border}

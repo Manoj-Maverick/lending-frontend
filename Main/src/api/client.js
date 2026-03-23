@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const envBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const envBaseUrl = null;
 const runtimeBaseUrl =
   typeof window !== "undefined"
     ? `${window.location.protocol}//${window.location.hostname}:3001`
