@@ -57,6 +57,9 @@ const LoansTable = ({ loans, onViewLoan }) => {
                 Next EMI Date
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Repayment Type
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Status
               </th>
               <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -107,6 +110,9 @@ const LoansTable = ({ loans, onViewLoan }) => {
                 </td>
                 <td className="px-4 py-3 text-sm text-foreground">
                   {loan?.nextEmiDate?.split("T")[0] ?? "-"}
+                </td>
+                <td className="px-4 py-3 text-sm text-foreground">
+                  {loan?.repaymentType}
                 </td>
                 <td className="px-4 py-3">
                   <span
@@ -219,6 +225,14 @@ const LoansTable = ({ loans, onViewLoan }) => {
                     <span className="text-muted-foreground">Next EMI:</span>
                     <p className="text-foreground font-medium mt-0.5">
                       {loan?.nextEmiDate}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">
+                      Repayment Type:
+                    </span>
+                    <p className="text-foreground font-medium mt-0.5">
+                      {loan?.repaymentType}
                     </p>
                   </div>
                   <div>

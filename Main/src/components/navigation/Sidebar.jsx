@@ -29,6 +29,7 @@ const Sidebar = ({
         icon: "CalendarCheck",
       },
       { label: "Staff", path: "/staff-management", icon: "UserCog" },
+      { label: "Attendance", path: "/staff-attendance", icon: "CalendarDays" },
       { label: "Reports", path: "/reports", icon: "FileText" },
       { label: "Settings", path: "/settings", icon: "Settings" },
     ],
@@ -46,6 +47,7 @@ const Sidebar = ({
       { label: "Loans", path: "/loans-management", icon: "Wallet" },
       // { label: "Payments", path: "/payments-management", icon: "CreditCard" },
       { label: "Staff", path: "/staff-management", icon: "UserCog" },
+      { label: "Attendance", path: "/staff-attendance", icon: "CalendarDays" },
       { label: "Reports", path: "/reports", icon: "FileText" },
       { label: "Settings", path: "/settings", icon: "Settings" },
     ],
@@ -163,4 +165,3 @@ const Sidebar = ({
 };
 
 export default Sidebar;
-

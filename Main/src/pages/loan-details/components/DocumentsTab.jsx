@@ -4,7 +4,6 @@ import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
 import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
 
 const DocumentsTab = ({ loanId }) => {
-  console.log(loanId);
   const { uploadDocument } = useUploadWithProgress();
   const { mutateAsync: deleteDoc } = useDeleteDocument();
 
@@ -28,7 +27,6 @@ const DocumentsTab = ({ loanId }) => {
   };
 
   const verifyPassword = async (password) => {
-    // replace later with API
     return password === "admin123";
   };
 

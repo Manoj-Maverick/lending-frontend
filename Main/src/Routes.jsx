@@ -22,6 +22,7 @@ import LoansManagement from "pages/loans-management";
 import LoanDetails from "pages/loan-details";
 import StaffManagement from "pages/staff-management";
 import StaffProfile from "pages/staff-profile";
+import StaffAttendance from "pages/staff-attendance";
 import Settings from "pages/settings";
 import Reports from "pages/reports";
 import PaymentsManagement from "pages/payments-management";
@@ -76,6 +77,7 @@ const Routes = () => {
             <Route path="/loans-management" element={<LoansManagement />} />
             <Route path="/loan-details/:loanId" element={<LoanDetails />} />
             <Route path="/staff-management" element={<StaffManagement />} />
+            <Route path="/staff-attendance" element={<StaffAttendance />} />
             <Route path="/todays-collection" element={<TodaysCollection />} />
             <Route path="/staff-profile/:staffId" element={<StaffProfile />} />
             <Route

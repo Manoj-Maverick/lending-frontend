@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
@@ -7,20 +7,53 @@ import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
 import { useAuth } from "auth/AuthContext";
 import { useCreateLoan } from "hooks/loans/useCreateLoan";
 import { useToast } from "context/ToastContext";
+import { useUIContext } from "context/UIContext";
+import { useBorrowers } from "hooks/borrowers/useBorrowers";
 import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
 import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
 import { useGenerateLoanCode } from "hooks/generators/useGenerateLoanCode";
-
+function getLabelForRePayementFrequency(frequency) {
+  if (frequency === "DAILY") {
+    return "Every 1 day";
+  } else if (frequency === "WEEKLY") {
+    return "Every 1 week";
+  } else if (frequency === "MONTHLY") {
+    return "Every 1 month";
+  }
+}
 const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   const { user } = useAuth();
+  const { branches = [] } = useUIContext();
+  const isBorrowerSelectionMode = !borrowerId;
+  const defaultBranchId =
+    user?.role === "ADMIN" ? "" : (user?.branchId?.toString() ?? "");
   const [currentStep, setCurrentStep] = useState(1);
   const [guarantorMode, setGuarantorMode] = useState("new"); // only "existing" | "new" now
+  const [selectedBranchId, setSelectedBranchId] = useState(defaultBranchId);
+  const [selectedBorrowerId, setSelectedBorrowerId] = useState(
+    borrowerId?.toString() ?? "",
+  );
   const { mutate: createLoan, isPending } = useCreateLoan();
   const { mutate: generateNewLoanCode } = useGenerateLoanCode();
-  const { data: guarantors = [] } = useBorrowerGuarantors(borrowerId);
   const { showToast } = useToast();
   const today = new Date().toISOString().split("T")[0];
-  const { data: borrower } = useBorrowerDetails(borrowerId);
+  const activeBorrowerId = selectedBorrowerId || borrowerId || null;
+  const { data: guarantors = [] } = useBorrowerGuarantors(activeBorrowerId);
+  const { data: borrower } = useBorrowerDetails(activeBorrowerId);
+  const { data: borrowersResponse, isLoading: isBorrowersLoading } =
+    useBorrowers(
+      {
+        branchId: selectedBranchId || null,
+        search: "",
+        status: "all",
+        page: 1,
+        pageSize: 200,
+        blockStatus: "all",
+      },
+      {
+        enabled: isBorrowerSelectionMode && !!selectedBranchId,
+      },
+    );
   const [formData, setFormData] = useState({
     // 1–4 Basic Identity
     loan_code: `LN-CDL-2025-${String(1000 + Math.floor(Math.random() * 9000)).padStart(5, "0")}`,
@@ -90,6 +123,30 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
     other_document: null,
   });
   const [errors, setErrors] = useState({});
+  const branchOptions = useMemo(
+    () =>
+      branches.map((branch) => ({
+        value: branch.id?.toString(),
+        label: branch.branch_name,
+      })),
+    [branches],
+  );
+  const borrowerOptions = useMemo(
+    () =>
+      (borrowersResponse?.data || []).map((item) => {
+        const borrowerName = item?.name || item?.full_name || item?.client_name;
+        const borrowerCode = item?.code || item?.customer_code;
+        const borrowerPhone = item?.phone || item?.mobile || item?.mobile_no;
+
+        return {
+          value: item?.id?.toString(),
+          label: `${borrowerName}${borrowerCode ? ` (${borrowerCode})` : ""}${
+            borrowerPhone ? ` - ${borrowerPhone}` : ""
+          }`,
+        };
+      }),
+    [borrowersResponse],
+  );
 
   const existingGuarantors = [
     ...guarantors.map((g) => ({
@@ -137,10 +194,41 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   ];
 
   useEffect(() => {
-    formData.branch_id = borrower?.branchId;
-    formData.customer_id = borrower?.id;
-    formData.customer_code = borrower?.code;
-  }, [borrower]);
+    if (!isOpen) return;
+
+    setCurrentStep(1);
+    setGuarantorMode("new");
+    setSelectedBorrowerId(borrowerId?.toString() ?? "");
+    setSelectedBranchId(
+      borrowerId
+        ? ""
+        : user?.role === "ADMIN"
+          ? ""
+          : (user?.branchId?.toString() ?? ""),
+    );
+    setErrors({});
+  }, [borrowerId, isOpen, user?.branchId, user?.role]);
+
+  useEffect(() => {
+    if (!activeBorrowerId) {
+      setFormData((prev) => ({
+        ...prev,
+        branch_id: isBorrowerSelectionMode ? selectedBranchId || null : null,
+        customer_id: null,
+        customer_code: null,
+      }));
+      return;
+    }
+
+    if (!borrower) return;
+
+    setFormData((prev) => ({
+      ...prev,
+      branch_id: borrower?.branchId ?? prev.branch_id,
+      customer_id: borrower?.id ?? prev.customer_id,
+      customer_code: borrower?.code ?? prev.customer_code,
+    }));
+  }, [activeBorrowerId, borrower, isBorrowerSelectionMode, selectedBranchId]);
 
   useEffect(() => {
     if (!formData.customer_code) return;
@@ -296,6 +384,9 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   const validateStep = (step) => {
     const newErrors = {};
     if (step === 1) {
+      if (!formData.customer_id) {
+        newErrors.customer_id = "Please select a borrower";
+      }
       if (
         !formData.principal_amount ||
         Number(formData.principal_amount) < 1000
@@ -330,6 +421,25 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   };
 
   const handleBack = () => setCurrentStep((p) => p - 1);
+
+  const handleBranchSelect = (value) => {
+    setSelectedBranchId(value);
+    setSelectedBorrowerId("");
+    setFormData((prev) => ({
+      ...prev,
+      branch_id: value || null,
+      customer_id: null,
+      customer_code: null,
+    }));
+    setErrors((prev) => ({ ...prev, customer_id: "" }));
+  };
+
+  const handleBorrowerSelect = (value) => {
+    setSelectedBorrowerId(value);
+    if (errors.customer_id) {
+      setErrors((prev) => ({ ...prev, customer_id: "" }));
+    }
+  };
 
   const handleSubmit = () => {
     if (!validateStep(currentStep)) return;
@@ -583,6 +693,34 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
                 Borrower & Loan Details
               </h3>
 
+              {isBorrowerSelectionMode && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Select
+                    label="Selected Branch"
+                    value={selectedBranchId}
+                    onChange={handleBranchSelect}
+                    options={branchOptions}
+                    placeholder="Select branch"
+                    disabled={user?.role !== "ADMIN" && !!user?.branchId}
+                  />
+                  <Select
+                    label="Select Customer"
+                    value={selectedBorrowerId}
+                    onChange={handleBorrowerSelect}
+                    options={borrowerOptions}
+                    placeholder={
+                      selectedBranchId
+                        ? "Search and select customer"
+                        : "Select branch first"
+                    }
+                    disabled={!selectedBranchId}
+                    searchable
+                    loading={isBorrowersLoading}
+                    error={errors.customer_id}
+                  />
+                </div>
+              )}
+
               {/* Borrower info */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <Input
@@ -633,20 +771,22 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
                 placeholder="Minimum ₹1,000"
               />
               <Select
-                label="Repayment Type *"
+                label="Repayment Type "
                 value={formData.repayment_type}
                 onChange={(v) => handleChange("repayment_type", v)}
                 options={repaymentTypeOptions}
               />
               <Input
-                label="Repayment Interval (gap between due dates)"
+                label={`Repayment Interval (${getLabelForRePayementFrequency(formData.repayment_type)})`}
                 type="number"
                 value={formData.repayment_interval}
                 onChange={(e) =>
                   handleChange("repayment_interval", e.target.value)
                 }
                 error={errors.repayment_interval}
-                placeholder="Minimum 1 day/week/month (based on type)"
+                placeholder={getLabelForRePayementFrequency(
+                  formData.repayment_type,
+                )}
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input

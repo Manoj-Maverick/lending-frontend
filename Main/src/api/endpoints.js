@@ -67,6 +67,12 @@ export const ENDPOINTS = {
   },
   STAFF: {
     list: "/api/staffs-management/staffs-list",
+    create: "/api/staffs-management/staffs",
+    detail: (staffId) => `/api/staffs-management/staffs/${staffId}`,
+    update: (staffId) => `/api/staffs-management/staffs/${staffId}`,
+    remove: (staffId) => `/api/staffs-management/staffs/${staffId}`,
+    attendance: (staffId) =>
+      `/api/staffs-management/staffs/${staffId}/attendance`,
   },
 };
 

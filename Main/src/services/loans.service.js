@@ -9,6 +9,7 @@ export async function getLoans(filters = {}) {
     loanType: filters.loanType,
     page: filters.page,
     collectionDay: filters.collectionDay,
+    repaymentType: filters.repaymentType,
     pageSize: filters.pageSize,
   };
 

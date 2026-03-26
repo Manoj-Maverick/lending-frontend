@@ -17,6 +17,7 @@ const Breadcrumb = () => {
     "/payments-management": "Payments",
     "/todays-collection": "Today's Collection",
     "/staff-management": "Staff",
+    "/staff-attendance": "Staff Attendance",
     "/staff-profile": "Staff Profile",
     "/reports": "Reports",
     "/settings": "Settings",
@@ -81,4 +82,3 @@ const Breadcrumb = () => {
 };
 
 export default Breadcrumb;
-

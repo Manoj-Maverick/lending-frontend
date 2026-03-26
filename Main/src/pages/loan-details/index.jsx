@@ -58,7 +58,10 @@ const LoanDetailsSkeleton = () => (
           <Skeleton className="h-6 w-48" />
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {Array.from({ length: 6 }).map((_, index) => (
-              <div key={index} className="space-y-2 rounded-lg border border-border p-4">
+              <div
+                key={index}
+                className="space-y-2 rounded-lg border border-border p-4"
+              >
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-5 w-40" />
               </div>
@@ -86,6 +89,27 @@ const getStatusColor = (status) => {
       "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
   };
   return colors?.[status] || colors?.["Active"];
+};
+
+const getRepaymentColor = (type) => {
+  const colors = {
+    DAILY:
+      "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
+
+    WEEKLY:
+      "bg-pink-500/10 text-pink-600 dark:bg-pink-500/20 dark:text-pink-400",
+
+    MONTHLY:
+      "bg-green-500/10 text-green-600 dark:bg-green-500/20 dark:text-green-400",
+
+    CUSTOM:
+      "bg-orange-500/10 text-orange-600 dark:bg-orange-500/20 dark:text-orange-400",
+  };
+
+  return (
+    colors?.[type] ||
+    "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+  );
 };
 
 const LoanDetails = () => {
@@ -137,6 +161,7 @@ const LoanDetails = () => {
     disbursedDate: data.start_date,
     maturityDate: data.last_due_date,
     totalPayable: Number(data.total_payable),
+    repaymentType: data.repayment_type,
   };
 
   const tabs = [
@@ -173,6 +198,13 @@ const LoanDetails = () => {
                   )}`}
                 >
                   {loanData.status}
+                </span>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getRepaymentColor(
+                    loanData.repaymentType,
+                  )}`}
+                >
+                  {loanData.repaymentType}
                 </span>
               </div>
               <p className="text-sm text-muted-foreground mt-2 break-words">

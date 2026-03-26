@@ -1,29 +1,11 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Image from "../../../components/AppImage";
 import Button from "../../../components/ui/Button";
 
-const StaffTable = ({
-  staff,
-  currentPage,
-  itemsPerPage,
-  onSort,
-  sortConfig,
-  onEdit,
-  onDelete,
-}) => {
+const StaffTable = ({ staff, onSort, sortConfig, onEdit, onDelete }) => {
   const navigate = useNavigate();
-  const [visibleColumns, setVisibleColumns] = useState({
-    photo: true,
-    name: true,
-    email: true,
-    phone: true,
-    role: true,
-    branch: true,
-    status: true,
-    actions: true,
-  });
 
   const getAvatarUrl = (staffMember) => {
     const id = staffMember?.id;
@@ -44,32 +26,39 @@ const StaffTable = ({
 
     return "/images/avatar-placeholder.png";
   };
+
   const getStatusColor = (status) => {
     const colors = {
       Active: "bg-success/10 text-success dark:bg-success/20 dark:text-success",
-      "On Leave":
-        "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
       Inactive: "bg-error/10 text-error dark:bg-error/20 dark:text-error",
     };
+
     return (
-      colors?.[status == true ? "Active" : "Inactive"] || colors?.["Inactive"]
+      colors?.[status === true ? "Active" : "Inactive"] || colors?.Inactive
     );
   };
 
   const getRoleColor = (role) => {
     const colors = {
-      ACCOUNTANT:
-        "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+      ADMIN:
+        "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
       STAFF:
         "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
       BRANCH_MANAGER:
         "bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
     };
-    return colors?.[role] || colors?.["Loan Officer"];
+
+    return colors?.[role] || colors?.STAFF;
   };
 
-  const handleSort = (key) => {
-    onSort(key);
+  const getRoleLabel = (role) => {
+    const labels = {
+      ADMIN: "Admin",
+      BRANCH_MANAGER: "Branch Manager",
+      STAFF: "Staff",
+    };
+
+    return labels?.[role] || role;
   };
 
   const getSortIcon = (key) => {
@@ -77,296 +66,271 @@ const StaffTable = ({
     return sortConfig?.direction === "asc" ? "ChevronUp" : "ChevronDown";
   };
 
-  const toggleColumn = (column) => {
-    setVisibleColumns((prev) => ({ ...prev, [column]: !prev?.[column] }));
-  };
-
   const displayedStaff = staff ?? [];
 
+  const handleView = (staffMember) => {
+    navigate(`/staff-profile/${staffMember?.id}`, {
+      state: { staffData: staffMember },
+    });
+  };
+
   return (
-    <div className="bg-card rounded-lg border border-border overflow-hidden mb-6">
-      {/* Column Visibility Toggle */}
-      <div className="p-3 md:p-4 border-b border-border bg-muted/30">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Icon name="Columns" size={16} className="text-muted-foreground" />
-          <span className="text-xs md:text-sm font-medium text-muted-foreground">
-            Visible Columns:
-          </span>
-          {Object.entries(visibleColumns)?.map(([key, value]) => (
-            <button
-              key={key}
-              onClick={() => toggleColumn(key)}
-              className={`px-2 md:px-3 py-1 rounded-md text-xs md:text-sm transition-colors ${
-                value
-                  ? "bg-accent/15 text-accent"
-                  : "bg-muted text-muted-foreground hover:bg-muted/80"
-              }`}
-              aria-pressed={value}
-            >
-              {key?.charAt(0)?.toUpperCase() +
-                key?.slice(1)?.replace(/([A-Z])/g, " $1")}
-            </button>
-          ))}
+    <div className="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <div className="border-b border-border bg-gradient-to-r from-slate-50 via-background to-primary/5 p-4 md:p-5 dark:from-background dark:via-background dark:to-primary/10">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">
+              Team Directory
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Review staff details, sort important columns, and open profiles or
+              edit flows quickly.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5">
+              <Icon name="ArrowUpDown" size={14} />
+              Sort by clicking table headers
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-3 py-1.5">
+              <Icon name="LayoutGrid" size={14} />
+              Responsive card view on mobile
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Desktop Table */}
-      <div className="hidden lg:block overflow-x-auto">
+      <div className="hidden overflow-x-auto lg:block">
         <table className="w-full">
-          <thead className="bg-muted/50 sticky top-0 z-10">
+          <thead className="sticky top-0 z-10 bg-muted/50">
             <tr>
-              {visibleColumns?.photo && (
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Photo
-                </th>
-              )}
-              {visibleColumns?.name && (
-                <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
-                  onClick={() => handleSort("name")}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e?.key === "Enter" && handleSort("name")}
-                >
-                  <div className="flex items-center gap-2">
-                    Name
-                    <Icon name={getSortIcon("name")} size={16} />
-                  </div>
-                </th>
-              )}
-              {visibleColumns?.email && (
-                <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
-                  onClick={() => handleSort("email")}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e?.key === "Enter" && handleSort("email")}
-                >
-                  <div className="flex items-center gap-2">
-                    Email
-                    <Icon name={getSortIcon("email")} size={16} />
-                  </div>
-                </th>
-              )}
-              {visibleColumns?.phone && (
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Phone
-                </th>
-              )}
-              {visibleColumns?.role && (
-                <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
-                  onClick={() => handleSort("role")}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e?.key === "Enter" && handleSort("role")}
-                >
-                  <div className="flex items-center gap-2">
-                    Role
-                    <Icon name={getSortIcon("role")} size={16} />
-                  </div>
-                </th>
-              )}
-              {visibleColumns?.branch && (
-                <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
-                  onClick={() => handleSort("branch")}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e?.key === "Enter" && handleSort("branch")}
-                >
-                  <div className="flex items-center gap-2">
-                    Branch
-                    <Icon name={getSortIcon("branch")} size={16} />
-                  </div>
-                </th>
-              )}
-              {visibleColumns?.status && (
-                <th
-                  className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-muted/70 transition-colors"
-                  onClick={() => handleSort("status")}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => e?.key === "Enter" && handleSort("status")}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    <Icon name={getSortIcon("status")} size={16} />
-                  </div>
-                </th>
-              )}
-              {visibleColumns?.actions && (
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Actions
-                </th>
-              )}
+              <th
+                className="cursor-pointer px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/70"
+                onClick={() => onSort("name")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e?.key === "Enter" && onSort("name")}
+              >
+                <div className="flex items-center gap-2">
+                  Staff
+                  <Icon name={getSortIcon("name")} size={16} />
+                </div>
+              </th>
+              <th
+                className="cursor-pointer px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/70"
+                onClick={() => onSort("email")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e?.key === "Enter" && onSort("email")}
+              >
+                <div className="flex items-center gap-2">
+                  Contact
+                  <Icon name={getSortIcon("email")} size={16} />
+                </div>
+              </th>
+              <th
+                className="cursor-pointer px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/70"
+                onClick={() => onSort("role")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e?.key === "Enter" && onSort("role")}
+              >
+                <div className="flex items-center gap-2">
+                  Role
+                  <Icon name={getSortIcon("role")} size={16} />
+                </div>
+              </th>
+              <th
+                className="cursor-pointer px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/70"
+                onClick={() => onSort("branch")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e?.key === "Enter" && onSort("branch")}
+              >
+                <div className="flex items-center gap-2">
+                  Branch
+                  <Icon name={getSortIcon("branch")} size={16} />
+                </div>
+              </th>
+              <th
+                className="cursor-pointer px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground transition-colors hover:bg-muted/70"
+                onClick={() => onSort("status")}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e?.key === "Enter" && onSort("status")}
+              >
+                <div className="flex items-center gap-2">
+                  Status
+                  <Icon name={getSortIcon("status")} size={16} />
+                </div>
+              </th>
+              <th className="px-5 py-4 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {displayedStaff?.map((staffMember) => (
               <tr
                 key={staffMember?.id}
-                className="hover:bg-muted/40 transition-colors"
+                className="transition-colors hover:bg-muted/30"
               >
-                {visibleColumns?.photo && (
-                  <td className="px-4 py-3">
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-3">
                     <Image
                       src={staffMember?.photo ?? getAvatarUrl(staffMember)}
                       alt={staffMember?.photoAlt}
-                      className="w-10 h-10 rounded-lg object-cover"
+                      className="h-11 w-11 rounded-2xl object-cover ring-1 ring-border"
                     />
-                  </td>
-                )}
-                {visibleColumns?.name && (
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-sm font-medium text-foreground">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">
                         {staffMember?.name}
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {staffMember?.code}
-                      </p>
+                      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+                        <span>{staffMember?.code}</span>
+                        {staffMember?.designation ? (
+                          <>
+                            <span className="h-1 w-1 rounded-full bg-muted-foreground" />
+                            <span className="truncate">
+                              {staffMember?.designation}
+                            </span>
+                          </>
+                        ) : null}
+                      </div>
                     </div>
-                  </td>
-                )}
-                {visibleColumns?.email && (
-                  <td className="px-4 py-3">
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="space-y-1">
                     <p className="text-sm text-foreground">
-                      {staffMember?.email}
+                      {staffMember?.email || "-"}
                     </p>
-                  </td>
-                )}
-                {visibleColumns?.phone && (
-                  <td className="px-4 py-3">
-                    <p className="text-sm text-foreground">
-                      {staffMember?.phone}
+                    <p className="text-xs text-muted-foreground">
+                      {staffMember?.phone || "No phone number"}
                     </p>
-                  </td>
-                )}
-                {visibleColumns?.role && (
-                  <td className="px-4 py-3">
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex flex-col gap-2">
                     <span
-                      className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getRoleColor(
+                      className={`inline-flex w-fit items-center rounded-full px-3 py-1 text-xs font-medium ${getRoleColor(
                         staffMember?.role,
                       )}`}
                     >
-                      {staffMember?.role}
+                      {getRoleLabel(staffMember?.role)}
                     </span>
-                  </td>
-                )}
-                {visibleColumns?.branch && (
-                  <td className="px-4 py-3">
-                    <p className="text-sm text-foreground">
-                      {staffMember?.branch}
+                    <p className="text-xs text-muted-foreground">
+                      Joined {staffMember?.joinDate || "-"}
                     </p>
-                  </td>
-                )}
-                {visibleColumns?.status && (
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-lg text-xs font-medium ${getStatusColor(
-                        staffMember?.status,
-                      )}`}
-                    >
-                      {staffMember?.status === true ? "Active" : "Inactive"}
-                    </span>
-                  </td>
-                )}
-                {visibleColumns?.actions && (
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        iconName="Eye"
-                        onClick={() =>
-                          navigate("/staff-profile", {
-                            state: { staffData: staffMember },
-                          })
-                        }
-                        title="View Profile"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        iconName="Edit"
-                        onClick={() => onEdit?.(staffMember)}
-                        title="Edit Staff"
-                      />
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        iconName="Trash2"
-                        className="text-error hover:text-error"
-                        onClick={() => onDelete?.(staffMember?.id)}
-                        title="Delete Staff"
-                      />
-                    </div>
-                  </td>
-                )}
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      {staffMember?.branch || "Unassigned"}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Branch linked access
+                    </p>
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ${getStatusColor(
+                      staffMember?.status,
+                    )}`}
+                  >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                    {staffMember?.status === true ? "Active" : "Inactive"}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconName="Eye"
+                      onClick={() => handleView(staffMember)}
+                      title="View Profile"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconName="Edit"
+                      onClick={() => onEdit?.(staffMember)}
+                      title="Edit Staff"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      iconName="Trash2"
+                      className="text-error hover:text-error"
+                      onClick={() => onDelete?.(staffMember)}
+                      title="Delete Staff"
+                    />
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Mobile/Tablet Card View */}
-      <div className="lg:hidden divide-y divide-border">
+      <div className="divide-y divide-border lg:hidden">
         {displayedStaff?.map((staffMember) => (
           <div
             key={staffMember?.id}
-            className="p-4 hover:bg-muted/40 transition-colors"
+            className="p-4 transition-colors hover:bg-muted/20"
           >
-            <div className="flex gap-4 mb-3">
+            <div className="mb-3 flex gap-4">
               <Image
                 src={staffMember?.photo ?? getAvatarUrl(staffMember)}
                 alt={staffMember?.photoAlt}
-                className="w-14 h-14 rounded-lg object-cover flex-shrink-0"
+                className="h-14 w-14 flex-shrink-0 rounded-2xl object-cover ring-1 ring-border"
               />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-1">
+              <div className="min-w-0 flex-1">
+                <div className="mb-1 flex items-start justify-between gap-2">
                   <div>
-                    <p className="font-medium text-foreground truncate">
+                    <p className="truncate font-semibold text-foreground">
                       {staffMember?.name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="mt-1 text-xs text-muted-foreground">
                       {staffMember?.code}
+                      {staffMember?.designation
+                        ? ` • ${staffMember?.designation}`
+                        : ""}
                     </p>
                   </div>
                   <span
-                    className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium flex-shrink-0 ${getStatusColor(
+                    className={`inline-flex flex-shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(
                       staffMember?.status,
                     )}`}
                   >
+                    <span className="h-1.5 w-1.5 rounded-full bg-current" />
                     {staffMember?.status === true ? "Active" : "Inactive"}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground truncate mb-2">
-                  {staffMember?.email}
+                <p className="mb-1 truncate text-sm text-muted-foreground">
+                  {staffMember?.email || "No email"}
+                </p>
+                <p className="mb-3 text-xs text-muted-foreground">
+                  {staffMember?.phone || "No phone"} •{" "}
+                  {staffMember?.branch || "Unassigned branch"}
                 </p>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${getRoleColor(
-                        staffMember?.role,
-                      )}`}
-                    >
-                      {staffMember?.role}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {staffMember?.branch}
-                    </span>
-                  </div>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${getRoleColor(
+                      staffMember?.role,
+                    )}`}
+                  >
+                    {getRoleLabel(staffMember?.role)}
+                  </span>
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       iconName="Eye"
-                      onClick={() =>
-                        navigate("/staff-profile", {
-                          state: { staffData: staffMember },
-                        })
-                      }
+                      onClick={() => handleView(staffMember)}
                     />
                     <Button
                       variant="ghost"
@@ -379,7 +343,7 @@ const StaffTable = ({
                       size="sm"
                       iconName="Trash2"
                       className="text-error hover:text-error"
-                      onClick={() => onDelete?.(staffMember?.id)}
+                      onClick={() => onDelete?.(staffMember)}
                     />
                   </div>
                 </div>
@@ -389,15 +353,20 @@ const StaffTable = ({
         ))}
       </div>
 
-      {/* Empty State */}
       {displayedStaff?.length === 0 && (
-        <div className="p-8 md:p-12 text-center">
+        <div className="p-10 text-center md:p-14">
           <Icon
             name="Users"
-            size={48}
-            className="mx-auto text-muted-foreground/50 mb-4"
+            size={52}
+            className="mx-auto mb-4 text-muted-foreground/40"
           />
-          <p className="text-muted-foreground">No staff members found</p>
+          <h3 className="text-lg font-semibold text-foreground">
+            No staff members found
+          </h3>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try changing the branch or role filter, or add a new staff member
+            to get started.
+          </p>
         </div>
       )}
     </div>

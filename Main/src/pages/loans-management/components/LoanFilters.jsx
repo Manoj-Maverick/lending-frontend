@@ -19,9 +19,16 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
     { value: "SUN", label: "Sunday" },
   ];
 
+  const repaymentTypeOptions = [
+    { value: "all", label: "All Repayment" },
+    { value: "DAILY", label: "Daily" },
+    { value: "WEEKLY", label: "Weekly" },
+    { value: "MONTHLY", label: "Monthly" },
+  ];
+
   return (
     <div className="mb-6 space-y-4">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
         <Select
           label="Status"
           value={filters?.status}
@@ -61,6 +68,13 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
           ]}
         />
 
+        <Select
+          label="Repayment Type"
+          value={filters?.repaymentType}
+          onChange={(value) => handleChange("repaymentType", value)}
+          options={repaymentTypeOptions}
+        />
+
         {/* NEW COLLECTION DAY FILTER */}
         <Select
           label="Collection Day"
@@ -77,6 +91,7 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
                 branch: "all",
                 loanType: "all",
                 collectionDay: "all",
+                repaymentType: "all", // ✅ ADD
                 searchQuery: "",
               })
             }

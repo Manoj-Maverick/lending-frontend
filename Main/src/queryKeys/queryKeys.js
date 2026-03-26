@@ -88,6 +88,8 @@ export const queryKeys = {
     all: ["staff"],
     lists: () => ["staff", "list"],
     list: (filters = {}) => ["staff", "list", filters],
+    detail: (staffId) => ["staff", "detail", staffId],
+    attendance: (staffId, month) => ["staff", "attendance", staffId, month],
   },
   documents: {
     all: ["documents"],

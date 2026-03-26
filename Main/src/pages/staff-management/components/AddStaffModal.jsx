@@ -1,650 +1,303 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
+import { useUIContext } from "context/UIContext";
 
-const AddStaffModal = ({ isOpen, onClose, onSubmit }) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Account Details (users table)
-    username: "ramesh.staff",
-    password: "password123",
-    confirmPassword: "password123",
-    systemRole: "STAFF",
-    systemBranch: "Main Branch",
+const ROLE_OPTIONS = [
+  { value: "ADMIN", label: "Admin" },
+  { value: "BRANCH_MANAGER", label: "Branch Manager" },
+  { value: "STAFF", label: "Staff" },
+];
 
-    // Personal Details
-    firstName: "Ramesh",
-    lastName: "Kumar",
-    dateOfBirth: "1995-06-15",
-    gender: "male",
-    email: "ramesh.kumar@example.com",
-    phone: "9876543210",
-    alternatePhone: "9123456789",
+const GENDER_OPTIONS = [
+  { value: "MALE", label: "Male" },
+  { value: "FEMALE", label: "Female" },
+  { value: "OTHER", label: "Other" },
+];
 
-    // Address Information
-    addressLine1: "12, MG Road",
-    addressLine2: "Near Central Park",
-    city: "Chennai",
-    state: "Tamil Nadu",
-    pincode: "600001",
+const ACCOUNT_TYPE_OPTIONS = [
+  { value: "SAVINGS", label: "Savings" },
+  { value: "CURRENT", label: "Current" },
+  { value: "SALARY", label: "Salary" },
+];
 
-    // Employment Details
-    role: "Loan Officer",
-    department: "Operations",
-    branch: "Main Branch",
-    joinDate: "2024-01-10",
-    employmentType: "Full-Time",
+const STATUS_OPTIONS = [
+  { value: true, label: "Active" },
+  { value: false, label: "Inactive" },
+];
 
-    // Bank Details
-    bankName: "State Bank of India",
-    accountNumber: "123456789012",
-    ifscCode: "SBIN0001234",
-    accountType: "savings",
+const INITIAL_FORM = {
+  username: "",
+  password: "",
+  confirmPassword: "",
+  fullName: "",
+  phone: "",
+  alternatePhone: "",
+  email: "",
+  dateOfBirth: "",
+  gender: "",
+  maritalStatus: "",
+  bloodGroup: "",
+  fatherName: "",
+  motherName: "",
+  emergencyContactName: "",
+  emergencyContactPhone: "",
+  emergencyContactRelationship: "",
+  address: "",
+  city: "",
+  state: "",
+  pincode: "",
+  aadhaarNumber: "",
+  panNumber: "",
+  education: "",
+  experienceYears: "",
+  designation: "",
+  role: "STAFF",
+  branchId: "",
+  joinDate: "",
+  salary: "",
+  bankName: "",
+  accountHolderName: "",
+  bankAccountNumber: "",
+  ifscCode: "",
+  accountType: "",
+  notes: "",
+  isActive: true,
+};
 
-    // Documents
-    photo: null,
-    idProof: null,
-    addressProof: null,
-  });
+const SECTIONS = [
+  { title: "Account Access", icon: "ShieldCheck" },
+  { title: "Personal Details", icon: "User" },
+  { title: "Emergency and Address", icon: "MapPin" },
+  { title: "Work and Banking", icon: "Briefcase" },
+];
 
+const AddStaffModal = ({ isOpen, onClose, onSubmit, isSubmitting = false }) => {
+  const { branches } = useUIContext();
+  const [formData, setFormData] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
 
-  const steps = [
-    { number: 1, title: "Account Details", icon: "Key" },
-    { number: 2, title: "Personal Details", icon: "User" },
-    { number: 3, title: "Address Information", icon: "MapPin" },
-    { number: 4, title: "Employment Details", icon: "Briefcase" },
-    { number: 5, title: "Bank Details", icon: "CreditCard" },
-  ];
+  const branchOptions = useMemo(
+    () =>
+      (branches || []).map((branch) => ({
+        value: branch?.id,
+        label: branch?.branch_name,
+      })),
+    [branches],
+  );
 
-  const genderOptions = [
-    { value: "male", label: "Male" },
-    { value: "female", label: "Female" },
-    { value: "other", label: "Other" },
-  ];
-
-  const roleOptions = [
-    { value: "Branch Manager", label: "Branch Manager" },
-    { value: "Loan Officer", label: "Loan Officer" },
-    { value: "Finance Manager", label: "Finance Manager" },
-    {
-      value: "Customer Service Executive",
-      label: "Customer Service Executive",
-    },
-    { value: "HR Executive", label: "HR Executive" },
-    { value: "IT Manager", label: "IT Manager" },
-    { value: "Audit Officer", label: "Audit Officer" },
-  ];
-
-  const departmentOptions = [
-    { value: "Management", label: "Management" },
-    { value: "Operations", label: "Operations" },
-    { value: "Finance", label: "Finance" },
-    { value: "Customer Service", label: "Customer Service" },
-    { value: "Human Resources", label: "Human Resources" },
-    { value: "Information Technology", label: "Information Technology" },
-    { value: "Audit", label: "Audit" },
-  ];
-
-  const branchOptions = [
-    { value: "Main Branch", label: "Main Branch" },
-    { value: "North Branch", label: "North Branch" },
-    { value: "South Branch", label: "South Branch" },
-    { value: "East Branch", label: "East Branch" },
-    { value: "West Branch", label: "West Branch" },
-  ];
-
-  const employmentTypeOptions = [
-    { value: "Full-Time", label: "Full-Time" },
-    { value: "Part-Time", label: "Part-Time" },
-    { value: "Contract", label: "Contract" },
-    { value: "Internship", label: "Internship" },
-  ];
-
-  const accountTypeOptions = [
-    { value: "savings", label: "Savings Account" },
-    { value: "current", label: "Current Account" },
-  ];
-
-  const systemRoleOptions = [
-    { value: "STAFF", label: "Staff" },
-    { value: "MANAGER", label: "Manager" },
-  ];
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData(INITIAL_FORM);
+      setErrors({});
+    }
+  }, [isOpen]);
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value };
+
+      if (field === "role" && value === "ADMIN") {
+        next.branchId = "";
+      }
+
+      return next;
+    });
+
     if (errors?.[field]) {
       setErrors((prev) => ({ ...prev, [field]: "" }));
     }
   };
 
-  const validateStep = (step) => {
-    const newErrors = {};
+  const validate = () => {
+    const nextErrors = {};
 
-    // Step 1: Account Details
-    if (step === 1) {
-      if (!formData.username.trim())
-        newErrors.username = "Username is required";
-
-      if (!formData.password) newErrors.password = "Password is required";
-      else if (formData.password.length < 6)
-        newErrors.password = "Password must be at least 6 characters";
-
-      if (!formData.confirmPassword)
-        newErrors.confirmPassword = "Confirm password is required";
-      else if (formData.password !== formData.confirmPassword)
-        newErrors.confirmPassword = "Passwords do not match";
-
-      if (!formData.systemRole)
-        newErrors.systemRole = "System role is required";
-
-      if (!formData.systemBranch) newErrors.systemBranch = "Branch is required";
+    if (!formData.username.trim()) nextErrors.username = "Username is required";
+    if (!formData.password) nextErrors.password = "Password is required";
+    if (formData.password && formData.password.length < 6) {
+      nextErrors.password = "Password must be at least 6 characters";
+    }
+    if (formData.password !== formData.confirmPassword) {
+      nextErrors.confirmPassword = "Passwords do not match";
+    }
+    if (!formData.fullName.trim()) nextErrors.fullName = "Full name is required";
+    if (!formData.role) nextErrors.role = "Role is required";
+    if (formData.role !== "ADMIN" && !formData.branchId) {
+      nextErrors.branchId = "Branch is required";
+    }
+    if (!formData.joinDate) nextErrors.joinDate = "Join date is required";
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      nextErrors.email = "Enter a valid email";
+    }
+    if (formData.phone && !/^\d{10,15}$/.test(formData.phone.replace(/\D/g, ""))) {
+      nextErrors.phone = "Enter a valid phone number";
+    }
+    if (
+      formData.emergencyContactPhone &&
+      !/^\d{10,15}$/.test(formData.emergencyContactPhone.replace(/\D/g, ""))
+    ) {
+      nextErrors.emergencyContactPhone = "Enter a valid emergency contact number";
+    }
+    if (formData.pincode && !/^\d{6}$/.test(formData.pincode.replace(/\D/g, ""))) {
+      nextErrors.pincode = "Enter a valid 6 digit pincode";
     }
 
-    // Step 2: Personal Details
-    if (step === 2) {
-      if (!formData.firstName.trim())
-        newErrors.firstName = "First name is required";
-      if (!formData.lastName.trim())
-        newErrors.lastName = "Last name is required";
-      if (!formData.dateOfBirth)
-        newErrors.dateOfBirth = "Date of birth is required";
-      if (!formData.gender) newErrors.gender = "Gender is required";
-      if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
-      else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, "")))
-        newErrors.phone = "Invalid phone number (10 digits required)";
-      if (!formData.email.trim()) newErrors.email = "Email is required";
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-        newErrors.email = "Invalid email address";
-    }
-
-    // Step 3: Address Information
-    if (step === 3) {
-      if (!formData.addressLine1.trim())
-        newErrors.addressLine1 = "Address is required";
-      if (!formData.city.trim()) newErrors.city = "City is required";
-      if (!formData.state.trim()) newErrors.state = "State is required";
-      if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required";
-      else if (!/^\d{6}$/.test(formData.pincode.replace(/\D/g, "")))
-        newErrors.pincode = "Invalid pincode (6 digits required)";
-    }
-
-    // Step 4: Employment Details
-    if (step === 4) {
-      if (!formData.role) newErrors.role = "Role is required";
-      if (!formData.department) newErrors.department = "Department is required";
-      if (!formData.branch) newErrors.branch = "Branch is required";
-      if (!formData.joinDate) newErrors.joinDate = "Join date is required";
-      if (!formData.employmentType)
-        newErrors.employmentType = "Employment type is required";
-    }
-
-    // Step 5: Bank Details
-    if (step === 5) {
-      if (!formData.bankName.trim())
-        newErrors.bankName = "Bank name is required";
-      if (!formData.accountNumber.trim())
-        newErrors.accountNumber = "Account number is required";
-      if (!formData.ifscCode.trim())
-        newErrors.ifscCode = "IFSC code is required";
-      if (!formData.accountType)
-        newErrors.accountType = "Account type is required";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
   };
 
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep((prev) => Math.min(prev + 1, 5));
-    }
-  };
-
-  const handlePrevious = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 1));
-  };
+  const buildPayload = () => ({
+    username: formData.username.trim(),
+    password: formData.password,
+    fullName: formData.fullName.trim(),
+    phone: formData.phone.trim(),
+    alternatePhone: formData.alternatePhone.trim(),
+    email: formData.email.trim(),
+    dateOfBirth: formData.dateOfBirth,
+    gender: formData.gender,
+    maritalStatus: formData.maritalStatus.trim(),
+    bloodGroup: formData.bloodGroup.trim(),
+    fatherName: formData.fatherName.trim(),
+    motherName: formData.motherName.trim(),
+    emergencyContactName: formData.emergencyContactName.trim(),
+    emergencyContactPhone: formData.emergencyContactPhone.trim(),
+    emergencyContactRelationship: formData.emergencyContactRelationship.trim(),
+    address: formData.address.trim(),
+    city: formData.city.trim(),
+    state: formData.state.trim(),
+    pincode: formData.pincode.trim(),
+    aadhaarNumber: formData.aadhaarNumber.trim(),
+    panNumber: formData.panNumber.trim(),
+    education: formData.education.trim(),
+    experienceYears: formData.experienceYears,
+    designation: formData.designation.trim(),
+    role: formData.role,
+    branchId: formData.role === "ADMIN" ? null : Number(formData.branchId),
+    joinDate: formData.joinDate,
+    salary: formData.salary,
+    bankName: formData.bankName.trim(),
+    accountHolderName: formData.accountHolderName.trim(),
+    bankAccountNumber: formData.bankAccountNumber.trim(),
+    ifscCode: formData.ifscCode.trim(),
+    accountType: formData.accountType,
+    notes: formData.notes.trim(),
+    isActive: formData.isActive,
+  });
 
   const handleSubmit = () => {
-    if (validateStep(currentStep)) {
-      onSubmit(formData);
-      handleClose();
-    }
-  };
-
-  const handleClose = () => {
-    setCurrentStep(1);
-    setFormData({
-      username: "",
-      password: "",
-      confirmPassword: "",
-      systemRole: "",
-      systemBranch: "",
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-      gender: "",
-      email: "",
-      phone: "",
-      alternatePhone: "",
-      addressLine1: "",
-      addressLine2: "",
-      city: "",
-      state: "",
-      pincode: "",
-      role: "",
-      department: "",
-      branch: "",
-      joinDate: "",
-      employmentType: "",
-      bankName: "",
-      accountNumber: "",
-      ifscCode: "",
-      accountType: "",
-      photo: null,
-      idProof: null,
-      addressProof: null,
-    });
-    setErrors({});
-    onClose();
+    if (!validate()) return;
+    onSubmit(buildPayload());
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="form-modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
-      <div className="form-modal-panel bg-card rounded-lg border border-border shadow-elevation-lg w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 md:p-6 border-b border-border">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 p-4 backdrop-blur-sm">
+      <div className="flex max-h-[92vh] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevation-lg">
+        <div className="flex items-center justify-between border-b border-border p-4 md:p-6">
           <div>
-            <h2 className="text-xl md:text-2xl font-semibold text-foreground">
-              Add New Staff Member
+            <h2 className="text-xl font-semibold text-foreground md:text-2xl">
+              Create Complete Staff Profile
             </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Complete all steps to create staff profile and account
+            <p className="mt-1 text-sm text-muted-foreground">
+              Capture account access, personal details, emergency contacts, identity, banking, and employment data.
             </p>
           </div>
           <button
-            onClick={handleClose}
-            className="w-8 h-8 rounded-lg hover:bg-muted transition-colors flex items-center justify-center"
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-muted"
             aria-label="Close modal"
           >
             <Icon name="X" size={20} />
           </button>
         </div>
 
-        {/* Progress Steps */}
-        <div className="px-4 md:px-6 py-4 border-b border-border bg-muted/30 overflow-x-auto">
-          <div className="flex items-center gap-2 min-w-max">
-            {steps.map((step, index) => (
-              <React.Fragment key={step.number}>
-                <div className="flex items-center gap-2">
-                  <div
-                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center transition-colors ${
-                      currentStep === step.number
-                        ? "bg-accent text-white"
-                        : currentStep > step.number
-                          ? "bg-accent/20 text-accent"
-                          : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {currentStep > step.number ? (
-                      <Icon name="Check" size={16} />
-                    ) : (
-                      <Icon name={step.icon} size={16} />
-                    )}
+        <div className="grid gap-5 overflow-y-auto p-4 md:p-6">
+          {SECTIONS.map((section, index) => (
+            <div key={section.title} className="rounded-2xl border border-border bg-background p-4 md:p-5">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                  <Icon name={section.icon} size={18} />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Section {index + 1}</p>
+                  <h3 className="text-lg font-semibold text-foreground">{section.title}</h3>
+                </div>
+              </div>
+
+              {section.title === "Account Access" && (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Input label="Username" value={formData.username} onChange={(e) => handleInputChange("username", e.target.value)} error={errors.username} required />
+                  <Input label="Password" type="password" value={formData.password} onChange={(e) => handleInputChange("password", e.target.value)} error={errors.password} required />
+                  <Input label="Confirm Password" type="password" value={formData.confirmPassword} onChange={(e) => handleInputChange("confirmPassword", e.target.value)} error={errors.confirmPassword} required />
+                  <Select label="Role" options={ROLE_OPTIONS} value={formData.role} onChange={(value) => handleInputChange("role", value)} error={errors.role} required />
+                  <Select label="Branch" options={branchOptions} value={formData.branchId} onChange={(value) => handleInputChange("branchId", value)} searchable disabled={formData.role === "ADMIN"} placeholder={formData.role === "ADMIN" ? "Admin does not need branch" : "Select branch"} error={errors.branchId} required={formData.role !== "ADMIN"} />
+                  <Select label="Status" options={STATUS_OPTIONS} value={formData.isActive} onChange={(value) => handleInputChange("isActive", value)} />
+                </div>
+              )}
+
+              {section.title === "Personal Details" && (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Input label="Full Name" value={formData.fullName} onChange={(e) => handleInputChange("fullName", e.target.value)} error={errors.fullName} required />
+                  <Input label="Phone" value={formData.phone} onChange={(e) => handleInputChange("phone", e.target.value)} error={errors.phone} />
+                  <Input label="Alternate Phone" value={formData.alternatePhone} onChange={(e) => handleInputChange("alternatePhone", e.target.value)} />
+                  <Input label="Email" type="email" value={formData.email} onChange={(e) => handleInputChange("email", e.target.value)} error={errors.email} />
+                  <Input label="Date of Birth" type="date" value={formData.dateOfBirth} onChange={(e) => handleInputChange("dateOfBirth", e.target.value)} />
+                  <Select label="Gender" options={GENDER_OPTIONS} value={formData.gender} onChange={(value) => handleInputChange("gender", value)} />
+                  <Input label="Marital Status" value={formData.maritalStatus} onChange={(e) => handleInputChange("maritalStatus", e.target.value)} />
+                  <Input label="Blood Group" value={formData.bloodGroup} onChange={(e) => handleInputChange("bloodGroup", e.target.value)} />
+                  <Input label="Education" value={formData.education} onChange={(e) => handleInputChange("education", e.target.value)} />
+                  <Input label="Experience Years" type="number" min="0" step="0.5" value={formData.experienceYears} onChange={(e) => handleInputChange("experienceYears", e.target.value)} />
+                  <Input label="Father Name" value={formData.fatherName} onChange={(e) => handleInputChange("fatherName", e.target.value)} />
+                  <Input label="Mother Name" value={formData.motherName} onChange={(e) => handleInputChange("motherName", e.target.value)} />
+                </div>
+              )}
+
+              {section.title === "Emergency and Address" && (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Input label="Emergency Contact Name" value={formData.emergencyContactName} onChange={(e) => handleInputChange("emergencyContactName", e.target.value)} />
+                  <Input label="Emergency Contact Phone" value={formData.emergencyContactPhone} onChange={(e) => handleInputChange("emergencyContactPhone", e.target.value)} error={errors.emergencyContactPhone} />
+                  <Input label="Relationship" value={formData.emergencyContactRelationship} onChange={(e) => handleInputChange("emergencyContactRelationship", e.target.value)} />
+                  <div className="md:col-span-3">
+                    <Input label="Address" value={formData.address} onChange={(e) => handleInputChange("address", e.target.value)} />
                   </div>
-                  <div className="hidden md:block">
-                    <div className="text-xs font-medium">
-                      Step {step.number}
-                    </div>
-                    <div className="text-xs">{step.title}</div>
+                  <Input label="City" value={formData.city} onChange={(e) => handleInputChange("city", e.target.value)} />
+                  <Input label="State" value={formData.state} onChange={(e) => handleInputChange("state", e.target.value)} />
+                  <Input label="Pincode" value={formData.pincode} onChange={(e) => handleInputChange("pincode", e.target.value)} error={errors.pincode} />
+                  <Input label="Aadhaar Number" value={formData.aadhaarNumber} onChange={(e) => handleInputChange("aadhaarNumber", e.target.value)} />
+                  <Input label="PAN Number" value={formData.panNumber} onChange={(e) => handleInputChange("panNumber", e.target.value)} />
+                  <div className="md:col-span-3">
+                    <Input label="Notes" value={formData.notes} onChange={(e) => handleInputChange("notes", e.target.value)} />
                   </div>
                 </div>
-                {index < steps.length - 1 && (
-                  <div
-                    className={`h-0.5 w-8 md:w-12 ${
-                      currentStep > step.number ? "bg-accent" : "bg-border"
-                    }`}
-                  />
-                )}
-              </React.Fragment>
-            ))}
-          </div>
+              )}
+
+              {section.title === "Work and Banking" && (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                  <Input label="Designation" value={formData.designation} onChange={(e) => handleInputChange("designation", e.target.value)} />
+                  <Input label="Join Date" type="date" value={formData.joinDate} onChange={(e) => handleInputChange("joinDate", e.target.value)} error={errors.joinDate} required />
+                  <Input label="Salary" type="number" min="0" step="0.01" value={formData.salary} onChange={(e) => handleInputChange("salary", e.target.value)} />
+                  <Input label="Bank Name" value={formData.bankName} onChange={(e) => handleInputChange("bankName", e.target.value)} />
+                  <Input label="Account Holder Name" value={formData.accountHolderName} onChange={(e) => handleInputChange("accountHolderName", e.target.value)} />
+                  <Input label="Bank Account Number" value={formData.bankAccountNumber} onChange={(e) => handleInputChange("bankAccountNumber", e.target.value)} />
+                  <Input label="IFSC Code" value={formData.ifscCode} onChange={(e) => handleInputChange("ifscCode", e.target.value)} />
+                  <Select label="Account Type" options={ACCOUNT_TYPE_OPTIONS} value={formData.accountType} onChange={(value) => handleInputChange("accountType", value)} />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
 
-        {/* Form Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
-          <div key={currentStep} className="motion-fade-up">
-          {/* Step 1: Account Details */}
-          {currentStep === 1 && (
-            <div className="space-y-4">
-              <Input
-                label="Username"
-                value={formData.username}
-                onChange={(e) => handleInputChange("username", e.target.value)}
-                error={errors.username}
-                required
-              />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Password"
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
-                  error={errors.password}
-                  required
-                />
-                <Input
-                  label="Confirm Password"
-                  type="password"
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    handleInputChange("confirmPassword", e.target.value)
-                  }
-                  error={errors.confirmPassword}
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select
-                  label="System Role"
-                  placeholder="Select system role"
-                  options={systemRoleOptions}
-                  value={formData.systemRole}
-                  onChange={(value) => handleInputChange("systemRole", value)}
-                  error={errors.systemRole}
-                  required
-                />
-                <Select
-                  label="System Branch"
-                  placeholder="Select branch"
-                  options={branchOptions}
-                  value={formData.systemBranch}
-                  onChange={(value) => handleInputChange("systemBranch", value)}
-                  error={errors.systemBranch}
-                  required
-                />
-              </div>
-            </div>
-          )}
-          {currentStep === 2 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="First Name"
-                  value={formData.firstName}
-                  onChange={(e) =>
-                    handleInputChange("firstName", e.target.value)
-                  }
-                  error={errors.firstName}
-                  required
-                />
-                <Input
-                  label="Last Name"
-                  value={formData.lastName}
-                  onChange={(e) =>
-                    handleInputChange("lastName", e.target.value)
-                  }
-                  error={errors.lastName}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Date of Birth"
-                  type="date"
-                  value={formData.dateOfBirth}
-                  onChange={(e) =>
-                    handleInputChange("dateOfBirth", e.target.value)
-                  }
-                  error={errors.dateOfBirth}
-                  required
-                />
-                <Select
-                  label="Gender"
-                  placeholder="Select gender"
-                  options={genderOptions}
-                  value={formData.gender}
-                  onChange={(value) => handleInputChange("gender", value)}
-                  error={errors.gender}
-                  required
-                />
-              </div>
-
-              <Input
-                label="Email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange("email", e.target.value)}
-                error={errors.email}
-                required
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Phone"
-                  value={formData.phone}
-                  onChange={(e) => handleInputChange("phone", e.target.value)}
-                  error={errors.phone}
-                  required
-                />
-                <Input
-                  label="Alternate Phone"
-                  value={formData.alternatePhone}
-                  onChange={(e) =>
-                    handleInputChange("alternatePhone", e.target.value)
-                  }
-                />
-              </div>
-            </div>
-          )}
-          {currentStep === 3 && (
-            <div className="space-y-4">
-              <Input
-                label="Address Line 1"
-                value={formData.addressLine1}
-                onChange={(e) =>
-                  handleInputChange("addressLine1", e.target.value)
-                }
-                error={errors.addressLine1}
-                required
-              />
-              <Input
-                label="Address Line 2"
-                value={formData.addressLine2}
-                onChange={(e) =>
-                  handleInputChange("addressLine2", e.target.value)
-                }
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Input
-                  label="City"
-                  value={formData.city}
-                  onChange={(e) => handleInputChange("city", e.target.value)}
-                  error={errors.city}
-                  required
-                />
-                <Input
-                  label="State"
-                  value={formData.state}
-                  onChange={(e) => handleInputChange("state", e.target.value)}
-                  error={errors.state}
-                  required
-                />
-                <Input
-                  label="Pincode"
-                  value={formData.pincode}
-                  onChange={(e) => handleInputChange("pincode", e.target.value)}
-                  error={errors.pincode}
-                  required
-                />
-              </div>
-            </div>
-          )}
-          {currentStep === 4 && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select
-                  label="Role"
-                  options={roleOptions}
-                  value={formData.role}
-                  onChange={(value) => handleInputChange("role", value)}
-                  error={errors.role}
-                  required
-                />
-                <Select
-                  label="Department"
-                  options={departmentOptions}
-                  value={formData.department}
-                  onChange={(value) => handleInputChange("department", value)}
-                  error={errors.department}
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select
-                  label="Branch"
-                  options={branchOptions}
-                  value={formData.branch}
-                  onChange={(value) => handleInputChange("branch", value)}
-                  error={errors.branch}
-                  required
-                />
-                <Select
-                  label="Employment Type"
-                  options={employmentTypeOptions}
-                  value={formData.employmentType}
-                  onChange={(value) =>
-                    handleInputChange("employmentType", value)
-                  }
-                  error={errors.employmentType}
-                  required
-                />
-              </div>
-
-              <Input
-                label="Join Date"
-                type="date"
-                value={formData.joinDate}
-                onChange={(e) => handleInputChange("joinDate", e.target.value)}
-                error={errors.joinDate}
-                required
-              />
-            </div>
-          )}
-
-          {currentStep === 5 && (
-            <div className="space-y-4">
-              <Input
-                label="Bank Name"
-                value={formData.bankName}
-                onChange={(e) => handleInputChange("bankName", e.target.value)}
-                error={errors.bankName}
-                required
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Input
-                  label="Account Number"
-                  value={formData.accountNumber}
-                  onChange={(e) =>
-                    handleInputChange("accountNumber", e.target.value)
-                  }
-                  error={errors.accountNumber}
-                  required
-                />
-                <Input
-                  label="IFSC Code"
-                  value={formData.ifscCode}
-                  onChange={(e) =>
-                    handleInputChange("ifscCode", e.target.value)
-                  }
-                  error={errors.ifscCode}
-                  required
-                />
-              </div>
-
-              <Select
-                label="Account Type"
-                options={accountTypeOptions}
-                value={formData.accountType}
-                onChange={(value) => handleInputChange("accountType", value)}
-                error={errors.accountType}
-                required
-              />
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <DocumentCaptureField
-                  label="Staff Photo (Optional)"
-                  accept="image/*"
-                  value={formData?.photo}
-                  onChange={(file) => handleInputChange("photo", file)}
-                  helperText="Capture live staff photo or upload from gallery."
-                />
-                <DocumentCaptureField
-                  label="ID Proof (Optional)"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  value={formData?.idProof}
-                  onChange={(file) => handleInputChange("idProof", file)}
-                  helperText="Employee ID/Aadhaar/PAN - photo capture is supported."
-                />
-              </div>
-
-              <DocumentCaptureField
-                label="Address Proof (Optional)"
-                accept=".pdf,.jpg,.jpeg,.png"
-                value={formData?.addressProof}
-                onChange={(file) => handleInputChange("addressProof", file)}
-                helperText="Attach any valid address proof file or captured photo."
-              />
-            </div>
-          )}
-          </div>
-        </div>
-        {/* Footer */}
-        <div className="border-t border-border p-4 md:p-6 bg-muted/30 flex items-center justify-between gap-3">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            iconName="ChevronLeft"
-            iconPosition="left"
-          >
-            Previous
+        <div className="flex items-center justify-end gap-3 border-t border-border bg-muted/30 p-4 md:p-6">
+          <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
+            Cancel
           </Button>
-
-          <div className="flex-1 text-center text-sm text-muted-foreground">
-            Step {currentStep} of {steps.length}
-          </div>
-
-          {currentStep === steps.length ? (
-            <Button
-              variant="default"
-              onClick={handleSubmit}
-              iconName="Check"
-              iconPosition="left"
-            >
-              Create Staff
-            </Button>
-          ) : (
-            <Button
-              variant="default"
-              onClick={handleNext}
-              iconName="ChevronRight"
-              iconPosition="right"
-            >
-              Next
-            </Button>
-          )}
+          <Button onClick={handleSubmit} loading={isSubmitting}>
+            Save Staff Member
+          </Button>
         </div>
       </div>
     </div>

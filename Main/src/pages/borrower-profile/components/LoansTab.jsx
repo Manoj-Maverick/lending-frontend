@@ -39,6 +39,7 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
 
   // API returns: { loans, stats }
   const rawLoans = data?.loans || [];
+  console.log(rawLoans);
   const stats = data?.stats || {
     totalLoans: 0,
     activeLoans: 0,
@@ -54,6 +55,7 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
     interestRate: Number(l.interest_amount), // or compute % if needed
     totalPayable: Number(l.total_payable),
     outstanding: Number(l.outstanding),
+    repayment_type: l.repayment_type,
     status: l.status, // 'ACTIVE', 'CLOSED', 'FORECLOSED'
     startDate: l.start_date.split("T")[0], // format as YYYY-MM-DD
   }));
@@ -212,6 +214,9 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
                       Loan Code
                     </th>
                     <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
+                      Loan Type
+                    </th>
+                    <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
                       Principal
                     </th>
                     <th className="px-4 md:px-6 py-3 md:py-4 text-left text-xs md:text-sm font-medium text-muted-foreground">
@@ -247,6 +252,10 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
                       <td className="px-4 md:px-6 py-3 md:py-4 text-primary font-medium">
                         {loan.loanCode}
                       </td>
+                      <td className="px-4 md:px-6 py-3 md:py-4 text-primary font-medium">
+                        {loan.repayment_type}
+                      </td>
+
                       <td className="px-4 md:px-6 py-3 md:py-4">
                         Rs {loan.principal.toLocaleString()}
                       </td>

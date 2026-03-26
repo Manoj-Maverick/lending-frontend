@@ -2,8 +2,6 @@ import React, { useRef, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
-import { Select } from "components/shared";
-import { API_BASE_URL } from "api/client";
 import { toApiAssetUrl } from "utils/helper.js";
 import {
   useCustomerDocuments,

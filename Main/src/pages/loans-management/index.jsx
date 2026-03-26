@@ -32,7 +32,11 @@ const LoansManagementSkeleton = () => (
         <Skeleton className="h-11 w-full rounded-xl" />
         <Skeleton className="h-11 w-full rounded-xl" />
       </div>
-      <TableCardSkeleton rows={6} columns={6} className="border-0 shadow-none" />
+      <TableCardSkeleton
+        rows={6}
+        columns={6}
+        className="border-0 shadow-none"
+      />
     </div>
   </div>
 );
@@ -48,6 +52,7 @@ const LoansManagement = () => {
     loanType: "all",
     searchQuery: "",
     collectionDay: "all",
+    repaymentType: "all",
   });
 
   // 🧭 Pagination state
@@ -73,6 +78,7 @@ const LoansManagement = () => {
     filters.branch,
     filters.loanType,
     filters.collectionDay,
+    filters.repaymentType, // ✅ ADD THIS
     debouncedSearch,
     pageSize,
   ]);
@@ -146,6 +152,7 @@ const LoansManagement = () => {
     tenure: Number(l.tenure_value),
     tenureUnit: l.tenure_unit,
     status: l.status,
+    repaymentType: l.repayment_type,
   }));
   console.log("Mapped Loans:", loans);
 
@@ -233,7 +240,11 @@ const LoansManagement = () => {
           />
 
           {isLoansLoading ? (
-            <TableCardSkeleton rows={6} columns={6} className="border-0 shadow-none" />
+            <TableCardSkeleton
+              rows={6}
+              columns={6}
+              className="border-0 shadow-none"
+            />
           ) : (
             <>
               <LoansTable loans={loans} onViewLoan={handleViewLoan} />
