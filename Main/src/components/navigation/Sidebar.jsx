@@ -36,12 +36,11 @@ const Sidebar = ({
 
     BRANCH_MANAGER: [
       { label: "Dashboard", path: "/dashboard", icon: "LayoutDashboard" },
-
-      // Manager sees "Branches" only if they manage ONE branch
-      // If they manage a single branch:
-      // { label: "My Branch", path: `/branches-management/${user.branchId}`, icon: "Building2" },
-      // If you still want them to see list:
-      { label: "Branches", path: "/branches-management", icon: "Building2" },
+      {
+        label: "My Branch",
+        path: `/branch-details/${user?.branchId}`,
+        icon: "Building2",
+      },
 
       { label: "Borrowers", path: "/borrowers-management", icon: "Users" },
       { label: "Loans", path: "/loans-management", icon: "Wallet" },
@@ -53,16 +52,14 @@ const Sidebar = ({
     ],
 
     STAFF: [
-      { label: "Home", path: "/dashboard", icon: "LayoutDashboard" },
+      { label: "Workspace", path: "/dashboard", icon: "LayoutDashboard" },
       {
-        label: "Branch",
+        label: "My Branch",
         path: `/branch-details/${user?.branchId}`,
         icon: "Building2",
       },
-      { label: "Borrowers", path: "/borrowers-management", icon: "Users" },
-      { label: "Loans Accounts", path: "/loans-management", icon: "Wallet" },
-      { label: "Payments", path: "/payments-management", icon: "CreditCard" },
-      { label: "Settings", path: "/settings", icon: "Settings" },
+      { label: "Customers", path: "/borrowers-management", icon: "Users" },
+      { label: "Loan Requests", path: "/loans-management", icon: "Wallet" },
     ],
   };
 

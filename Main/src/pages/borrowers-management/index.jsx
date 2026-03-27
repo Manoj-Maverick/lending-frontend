@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
 import BorrowersListPage from "./components/borrowersListPage";
@@ -6,6 +6,7 @@ import AddBorrowerModal from "./components/AddBorrowerModal";
 import BlocklistModal from "./components/BlocklistModal";
 import { useBorrowerStats } from "hooks/borrowers/useBorrowerStats";
 import { PageHeaderSkeleton, Skeleton, StatCardSkeleton } from "components/ui/Skeleton";
+import { useAuth } from "auth/AuthContext";
 
 const BorrowersManagementSkeleton = () => (
   <>
@@ -54,8 +55,11 @@ const BorrowersManagementSkeleton = () => (
 );
 
 const BorrowersManagement = () => {
+  const { user } = useAuth();
   const [isAddBorrowerModalOpen, setIsAddBorrowerModalOpen] = useState(false);
-  const [branch, setBranch] = useState(null);
+  const [branch, setBranch] = useState(
+    user?.role === "ADMIN" ? null : user?.branchId,
+  );
   const [blocklistModal, setBlocklistModal] = useState({
     isOpen: false,
     borrowerData: null,
@@ -63,7 +67,12 @@ const BorrowersManagement = () => {
   });
 
   // ✅ REAL DATA
-  const { data: stats, isLoading, isError } = useBorrowerStats(branch);
+  const effectiveBranch = useMemo(
+    () => (user?.role === "ADMIN" ? branch : user?.branchId),
+    [branch, user?.branchId, user?.role],
+  );
+
+  const { data: stats, isLoading, isError } = useBorrowerStats(effectiveBranch);
 
   const handleBlocklistConfirm = () => {
     setBlocklistModal({
@@ -145,7 +154,11 @@ const BorrowersManagement = () => {
       </div>
 
       {/* List */}
-      <BorrowersListPage branch={branch} setBranch={setBranch} />
+      <BorrowersListPage
+        branch={effectiveBranch}
+        setBranch={setBranch}
+        canSelectBranch={user?.role === "ADMIN"}
+      />
 
       {/* Add Modal */}
       <AddBorrowerModal

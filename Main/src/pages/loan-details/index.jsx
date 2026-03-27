@@ -12,6 +12,9 @@ import { useLoanDetails } from "hooks/loans/useLoanDetails";
 import { formatCurrencyINR } from "utils/format";
 import { useLocation } from "react-router-dom";
 import { Skeleton } from "components/ui/Skeleton";
+import { useAuth } from "auth/AuthContext";
+import { useReviewLoanRequest } from "hooks/loans/useLoanApprovals";
+import { useUIContext } from "context/UIContext";
 
 const LoanDetailsSkeleton = () => (
   <>
@@ -80,15 +83,17 @@ const getStatusColor = (status) => {
   const colors = {
     ACTIVE:
       "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+    PENDING_APPROVAL:
+      "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
     OVERDUE: "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
     CLOSED:
       "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
-    Pending:
-      "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+    REJECTED:
+      "bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400",
     FORECLOSED:
       "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
   };
-  return colors?.[status] || colors?.["Active"];
+  return colors?.[status] || colors?.ACTIVE;
 };
 
 const getRepaymentColor = (type) => {
@@ -113,6 +118,8 @@ const getRepaymentColor = (type) => {
 };
 
 const LoanDetails = () => {
+  const { user } = useAuth();
+  const { showToast } = useUIContext();
   const { loanId } = useParams();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("info");
@@ -120,6 +127,10 @@ const LoanDetails = () => {
   const [isForecloseModalOpen, setIsForecloseModalOpen] = useState(false);
   const location = useLocation();
   const { data, isLoading, isError, error } = useLoanDetails(loanId);
+  const reviewLoanMutation = useReviewLoanRequest();
+  const canReviewLoan =
+    (user?.role === "ADMIN" || user?.role === "BRANCH_MANAGER") &&
+    data?.status === "PENDING_APPROVAL";
   const parms = new URLSearchParams(location.search);
   useEffect(() => {
     if (!isLoading && parms.get("pay") === "true") {
@@ -161,7 +172,11 @@ const LoanDetails = () => {
     disbursedDate: data.start_date,
     maturityDate: data.last_due_date,
     totalPayable: Number(data.total_payable),
-    repaymentType: data.repayment_type,
+    requestedByName: data.requested_by_name,
+    requestedAt: data.requested_at,
+    rejectionReason: data.rejection_reason,
+    approvedByName: data.approved_by,
+    approvedAt: data.approved_at,
   };
 
   const tabs = [
@@ -213,6 +228,59 @@ const LoanDetails = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              {canReviewLoan && (
+                <>
+                  <Button
+                    variant="success"
+                    onClick={async () => {
+                      try {
+                        await reviewLoanMutation.mutateAsync({
+                          loanId,
+                          action: "APPROVE",
+                        });
+                        showToast?.("Loan request approved", "success");
+                        navigate(0);
+                      } catch (reviewError) {
+                        showToast?.(
+                          reviewError?.message || "Failed to approve request",
+                          "error",
+                        );
+                      }
+                    }}
+                  >
+                    <Icon name="CheckCheck" size={16} className="mr-2" />
+                    Approve Request
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={async () => {
+                      const rejectionReason =
+                        window.prompt(
+                          `Why are you rejecting ${loanData.id}?`,
+                          "Insufficient review details",
+                        ) || "";
+
+                      try {
+                        await reviewLoanMutation.mutateAsync({
+                          loanId,
+                          action: "REJECT",
+                          rejectionReason,
+                        });
+                        showToast?.("Loan request rejected", "success");
+                        navigate(0);
+                      } catch (reviewError) {
+                        showToast?.(
+                          reviewError?.message || "Failed to reject request",
+                          "error",
+                        );
+                      }
+                    }}
+                  >
+                    <Icon name="CircleX" size={16} className="mr-2" />
+                    Reject Request
+                  </Button>
+                </>
+              )}
               <Button
                 onClick={() => setIsPaymentModalOpen(true)}
                 disabled={loanData.status !== "ACTIVE"}
@@ -265,7 +333,44 @@ const LoanDetails = () => {
           </div>
 
           <div className="p-4 md:p-6 min-w-0">
-            {activeTab === "info" && <LoanInfoTab data={data} />}
+            {activeTab === "info" && (
+              <LoanInfoTab
+                data={data}
+                canReviewLoan={canReviewLoan}
+                isReviewing={reviewLoanMutation.isPending}
+                onApprove={async () => {
+                  try {
+                    await reviewLoanMutation.mutateAsync({
+                      loanId,
+                      action: "APPROVE",
+                    });
+                    showToast?.("Loan request approved", "success");
+                    navigate(0);
+                  } catch (reviewError) {
+                    showToast?.(
+                      reviewError?.message || "Failed to approve request",
+                      "error",
+                    );
+                  }
+                }}
+                onReject={async (rejectionReason) => {
+                  try {
+                    await reviewLoanMutation.mutateAsync({
+                      loanId,
+                      action: "REJECT",
+                      rejectionReason,
+                    });
+                    showToast?.("Loan request rejected", "success");
+                    navigate(0);
+                  } catch (reviewError) {
+                    showToast?.(
+                      reviewError?.message || "Failed to reject request",
+                      "error",
+                    );
+                  }
+                }}
+              />
+            )}
             {activeTab === "schedule" && <PaymentScheduleTab loanId={loanId} />}
             {activeTab === "transactions" && (
               <TransactionHistoryTab loanId={loanId} />

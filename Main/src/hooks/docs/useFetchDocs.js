@@ -38,3 +38,15 @@ export const useLoanDocuments = (loanId) => {
     enabled: !!loanId,
   });
 };
+
+export const useStaffDocuments = (staffId) => {
+  return useQuery({
+    queryKey: ["documents", "staff", staffId],
+    queryFn: async () => {
+      const res = await apiClient.get(`/api/documents/staff/${staffId}`);
+
+      return res.data.data;
+    },
+    enabled: !!staffId,
+  });
+};

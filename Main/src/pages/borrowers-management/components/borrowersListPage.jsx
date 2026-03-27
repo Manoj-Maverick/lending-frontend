@@ -65,7 +65,7 @@ const getBorrowerAvatar = (borrower) => {
 /* =========================
    COMPONENT
 ========================= */
-const BorrowersListPage = ({ branch, setBranch }) => {
+const BorrowersListPage = ({ branch, setBranch, canSelectBranch = true }) => {
   const navigate = useNavigate();
   const { branches } = useUIContext();
   const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
@@ -183,6 +183,8 @@ const BorrowersListPage = ({ branch, setBranch }) => {
   const getStatusColor = (status) => {
     const colors = {
       ACTIVE: "bg-blue-500/10 text-blue-600",
+      PENDING_APPROVAL: "bg-amber-500/10 text-amber-600",
+      REJECTED: "bg-rose-500/10 text-rose-600",
       "No Loans": "bg-gray-500/10 text-gray-600",
     };
     return colors[status] || colors["No Loans"];
@@ -222,11 +224,13 @@ const BorrowersListPage = ({ branch, setBranch }) => {
             />
           </div>
 
-          <Select
-            options={branchOptions}
-            value={filters.branch}
-            onChange={(v) => onFilterChange("branch", v)}
-          />
+          {canSelectBranch ? (
+            <Select
+              options={branchOptions}
+              value={filters.branch}
+              onChange={(v) => onFilterChange("branch", v)}
+            />
+          ) : null}
 
           <Select
             options={statusOptions}
@@ -299,14 +303,14 @@ const BorrowersListPage = ({ branch, setBranch }) => {
             </tr>
           </thead>
           <tbody>
-            {borrowers.map((borrower) => {
+            {borrowers.map((borrower, index) => {
               const displayName = borrower.name || borrower.client_name || "-";
               const displayStatus =
                 borrower.loan_status || borrower.loanStatus || "No Loans";
 
               return (
-                <tr
-                  key={borrower.id}
+                    <tr
+                      key={`${borrower.id}-${borrower.code || borrower.phone || index}`}
                   className="bg-background border border-border shadow-sm hover:shadow-md hover:bg-muted/20 transition-all"
                   onMouseEnter={() => onMouseEnter(borrower.id)}
                   onMouseLeave={onMouseLeave}
@@ -351,7 +355,13 @@ const BorrowersListPage = ({ branch, setBranch }) => {
                     >
                       <Icon
                         name={
-                          displayStatus === "ACTIVE" ? "CircleDot" : "Circle"
+                          displayStatus === "ACTIVE"
+                            ? "CircleDot"
+                            : displayStatus === "PENDING_APPROVAL"
+                              ? "Clock3"
+                              : displayStatus === "REJECTED"
+                                ? "CircleX"
+                                : "Circle"
                         }
                         size={12}
                       />

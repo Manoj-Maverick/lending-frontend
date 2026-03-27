@@ -3,7 +3,12 @@ import Select from "../../../components/ui/Select";
 import Input from "../../../components/ui/Input";
 import Icon from "../../../components/AppIcon";
 
-const LoanFilters = ({ filters, branches, onFilterChange }) => {
+const LoanFilters = ({
+  filters,
+  branches,
+  onFilterChange,
+  showBranchFilter = true,
+}) => {
   const handleChange = (field, value) => {
     onFilterChange({ ...filters, [field]: value });
   };
@@ -38,22 +43,25 @@ const LoanFilters = ({ filters, branches, onFilterChange }) => {
             { value: "ACTIVE", label: "Active" },
             { value: "OVERDUE", label: "Overdue" },
             { value: "CLOSED", label: "Closed" },
-            { value: "PENDING", label: "Pending Approval" },
+            { value: "PENDING_APPROVAL", label: "Pending Approval" },
+            { value: "REJECTED", label: "Rejected" },
           ]}
         />
 
-        <Select
-          label="Branch"
-          value={filters?.branch}
-          onChange={(value) => handleChange("branch", value)}
-          options={[
-            { value: "all", label: "All Branches" },
-            ...(branches || []).map((branch) => ({
-              value: branch?.id,
-              label: branch?.branch_name,
-            })),
-          ]}
-        />
+        {showBranchFilter ? (
+          <Select
+            label="Branch"
+            value={filters?.branch}
+            onChange={(value) => handleChange("branch", value)}
+            options={[
+              { value: "all", label: "All Branches" },
+              ...(branches || []).map((branch) => ({
+                value: branch?.id,
+                label: branch?.branch_name,
+              })),
+            ]}
+          />
+        ) : null}
 
         <Select
           label="Loan Type"

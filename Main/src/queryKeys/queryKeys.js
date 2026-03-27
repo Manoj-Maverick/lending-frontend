@@ -69,6 +69,7 @@ export const queryKeys = {
     lists: () => ["loans", "list"],
     list: (filters = {}) => ["loans", "list", filters],
     stats: (branchId) => ["loans", "stats", normalizeBranchId(branchId)],
+    pendingRequests: () => ["loans", "pending-requests"],
     detail: (loanId) => ["loans", "detail", loanId],
     schedule: (loanId) => ["loans", "schedule", loanId],
   },
@@ -96,5 +97,6 @@ export const queryKeys = {
     customer: (customerId) => ["documents", "customer", customerId],
     guarantor: (guarantorId) => ["documents", "guarantor", guarantorId],
     loan: (loanId) => ["documents", "loan", loanId],
+    staff: (staffId) => ["documents", "staff", staffId],
   },
 };

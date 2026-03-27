@@ -9,6 +9,8 @@ import Icon from "../../components/AppIcon";
 import Select from "components/ui/Select";
 import { useLoans, useLoanStats } from "hooks/loans/useLoans";
 import { useUIContext } from "context/UIContext";
+import { useAuth } from "auth/AuthContext";
+import { useReviewLoanRequest } from "hooks/loans/useLoanApprovals";
 import {
   PageHeaderSkeleton,
   Skeleton,
@@ -43,12 +45,17 @@ const LoansManagementSkeleton = () => (
 
 const LoansManagement = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isCreateLoanOpen, setIsCreateLoanOpen] = useState(false);
-  const { branches } = useUIContext();
+  const { branches, showToast } = useUIContext();
+  const isLoanRequester = user?.role === "STAFF";
+  const canReviewLoans =
+    user?.role === "ADMIN" || user?.role === "BRANCH_MANAGER";
+  const reviewLoanMutation = useReviewLoanRequest();
 
   const [filters, setFilters] = useState({
     status: "all",
-    branch: "all",
+    branch: user?.role === "ADMIN" ? "all" : String(user?.branchId || "all"),
     loanType: "all",
     searchQuery: "",
     collectionDay: "all",
@@ -153,9 +160,11 @@ const LoansManagement = () => {
     tenureUnit: l.tenure_unit,
     status: l.status,
     repaymentType: l.repayment_type,
+    requestedByName: l.requested_by_name,
+    approvedByName: l.approved_by_name,
+    rejectionReason: l.rejection_reason,
+    requestedAt: l.requested_at,
   }));
-  console.log("Mapped Loans:", loans);
-
   // 📊 Stats cards
   const loanStats = [
     {
@@ -204,10 +213,12 @@ const LoansManagement = () => {
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-foreground flex items-center gap-3">
               <Icon name="Wallet" size={32} className="text-primary" />
-              Loans Management
+              {isLoanRequester ? "Loan Requests" : "Loans Management"}
             </h1>
             <p className="text-sm md:text-base text-muted-foreground mt-1">
-              Manage loan applications, disbursements, and payment schedules
+              {isLoanRequester
+                ? "Prepare and submit branch loan requests for approval"
+                : "Manage loan applications, disbursements, and payment schedules"}
             </p>
           </div>
 
@@ -216,7 +227,7 @@ const LoansManagement = () => {
             className="w-full sm:w-auto"
           >
             <Icon name="Plus" size={16} />
-            Create New Loan
+            {isLoanRequester ? "Create Loan Request" : "Create New Loan"}
           </Button>
         </div>
 
@@ -237,6 +248,7 @@ const LoansManagement = () => {
             filters={filters}
             branches={branches}
             onFilterChange={handleFilterChange}
+            showBranchFilter={user?.role === "ADMIN"}
           />
 
           {isLoansLoading ? (
@@ -247,7 +259,47 @@ const LoansManagement = () => {
             />
           ) : (
             <>
-              <LoansTable loans={loans} onViewLoan={handleViewLoan} />
+              <LoansTable
+                loans={loans}
+                onViewLoan={handleViewLoan}
+                canReview={canReviewLoans}
+                isReviewing={reviewLoanMutation.isPending}
+                onApprove={async (loan) => {
+                  try {
+                    await reviewLoanMutation.mutateAsync({
+                      loanId: loan.loanId,
+                      action: "APPROVE",
+                    });
+                    showToast?.("Loan request approved", "success");
+                  } catch (error) {
+                    showToast?.(
+                      error?.message || "Failed to approve request",
+                      "error",
+                    );
+                  }
+                }}
+                onReject={async (loan) => {
+                  const rejectionReason =
+                    window.prompt(
+                      `Why are you rejecting ${loan.id}?`,
+                      "Insufficient review details",
+                    ) || "";
+
+                  try {
+                    await reviewLoanMutation.mutateAsync({
+                      loanId: loan.loanId,
+                      action: "REJECT",
+                      rejectionReason,
+                    });
+                    showToast?.("Loan request rejected", "success");
+                  } catch (error) {
+                    showToast?.(
+                      error?.message || "Failed to reject request",
+                      "error",
+                    );
+                  }
+                }}
+              />
 
               {/* 🧭 Pagination Footer */}
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

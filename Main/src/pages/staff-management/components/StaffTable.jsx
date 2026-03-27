@@ -40,8 +40,6 @@ const StaffTable = ({ staff, onSort, sortConfig, onEdit, onDelete }) => {
 
   const getRoleColor = (role) => {
     const colors = {
-      ADMIN:
-        "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
       STAFF:
         "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
       BRANCH_MANAGER:
@@ -53,7 +51,6 @@ const StaffTable = ({ staff, onSort, sortConfig, onEdit, onDelete }) => {
 
   const getRoleLabel = (role) => {
     const labels = {
-      ADMIN: "Admin",
       BRANCH_MANAGER: "Branch Manager",
       STAFF: "Staff",
     };

@@ -20,6 +20,8 @@ import {
   TableCardSkeleton,
 } from "components/ui/Skeleton";
 import { useUIContext } from "context/UIContext";
+import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
+import { useAuth } from "auth/AuthContext";
 
 const StaffManagementSkeleton = () => (
   <PageShell className="pb-4">
@@ -48,6 +50,7 @@ const StaffManagementSkeleton = () => (
 );
 
 const StaffManagement = () => {
+  const { user } = useAuth();
   const { showToast } = useUIContext();
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
   const [isEditStaffModalOpen, setIsEditStaffModalOpen] = useState(false);
@@ -60,7 +63,7 @@ const StaffManagement = () => {
   });
   const [filters, setFilters] = useState({
     search: "",
-    branch: "all",
+    branch: user?.role === "ADMIN" ? "all" : String(user?.branchId || "all"),
     role: "all",
   });
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
@@ -84,6 +87,15 @@ const StaffManagement = () => {
     itemsPerPage,
   ]);
 
+  useEffect(() => {
+    if (user?.role !== "ADMIN" && user?.branchId) {
+      setFilters((prev) => ({
+        ...prev,
+        branch: String(user.branchId),
+      }));
+    }
+  }, [user?.branchId, user?.role]);
+
   const { data, isLoading, isError, error } = useGetStaffList({
     search: debouncedSearch,
     branch: filters.branch,
@@ -99,6 +111,7 @@ const StaffManagement = () => {
   const createStaffMutation = useCreateStaff();
   const updateStaffMutation = useUpdateStaff();
   const deleteStaffMutation = useDeleteStaff();
+  const { uploadDocument } = useUploadWithProgress();
 
   const totalItems = pagination?.total ?? 0;
   const totalPages = pagination
@@ -110,7 +123,6 @@ const StaffManagement = () => {
   const managerCount = staff.filter(
     (member) => member?.role === "BRANCH_MANAGER",
   ).length;
-  const adminCount = staff.filter((member) => member?.role === "ADMIN").length;
   const hasActiveFilters =
     Boolean(filters.search) ||
     filters.branch !== "all" ||
@@ -213,7 +225,7 @@ const StaffManagement = () => {
           {
             label: "Branch Managers",
             value: managerCount,
-            hint: `${adminCount} admins in this view`,
+            hint: "Leadership accounts in the current result set",
             icon: "BriefcaseBusiness",
             tone: "bg-violet-500/10 text-violet-600",
           },
@@ -255,6 +267,7 @@ const StaffManagement = () => {
           onFilterChange={handleFilterChange}
           totalStaff={totalItems}
           filteredCount={staff.length}
+          showBranchFilter={user?.role === "ADMIN"}
         />
       </AnimatedSection>
 
@@ -287,7 +300,19 @@ const StaffManagement = () => {
         isSubmitting={createStaffMutation.isPending}
         onSubmit={async (payload) => {
           try {
-            await createStaffMutation.mutateAsync(payload);
+            const { staffDocuments = [], ...staffPayload } = payload;
+            const response = await createStaffMutation.mutateAsync(staffPayload);
+            const staffId = response?.data?.id;
+
+            for (const document of staffDocuments) {
+              await uploadDocument({
+                file: document.file,
+                category: "staff",
+                document_type: document.documentType,
+                entity_id: staffId,
+              });
+            }
+
             setIsAddStaffModalOpen(false);
             showToast?.("Staff member created successfully", "success");
           } catch (mutationError) {
@@ -308,7 +333,19 @@ const StaffManagement = () => {
         isSubmitting={updateStaffMutation.isPending}
         onSubmit={async (payload) => {
           try {
-            await updateStaffMutation.mutateAsync(payload);
+            const { staffDocuments = [], ...staffPayload } = payload;
+            const response = await updateStaffMutation.mutateAsync(staffPayload);
+            const staffId = response?.data?.id || payload.id;
+
+            for (const document of staffDocuments) {
+              await uploadDocument({
+                file: document.file,
+                category: "staff",
+                document_type: document.documentType,
+                entity_id: staffId,
+              });
+            }
+
             setIsEditStaffModalOpen(false);
             setSelectedStaff(null);
             showToast?.("Staff member updated successfully", "success");

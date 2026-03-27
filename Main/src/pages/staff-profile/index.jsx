@@ -5,6 +5,7 @@ import Button from "../../components/ui/Button";
 import PageShell from "components/ui/PageShell";
 import AnimatedSection from "components/ui/AnimatedSection";
 import EditStaffModal from "../staff-management/components/EditStaffModal";
+import DocumentSection from "../borrower-profile/components/DocumentSection";
 import { useUIContext } from "context/UIContext";
 import {
   useSaveStaffAttendance,
@@ -12,6 +13,8 @@ import {
   useStaffDetail,
   useUpdateStaff,
 } from "hooks/staff/useStaffList";
+import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
+import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
 
 const StaffProfile = () => {
   const navigate = useNavigate();
@@ -30,6 +33,8 @@ const StaffProfile = () => {
   );
   const updateStaffMutation = useUpdateStaff();
   const saveAttendanceMutation = useSaveStaffAttendance();
+  const deleteDocumentMutation = useDeleteDocument();
+  const { uploadDocument } = useUploadWithProgress();
 
   const staff = staffDetailResponse?.data;
   const attendance = attendanceResponse?.data || [];
@@ -42,7 +47,6 @@ const StaffProfile = () => {
     }),
     [attendance],
   );
-
   if (isLoading || !staff) {
     return (
       <PageShell className="pb-4">
@@ -262,12 +266,49 @@ const StaffProfile = () => {
         </div>
       </AnimatedSection>
 
+      <AnimatedSection className="mt-6" delay={220}>
+        <DocumentSection
+          category="staff"
+          borrowerId={Number(staffId)}
+          onUpload={({ file, document_type, onProgress, signal }) =>
+            uploadDocument({
+              file,
+              category: "staff",
+              document_type,
+              entity_id: Number(staffId),
+              onProgress,
+              signal,
+            })
+          }
+          onDelete={(docId) =>
+            deleteDocumentMutation.mutateAsync({
+              id: docId,
+              category: "staff",
+              entity_id: Number(staffId),
+            })
+          }
+          verifyPassword={async () => true}
+        />
+      </AnimatedSection>
+
       <EditStaffModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         onSubmit={async (payload) => {
           try {
-            await updateStaffMutation.mutateAsync(payload);
+            const { staffDocuments: newDocuments = [], ...staffPayload } = payload;
+            const response = await updateStaffMutation.mutateAsync(staffPayload);
+            const employeeId = response?.data?.id || payload.id;
+
+            for (const document of newDocuments) {
+              await uploadDocument({
+                file: document.file,
+                category: "staff",
+                document_type: document.documentType,
+                entity_id: employeeId,
+              });
+            }
+
             setIsEditModalOpen(false);
             showToast?.("Staff member updated successfully", "success");
           } catch (error) {

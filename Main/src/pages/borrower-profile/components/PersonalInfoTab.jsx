@@ -16,7 +16,6 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     isError,
     error,
   } = useBorrowerDetails(borrowerId);
-  console.log("bid", borrowerId);
   const hashString = (value = "") => {
     let hash = 0;
     for (let i = 0; i < value.length; i += 1) {
@@ -39,7 +38,6 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
   const { mutate: toggleBlock, isPending: isBlocking } = useToggleBlock();
   const { uploadDocument } = useUploadWithProgress();
   const isBlocked = borrower?.is_blocked;
-  console.log(isBlocked);
 
   const handleUpload = async ({ file, document_type, onProgress, signal }) => {
     return uploadDocument({
@@ -52,7 +50,6 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     });
   };
   const handleDelete = async (docId) => {
-    console.log(docId);
     await deleteDoc({
       id: docId,
       category: "customer",

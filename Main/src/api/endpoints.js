@@ -20,10 +20,12 @@ export const ENDPOINTS = {
   LOANS: {
     list: "/api/loans-management/loans-list",
     stats: "/api/loans-management/stats",
+    pendingRequests: "/api/loans-management/pending-requests",
     create: "/api/loans/create",
     detail: (loanId) => `/api/loans/${loanId}/details`,
     schedule: (loanId) => `/api/loans/${loanId}/schedule`,
     foreCloseLoan: (loanId) => `/api/loans/${loanId}/fore-close-loan`,
+    review: (loanId) => `/api/loans/${loanId}/review`,
   },
   PAYMENTS: {
     create: "/api/loans/record-payment",

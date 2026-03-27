@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 
 import BranchCard from "./components/BranchCard";
 import AddBranchModal from "./components/AddBranchModal";
@@ -13,6 +13,7 @@ import {
   PageHeaderSkeleton,
   Skeleton,
 } from "components/ui/Skeleton";
+import { useAuth } from "auth/AuthContext";
 
 const BranchesManagementSkeleton = () => (
   <>
@@ -50,6 +51,11 @@ const BranchesManagementSkeleton = () => (
 
 const BranchesManagement = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  if (user?.role === "BRANCH_MANAGER" && user?.branchId) {
+    return <Navigate to={`/branch-details/${user.branchId}`} replace />;
+  }
 
   // UI state
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -125,15 +131,17 @@ const BranchesManagement = () => {
           )}
         </div>
 
-        <Button
-          variant="default"
-          onClick={() => setIsAddModalOpen(true)}
-          iconName="Plus"
-          iconPosition="left"
-          className="w-full sm:w-auto"
-        >
-          Add Branch
-        </Button>
+        {user?.role === "ADMIN" && (
+          <Button
+            variant="default"
+            onClick={() => setIsAddModalOpen(true)}
+            iconName="Plus"
+            iconPosition="left"
+            className="w-full sm:w-auto"
+          >
+            Add Branch
+          </Button>
+        )}
       </div>
 
       {/* FILTERS */}
@@ -183,11 +191,13 @@ const BranchesManagement = () => {
       )}
 
       {/* ADD BRANCH MODAL */}
-      <AddBranchModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSubmit={handleAddBranch}
-      />
+      {user?.role === "ADMIN" && (
+        <AddBranchModal
+          isOpen={isAddModalOpen}
+          onClose={() => setIsAddModalOpen(false)}
+          onSubmit={handleAddBranch}
+        />
+      )}
     </>
   );
 };

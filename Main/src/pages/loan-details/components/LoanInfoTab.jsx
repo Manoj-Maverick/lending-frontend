@@ -2,9 +2,13 @@ import React from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 
-const LoanInfoTab = ({ data: loanData }) => {
-  console.log("LoanInfoTab received data:", loanData);
-
+const LoanInfoTab = ({
+  data: loanData,
+  canReviewLoan = false,
+  isReviewing = false,
+  onApprove,
+  onReject,
+}) => {
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("en-IN", {
@@ -34,10 +38,37 @@ const LoanInfoTab = ({ data: loanData }) => {
           <h3 className="text-lg font-semibold text-foreground">
             Loan Information
           </h3>
-          <Button variant="outline" size="sm">
-            <Icon name="Edit" size={16} className="mr-2" />
-            Edit Details
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {canReviewLoan && (
+              <>
+                <Button
+                  variant="success"
+                  size="sm"
+                  disabled={isReviewing}
+                  onClick={onApprove}
+                >
+                  <Icon name="CheckCheck" size={16} className="mr-2" />
+                  Approve
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={isReviewing}
+                  onClick={() => {
+                    const reason =
+                      window.prompt(
+                        `Why are you rejecting ${loanData.loan_code}?`,
+                        "Insufficient review details",
+                      ) || "";
+                    onReject?.(reason);
+                  }}
+                >
+                  <Icon name="CircleX" size={16} className="mr-2" />
+                  Reject
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -91,8 +122,15 @@ const LoanInfoTab = ({ data: loanData }) => {
       </Section>
 
       <Section title="Approval Information">
-        <Info label="Approved By" value={loanData.approved_by} />
+        <Info label="Requested By" value={loanData.requested_by_name || "-"} />
+        <Info label="Requested At" value={formatDate(loanData.requested_at)} />
+        <Info label="Approved By" value={loanData.approved_by || "-"} />
         <Info label="Approval Date" value={formatDate(loanData.approved_at)} />
+        <Info
+          label="Rejection Reason"
+          value={loanData.rejection_reason ?? "-"}
+          span
+        />
         <Info
           label="Closure Reason"
           value={loanData.closure_reason ?? "-"}

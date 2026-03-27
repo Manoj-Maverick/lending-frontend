@@ -141,36 +141,42 @@ const BranchHeader = ({ branchId, branch, onEdit, onStatusToggle }) => {
           </div>
         </div>
 
-        <div className="flex flex-row sm:flex-col gap-2 md:gap-3 lg:min-w-[160px]">
-          <Button
-            variant="outline"
-            iconName="Edit"
-            iconPosition="left"
-            onClick={onEdit}
-            className="flex-1 sm:flex-none"
-          >
-            Edit Details
-          </Button>
-          <Button
-            variant={
-              branch?.status?.toLowerCase() === "active"
-                ? "destructive"
-                : "success"
-            }
-            iconName={
-              branch?.status?.toLowerCase() === "active"
-                ? "XCircle"
-                : "CheckCircle"
-            }
-            iconPosition="left"
-            onClick={onStatusToggle}
-            className="flex-1 sm:flex-none"
-          >
-            {branch?.status?.toLowerCase() === "active"
-              ? "Deactivate"
-              : "Activate"}
-          </Button>
-        </div>
+        {(onEdit || onStatusToggle) && (
+          <div className="flex flex-row sm:flex-col gap-2 md:gap-3 lg:min-w-[160px]">
+            {onEdit && (
+              <Button
+                variant="outline"
+                iconName="Edit"
+                iconPosition="left"
+                onClick={onEdit}
+                className="flex-1 sm:flex-none"
+              >
+                Edit Details
+              </Button>
+            )}
+            {onStatusToggle && (
+              <Button
+                variant={
+                  branch?.status?.toLowerCase() === "active"
+                    ? "destructive"
+                    : "success"
+                }
+                iconName={
+                  branch?.status?.toLowerCase() === "active"
+                    ? "XCircle"
+                    : "CheckCircle"
+                }
+                iconPosition="left"
+                onClick={onStatusToggle}
+                className="flex-1 sm:flex-none"
+              >
+                {branch?.status?.toLowerCase() === "active"
+                  ? "Deactivate"
+                  : "Activate"}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

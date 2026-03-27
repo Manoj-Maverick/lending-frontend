@@ -11,9 +11,12 @@ const CollectionFilters = ({
   branch,
   onBranchChange,
   onReset,
+  showBranchFilter = true,
 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div
+      className={`grid grid-cols-1 gap-4 ${showBranchFilter ? "md:grid-cols-3" : "md:grid-cols-2"}`}
+    >
       <div>
         <div className="relative">
           <Icon
@@ -31,7 +34,9 @@ const CollectionFilters = ({
         </div>
       </div>
 
-      <Select value={branch} onChange={onBranchChange} options={branchOptions} />
+      {showBranchFilter && (
+        <Select value={branch} onChange={onBranchChange} options={branchOptions} />
+      )}
 
       <div>
         <Button variant="default" className="w-full" onClick={onReset}>

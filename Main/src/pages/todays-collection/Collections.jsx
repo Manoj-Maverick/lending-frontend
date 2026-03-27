@@ -6,6 +6,7 @@ import { cn } from "utils/cn";
 import Icon from "../../components/AppIcon";
 
 import { useUIContext } from "context/UIContext";
+import { useAuth } from "auth/AuthContext";
 
 import CollectionDateScope from "./components/CollectionDateScope";
 import CollectionFilters from "./components/CollectionFilters";
@@ -24,6 +25,7 @@ const todayStr = () => getIndianDate();
 
 const Collections = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { branches: branchesData } = useUIContext();
 
   const [mode, setMode] = useState("today");
@@ -31,7 +33,9 @@ const Collections = () => {
   const [customDate, setCustomDate] = useState(todayStr());
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
-  const [branch, setBranch] = useState("all");
+  const [branch, setBranch] = useState(
+    user?.role === "ADMIN" ? "all" : String(user?.branchId || "all"),
+  );
 
   const [openContact, setOpenContact] = useState(null);
   const [openContactsData, setOpenContactsData] = useState(null);
@@ -120,8 +124,6 @@ const Collections = () => {
 
   const { data: overdueRows = [], isLoading: loadingOverdue } =
     useOverdueCollections(params);
-  console.log(overdueRows);
-
   const { data: overdueData } = useOverdueCount({
     branch_id: params.branch_id,
   });
@@ -258,7 +260,7 @@ const Collections = () => {
 
   const handleReset = () => {
     setSearch("");
-    setBranch("all");
+    setBranch(user?.role === "ADMIN" ? "all" : String(user?.branchId || "all"));
     setActiveTab("all");
   };
 
@@ -275,6 +277,12 @@ const Collections = () => {
       setActiveTab("overdue");
     }
   }, [mode]);
+
+  useEffect(() => {
+    if (user?.role !== "ADMIN" && user?.branchId) {
+      setBranch(String(user.branchId));
+    }
+  }, [user?.branchId, user?.role]);
 
   // ────────────────────────────────────────────────
   // RENDER
@@ -387,6 +395,7 @@ const Collections = () => {
           branch={branch}
           onBranchChange={setBranch}
           onReset={handleReset}
+          showBranchFilter={user?.role === "ADMIN"}
         />
       </div>
 

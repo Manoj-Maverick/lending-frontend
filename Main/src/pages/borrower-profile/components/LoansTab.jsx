@@ -7,8 +7,11 @@ import CreateLoanModal from "pages/loans-management/components/CreateLoanModal";
 import { StatCardSkeleton, TableCardSkeleton } from "components/ui/Skeleton";
 import { queryConfig } from "query/queryConfig";
 import { usePrefetchOnHover } from "query/usePrefetchOnHover";
+import { useAuth } from "auth/AuthContext";
 const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isLoanRequester = user?.role === "STAFF";
   const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
     (loanId) => queryConfig.loans.details(loanId),
     140,
@@ -39,7 +42,6 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
 
   // API returns: { loans, stats }
   const rawLoans = data?.loans || [];
-  console.log(rawLoans);
   const stats = data?.stats || {
     totalLoans: 0,
     activeLoans: 0,
@@ -63,6 +65,7 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
   const getStatusColor = (status) => {
     const colors = {
       ACTIVE: "bg-success/10 text-success",
+      PENDING_APPROVAL: "bg-amber-500/10 text-amber-600",
       CLOSED: "bg-primary/10 text-primary",
       DELAYED: "bg-warning/10 text-warning",
       FORECLOSED: "bg-destructive/10 text-destructive",
@@ -73,6 +76,7 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
   const getStatusIcon = (status) => {
     const icons = {
       ACTIVE: "CheckCircle",
+      PENDING_APPROVAL: "Clock3",
       CLOSED: "Lock",
       DELAYED: "AlertCircle",
       FORECLOSED: "XCircle",
@@ -89,7 +93,9 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
               Loan Accounts
             </h3>
             <p className="text-sm md:text-base text-muted-foreground mt-1">
-              View and manage borrower loan accounts
+              {isLoanRequester
+                ? "Submit loan requests for manager or admin approval"
+                : "View and manage borrower loan accounts"}
             </p>
           </div>
           <Button
@@ -103,7 +109,7 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
             }}
             className="w-full sm:w-auto"
           >
-            Create New Loan
+            {isLoanRequester ? "Request Loan Approval" : "Create New Loan"}
           </Button>
         </div>
 
@@ -184,7 +190,9 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
               No Loans Found
             </h4>
             <p className="text-sm md:text-base text-muted-foreground mb-6">
-              Create a new loan account to get started
+              {isLoanRequester
+                ? "Submit the first loan request for approval"
+                : "Create a new loan account to get started"}
             </p>
             <Button
               variant="outline"
@@ -201,7 +209,7 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
                 }
               }}
             >
-              Create First Loan
+              {isLoanRequester ? "Request First Loan" : "Create First Loan"}
             </Button>
           </div>
         ) : (

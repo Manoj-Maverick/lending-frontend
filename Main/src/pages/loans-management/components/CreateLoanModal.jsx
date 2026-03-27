@@ -23,6 +23,7 @@ function getLabelForRePayementFrequency(frequency) {
 }
 const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
   const { user } = useAuth();
+  const isLoanRequester = user?.role === "STAFF";
   const { branches = [] } = useUIContext();
   const isBorrowerSelectionMode = !borrowerId;
   const defaultBranchId =
@@ -88,11 +89,11 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
     grace_days: "3",
 
     // 21–22 Status
-    status: "ACTIVE",
+    status: isLoanRequester ? "PENDING_APPROVAL" : "ACTIVE",
 
     // 23–25 Approval & Audit
-    approved_by: user.id,
-    approved_at: today,
+    approved_by: isLoanRequester ? null : user.id,
+    approved_at: isLoanRequester ? null : today,
 
     // 26 Extra
     week_day: "",
@@ -455,8 +456,6 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
       {
         onSuccess: (data) => {
           const newLoanCode = data;
-          console.log("Generated loan code response:", data);
-
           const fd = new FormData();
 
           // ─────────────────────────────
@@ -508,9 +507,9 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
             },
 
             status: {
-              status: "ACTIVE",
-              approved_by: formData.approved_by,
-              approved_at: new Date().toISOString(),
+              status: isLoanRequester ? "PENDING_APPROVAL" : "ACTIVE",
+              approved_by: isLoanRequester ? null : formData.approved_by,
+              approved_at: isLoanRequester ? null : new Date().toISOString(),
             },
           };
 
@@ -594,18 +593,21 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
           // ─────────────────────────────
 
           createLoan(fd, {
-            onSuccess: (data) => {
-              showToast("Loan created successfully!", "success");
-              console.log("Loan created:", data);
+            onSuccess: () => {
+              showToast(
+                isLoanRequester
+                  ? "Loan request submitted for approval!"
+                  : "Loan created successfully!",
+                "success",
+              );
 
               setTimeout(() => {
                 onClose();
               }, 800);
             },
 
-            onError: (error) => {
+            onError: () => {
               showToast("Error creating loan", "error");
-              console.error(error);
             },
           });
         },
@@ -628,7 +630,7 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-gray-700">
           <div>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-              Create New Loan
+              {isLoanRequester ? "Create Loan Request" : "Create New Loan"}
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
               Step {currentStep} of {steps.length}
@@ -695,14 +697,25 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
 
               {isBorrowerSelectionMode && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Select
-                    label="Selected Branch"
-                    value={selectedBranchId}
-                    onChange={handleBranchSelect}
-                    options={branchOptions}
-                    placeholder="Select branch"
-                    disabled={user?.role !== "ADMIN" && !!user?.branchId}
-                  />
+                  {user?.role === "ADMIN" ? (
+                    <Select
+                      label="Selected Branch"
+                      value={selectedBranchId}
+                      onChange={handleBranchSelect}
+                      options={branchOptions}
+                      placeholder="Select branch"
+                    />
+                  ) : (
+                    <Input
+                      label="Selected Branch"
+                      value={
+                        branchOptions.find((branch) => branch.value === selectedBranchId)?.label ||
+                        ""
+                      }
+                      disabled
+                      readOnly
+                    />
+                  )}
                   <Select
                     label="Select Customer"
                     value={selectedBorrowerId}
@@ -1307,7 +1320,13 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
               disabled={isPending}
               className="w-full sm:w-auto"
             >
-              {isPending ? "Creating Loan..." : "Create Loan"}
+              {isPending
+                ? isLoanRequester
+                  ? "Submitting Request..."
+                  : "Creating Loan..."
+                : isLoanRequester
+                  ? "Submit Loan Request"
+                  : "Create Loan"}
             </Button>
           )}
         </div>

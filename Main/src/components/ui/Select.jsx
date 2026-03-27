@@ -5,6 +5,11 @@ import { cn } from "../../utils/cn";
 import Button from "./Button";
 import Input from "./Input";
 
+const getOptionKey = (option, index) => {
+  if (option?.id != null) return `opt-${option.id}`;
+  return `opt-${String(option?.value ?? "empty")}-${index}`;
+};
+
 const Select = React.forwardRef(
   (
     {
@@ -105,7 +110,7 @@ const Select = React.forwardRef(
       : value !== undefined && value !== "";
 
     return (
-      <div className={cn("relative", className)}>
+      <div className={cn("relative", isOpen && "z-[90]", className)}>
         {label && (
           <label
             htmlFor={selectId}
@@ -196,8 +201,11 @@ const Select = React.forwardRef(
             required={required}
           >
             <option value="">Select...</option>
-            {options?.map((option) => (
-              <option key={option?.value} value={option?.value}>
+            {options?.map((option, index) => (
+              <option
+                key={getOptionKey(option, index)}
+                value={option?.value}
+              >
                 {option?.label}
               </option>
             ))}
@@ -207,7 +215,7 @@ const Select = React.forwardRef(
           {isOpen && (
             <div
               className={cn(
-                "absolute z-50 w-full bg-popover text-popover-foreground border border-border rounded-md shadow-md",
+                "absolute z-[80] w-full bg-popover text-popover-foreground border border-border rounded-md shadow-md",
                 dropdownPlacement === "bottom"
                   ? "mt-1 top-full"
                   : "mb-1 bottom-full",
@@ -233,9 +241,9 @@ const Select = React.forwardRef(
                     {searchTerm ? "No options found" : "No options available"}
                   </div>
                 ) : (
-                  filteredOptions?.map((option) => (
+                  filteredOptions?.map((option, index) => (
                     <div
-                      key={option?.value}
+                      key={getOptionKey(option, index)}
                       className={cn(
                         `relative flex cursor-pointer select-none items-center 
                          rounded-sm px-3 py-2 text-sm 

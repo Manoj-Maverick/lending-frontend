@@ -9,10 +9,12 @@ import { useCreateBorrower } from "hooks/borrowers/useCreateBorrower";
 import { useToast } from "context/ToastContext";
 import { useUIContext } from "context/UIContext";
 import { useGenerateCustomerCode } from "hooks/generators/useGenerateCustomerCode";
+import { useAuth } from "auth/AuthContext";
 
 import pincodeLookup from "../../../DataSet/tamil_nadu_pincode_lookup.json";
 
 const AddBorrowerModal = ({ isOpen, onClose }) => {
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [addGuarantorNow, setAddGuarantorNow] = useState(false);
   const { mutate: createBorrower, isPending, error } = useCreateBorrower();
@@ -109,6 +111,17 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
     ...branches.map((b) => ({ value: b.id, label: b.branch_name })),
   ];
 
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (user?.role !== "ADMIN" && user?.branchId) {
+      setFormData((prev) => ({
+        ...prev,
+        branch: prev.branch || user.branchId,
+      }));
+    }
+  }, [isOpen, user?.branchId, user?.role]);
+
   const relationOptions = [
     { value: "father", label: "Father" },
     { value: "mother", label: "Mother" },
@@ -121,7 +134,6 @@ const AddBorrowerModal = ({ isOpen, onClose }) => {
   // Existing customer code preview logic (unchanged)
   useEffect(() => {
     if (!formData.branch) return;
-    console.log(branches);
 
     const selectedBranch = branches.find((b) => b.id === formData.branch);
 
@@ -427,8 +439,6 @@ STEP 5 — DOCUMENTS + BRANCH
       showToast("Invalid branch selected", "error");
       return;
     }
-
-    console.log(selectedBranch, selectedBranch.branch_Code);
 
     // Generate REAL customer code
     generateCustomerCode(
@@ -1073,14 +1083,27 @@ STEP 5 — DOCUMENTS + BRANCH
                   onChange={(file) => handleInputChange("incomeProof", file)}
                 />
               </div>
-              <Select
-                label="Assign to Branch"
-                options={branchOptions}
-                value={formData.branch}
-                onChange={(v) => handleInputChange("branch", v)}
-                required
-                error={errors.branch}
-              />
+              {user?.role === "ADMIN" ? (
+                <Select
+                  label="Assign to Branch"
+                  options={branchOptions}
+                  value={formData.branch}
+                  onChange={(v) => handleInputChange("branch", v)}
+                  required
+                  error={errors.branch}
+                />
+              ) : (
+                <Input
+                  label="Assigned Branch"
+                  value={
+                    branchOptions.find((branch) => branch.value === formData.branch)?.label ||
+                    branchOptions.find((branch) => String(branch.value) === String(formData.branch))?.label ||
+                    ""
+                  }
+                  disabled
+                  readOnly
+                />
+              )}
               <Input
                 label="Customer Code"
                 value={formData.customerCode}

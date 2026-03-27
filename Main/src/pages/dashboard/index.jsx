@@ -68,11 +68,14 @@ const Dashboard = () => {
         <Icon name="LayoutDashboard" size={30} className="text-primary" />
         {user?.role === "ADMIN"
           ? "Admin Dashboard Overview"
-          : "Branch Overview"}
+          : user?.role === "STAFF"
+            ? "Staff Workspace"
+            : "Branch Overview"}
       </h1>
       <p className="text-sm text-muted-foreground md:text-base">
-        Welcome back! Here&apos;s what&apos;s happening with your lending
-        operations today.
+        {user?.role === "STAFF"
+          ? "Focus on customers, branch work, and loan requests that need approval."
+          : "Welcome back! Here&apos;s what&apos;s happening with your lending operations today."}
       </p>
 
       <div className="motion-stagger mb-6 mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:mb-8 lg:grid-cols-3 lg:gap-5">
@@ -145,9 +148,11 @@ const Dashboard = () => {
         <MonthlyCollectionChart />
       </AnimatedSection>
 
-      <AnimatedSection className="mb-6 md:mb-8" delay={220}>
-        <BranchComparisonChart />
-      </AnimatedSection>
+      {user?.role !== "STAFF" && (
+        <AnimatedSection className="mb-6 md:mb-8" delay={220}>
+          <BranchComparisonChart />
+        </AnimatedSection>
+      )}
     </PageShell>
   );
 };

@@ -4,7 +4,14 @@ import Button from "../../../components/ui/Button";
 import { queryConfig } from "query/queryConfig";
 import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 
-const LoansTable = ({ loans, onViewLoan }) => {
+const LoansTable = ({
+  loans,
+  onViewLoan,
+  onApprove,
+  onReject,
+  canReview = false,
+  isReviewing = false,
+}) => {
   const [expandedRow, setExpandedRow] = useState(null);
   const { onMouseEnter, onMouseLeave } = usePrefetchOnHover(
     (loanId) => queryConfig.loans.details(loanId),
@@ -15,16 +22,18 @@ const LoansTable = ({ loans, onViewLoan }) => {
     const colors = {
       ACTIVE:
         "bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+      PENDING_APPROVAL:
+        "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
       OVERDUE:
         "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
       CLOSED:
         "bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
-      Pending:
-        "bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+      REJECTED:
+        "bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400",
       FORECLOSED:
         "bg-red-500/10 text-red-600 dark:bg-red-500/20 dark:text-red-400",
     };
-    return colors?.[status] || colors?.["Active"];
+    return colors?.[status] || colors?.ACTIVE;
   };
 
   const toggleRow = (id) => {
@@ -124,18 +133,40 @@ const LoansTable = ({ loans, onViewLoan }) => {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onMouseEnter={() => onMouseEnter(loan?.loanId)}
-                    onMouseLeave={onMouseLeave}
-                    onFocus={() => onMouseEnter(loan?.loanId)}
-                    onBlur={onMouseLeave}
-                    onClick={() => onViewLoan(loan)}
-                  >
-                    <Icon name="Eye" size={14} />
-                    View Details
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onMouseEnter={() => onMouseEnter(loan?.loanId)}
+                      onMouseLeave={onMouseLeave}
+                      onFocus={() => onMouseEnter(loan?.loanId)}
+                      onBlur={onMouseLeave}
+                      onClick={() => onViewLoan(loan)}
+                    >
+                      <Icon name="Eye" size={14} />
+                      View Details
+                    </Button>
+                    {canReview && loan?.status === "PENDING_APPROVAL" && (
+                      <>
+                        <Button
+                          variant="success"
+                          size="sm"
+                          disabled={isReviewing}
+                          onClick={() => onApprove?.(loan)}
+                        >
+                          Approve
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          disabled={isReviewing}
+                          onClick={() => onReject?.(loan)}
+                        >
+                          Reject
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -255,6 +286,26 @@ const LoansTable = ({ loans, onViewLoan }) => {
                   <Icon name="Eye" size={14} />
                   View Full Details
                 </Button>
+                {canReview && loan?.status === "PENDING_APPROVAL" && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="success"
+                      size="sm"
+                      disabled={isReviewing}
+                      onClick={() => onApprove?.(loan)}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={isReviewing}
+                      onClick={() => onReject?.(loan)}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>

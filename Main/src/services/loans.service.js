@@ -24,6 +24,11 @@ export async function getLoanStats(branch) {
   return data?.data ?? data;
 }
 
+export async function getPendingLoanRequests() {
+  const { data } = await api.get(ENDPOINTS.LOANS.pendingRequests);
+  return data;
+}
+
 export async function createLoan(formData) {
   const { data } = await api.post(ENDPOINTS.LOANS.create, formData, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -52,5 +57,26 @@ export async function foreCloseLoan(payload) {
     },
   );
 
+  return data;
+}
+
+export async function reviewLoanRequest({ loanId, action, rejectionReason }) {
+  const { data } = await api.post(ENDPOINTS.LOANS.review(loanId), {
+    action,
+    rejectionReason,
+  });
+
+  return data;
+}
+
+export async function generateLoanAgreement(loanId) {
+  const { data } = await api.post(`/api/documents/generate/loan/${loanId}`);
+  return data;
+}
+
+export async function generateLoanStatement(loanId) {
+  const { data } = await api.post(
+    `/api/documents/generate/loan/${loanId}/statement`,
+  );
   return data;
 }

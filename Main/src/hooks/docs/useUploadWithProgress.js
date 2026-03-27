@@ -58,6 +58,12 @@ export const useUploadWithProgress = () => {
           queryKey: queryKeys.documents.loan(loan_id),
         });
       }
+
+      if (category === "staff") {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.documents.staff(entity_id),
+        });
+      }
     },
     [queryClient],
   );

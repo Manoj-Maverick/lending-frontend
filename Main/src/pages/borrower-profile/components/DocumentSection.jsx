@@ -7,6 +7,7 @@ import {
   useCustomerDocuments,
   useGuarantorDocuments,
   useLoanDocuments,
+  useStaffDocuments,
 } from "hooks/docs/useFetchDocs.js";
 import { useUIContext } from "context/UIContext";
 import { useToast } from "context/ToastContext";
@@ -53,13 +54,18 @@ const DocumentSection = ({
   const { data: loanDocuments = [], refetch: refetchLoan } = useLoanDocuments(
     category === "loan" && loanId ? loanId : null,
   );
+  const { data: staffDocs = [], refetch: refetchStaff } = useStaffDocuments(
+    category === "staff" && borrowerId ? borrowerId : null,
+  );
 
   const currentDocs =
     category === "customer"
       ? borrowerDocuments
       : category === "loan"
         ? loanDocuments
-        : guarantorDocs;
+        : category === "staff"
+          ? staffDocs
+          : guarantorDocs;
 
   // ── Document Types & Helpers ───────────────────────────────────────
   const customerDocTypes = [
@@ -85,6 +91,14 @@ const DocumentSection = ({
     { value: "Disbursement Letter", label: "Disbursement Letter" },
     { value: "Other Loan Document", label: "Other Loan Document" },
   ];
+  const staffDocTypes = [
+    { value: "PHOTO", label: "Staff Photo" },
+    { value: "AADHAAR", label: "Aadhaar Document" },
+    { value: "PAN", label: "PAN Document" },
+    { value: "ADDRESS_PROOF", label: "Address Proof" },
+    { value: "BANK_PROOF", label: "Bank Proof / Passbook" },
+    { value: "EDUCATION_PROOF", label: "Education Proof" },
+  ];
 
   const getDocTypes = () =>
     category === "customer"
@@ -93,7 +107,9 @@ const DocumentSection = ({
         ? guarantorDocTypes
         : category === "loan"
           ? loanDocTypes
-          : [];
+          : category === "staff"
+            ? staffDocTypes
+            : [];
 
   const getMissingTypes = () => {
     const uploaded = new Set(
@@ -280,6 +296,7 @@ const DocumentSection = ({
     if (category === "customer") refetchCustomer();
     if (category === "guarantor") refetchGuarantor();
     if (category === "loan") refetchLoan();
+    if (category === "staff") refetchStaff();
 
     // Show summary toast
     if (errorCount === 0 && successCount > 0) {
@@ -440,6 +457,7 @@ const DocumentSection = ({
       if (category === "customer") refetchCustomer();
       if (category === "guarantor") refetchGuarantor();
       if (category === "loan") refetchLoan();
+      if (category === "staff") refetchStaff();
     } catch (err) {
       const errorMsg = err.message || "Deletion failed";
       setPasswordError(errorMsg);
@@ -455,14 +473,18 @@ const DocumentSection = ({
       ? "Customer Documents"
       : category === "guarantor"
         ? "Guarantor Documents"
-        : "Loan Documents";
+        : category === "staff"
+          ? "Staff Documents"
+          : "Loan Documents";
 
   const sectionIcon =
     category === "customer"
       ? "User"
       : category === "guarantor"
         ? "Users"
-        : "FileText";
+        : category === "staff"
+          ? "FolderOpen"
+          : "FileText";
 
   return (
     <div className="space-y-6 pb-12">

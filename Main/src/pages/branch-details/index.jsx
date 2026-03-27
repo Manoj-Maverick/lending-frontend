@@ -244,8 +244,8 @@ const BranchDetails = () => {
       <BranchHeader
         branchId={branchId}
         branch={branchData}
-        onEdit={handleEditBranch}
-        onStatusToggle={handleStatusToggle}
+        onEdit={user?.role === "ADMIN" ? handleEditBranch : undefined}
+        onStatusToggle={user?.role === "ADMIN" ? handleStatusToggle : undefined}
       />
       <PerformanceMetrics branchId={branchId} metrics={performanceMetrics} />
       <DailyCollectionsWeekly branchId={branchId} />
@@ -280,4 +280,3 @@ const BranchDetails = () => {
 };
 
 export default BranchDetails;
-

@@ -60,7 +60,11 @@ const Routes = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route
               path="/branches-management"
-              element={<BranchesManagement />}
+              element={
+                <ProtectedRoute roles={["ADMIN"]}>
+                  <BranchesManagement />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/branch-details/:branchId"
@@ -76,22 +80,61 @@ const Routes = () => {
             />
             <Route path="/loans-management" element={<LoansManagement />} />
             <Route path="/loan-details/:loanId" element={<LoanDetails />} />
-            <Route path="/staff-management" element={<StaffManagement />} />
-            <Route path="/staff-attendance" element={<StaffAttendance />} />
-            <Route path="/todays-collection" element={<TodaysCollection />} />
-            <Route path="/staff-profile/:staffId" element={<StaffProfile />} />
+            <Route
+              path="/staff-management"
+              element={
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
+                  <StaffManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff-attendance"
+              element={
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
+                  <StaffAttendance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/todays-collection"
+              element={
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
+                  <TodaysCollection />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff-profile/:staffId"
+              element={
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
+                  <StaffProfile />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/settings"
               element={
-                <ProtectedRoute roles={["ADMIN"]}>
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
                   <Settings />
                 </ProtectedRoute>
               }
             />
-            <Route path="/reports" element={<Reports />} />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
+                  <Reports />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/payments-management"
-              element={<PaymentsManagement />}
+              element={
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
+                  <PaymentsManagement />
+                </ProtectedRoute>
+              }
             />
           </Route>
 
