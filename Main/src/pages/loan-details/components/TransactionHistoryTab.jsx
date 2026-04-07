@@ -2,7 +2,20 @@ import React from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
 
-const TransactionHistoryTab = ({ loanId }) => {
+const TransactionHistoryTab = ({ loanStatus }) => {
+  const isApprovedLoan = !["PENDING_APPROVAL", "REJECTED", "CANCELLED"].includes(
+    loanStatus,
+  );
+
+  if (!isApprovedLoan) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-muted/20 p-6 text-sm text-muted-foreground">
+        Transaction history will appear only after the loan is approved and
+        payment activity begins.
+      </div>
+    );
+  }
+
   const mockTransactions = [
     {
       id: "TXN-001",

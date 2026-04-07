@@ -1,6 +1,6 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import Button from "../../../components/ui/Button";
 
 const PersonalInfoTab = ({ staff, onEdit }) => {
@@ -11,9 +11,9 @@ const PersonalInfoTab = ({ staff, onEdit }) => {
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <div className="flex justify-center lg:justify-start">
             <div className="relative">
-              <Image
-                src={staff?.photo}
-                alt={staff?.photoAlt}
+              <PersonAvatar
+                person={staff}
+                alt={staff?.name}
                 className="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-lg object-cover"
               />
               <div className="absolute bottom-2 right-2 flex items-center gap-2 px-2 py-1 rounded-full bg-card border border-border">

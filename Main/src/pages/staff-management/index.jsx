@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
 import StaffFilters from "./components/StaffFilters";
@@ -6,6 +7,10 @@ import StaffTable from "./components/StaffTable";
 import AddStaffModal from "./components/AddStaffModal";
 import EditStaffModal from "./components/EditStaffModal";
 import Pagination from "./components/Pagination";
+import StaffSectionTabs from "./components/StaffSectionTabs";
+import StaffAttendancePanel from "./components/StaffAttendancePanel";
+import StaffSalaryPanel from "./components/StaffSalaryPanel";
+import StaffScopeFilters from "./components/StaffScopeFilters";
 import PageShell from "components/ui/PageShell";
 import AnimatedSection from "components/ui/AnimatedSection";
 import {
@@ -50,8 +55,9 @@ const StaffManagementSkeleton = () => (
 );
 
 const StaffManagement = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { showToast } = useUIContext();
+  const { showToast, selectedBranch } = useUIContext();
   const [isAddStaffModalOpen, setIsAddStaffModalOpen] = useState(false);
   const [isEditStaffModalOpen, setIsEditStaffModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState(null);
@@ -63,10 +69,16 @@ const StaffManagement = () => {
   });
   const [filters, setFilters] = useState({
     search: "",
-    branch: user?.role === "ADMIN" ? "all" : String(user?.branchId || "all"),
+    branch:
+      user?.role === "ADMIN"
+        ? String(selectedBranch?.id && selectedBranch.id !== "all"
+            ? selectedBranch.id
+            : "all")
+        : String(user?.branchId || "all"),
     role: "all",
   });
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search);
+  const activeTab = searchParams.get("tab") || "directory";
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -95,6 +107,19 @@ const StaffManagement = () => {
       }));
     }
   }, [user?.branchId, user?.role]);
+
+  useEffect(() => {
+    if (user?.role === "ADMIN") {
+      setFilters((prev) => ({
+        ...prev,
+        branch: String(
+          selectedBranch?.id && selectedBranch.id !== "all"
+            ? selectedBranch.id
+            : "all",
+        ),
+      }));
+    }
+  }, [selectedBranch?.id, user?.role]);
 
   const { data, isLoading, isError, error } = useGetStaffList({
     search: debouncedSearch,
@@ -175,124 +200,187 @@ const StaffManagement = () => {
     return <StaffManagementSkeleton />;
   }
 
+  const headerCopy = {
+    directory: {
+      badge: "Team Operations",
+      title: "Staff Management",
+      description:
+        "Track branch teams, filter by role, and manage employee access from one place.",
+    },
+    attendance: {
+      badge: "Attendance Workspace",
+      title: "Staff Attendance",
+      description:
+        "Mark daily attendance and review monthly records without leaving the staff section.",
+    },
+    salary: {
+      badge: "Payroll Reference",
+      title: "Staff Salary",
+      description:
+        "Review salary data and payroll visibility inside the staff workspace.",
+    },
+  };
+
+  const currentHeader = headerCopy[activeTab] || headerCopy.directory;
+
   return (
     <PageShell className="pb-4">
       <div className="mb-6 flex flex-col gap-4 lg:mb-8 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
             <Icon name="ShieldCheck" size={14} />
-            Team Operations
+            {currentHeader.badge}
           </div>
           <h1 className="flex items-center gap-3 text-3xl font-semibold text-foreground md:text-4xl">
             <Icon name="Users" size={32} className="text-primary" />
-            Staff Management
+            {currentHeader.title}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground md:text-base">
-            Track branch teams, filter by role, and manage employee access from
-            one place.
+            {currentHeader.description}
           </p>
         </div>
-        <Button
-          variant="default"
-          iconName="UserPlus"
-          iconPosition="left"
-          onClick={() => setIsAddStaffModalOpen(true)}
-          className="w-full sm:w-auto"
-        >
-          Add Staff Member
-        </Button>
+        {activeTab === "directory" ? (
+          <Button
+            variant="default"
+            iconName="UserPlus"
+            iconPosition="left"
+            onClick={() => setIsAddStaffModalOpen(true)}
+            className="w-full sm:w-auto"
+          >
+            Add Staff Member
+          </Button>
+        ) : null}
       </div>
 
-      <AnimatedSection
-        className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
-        delay={80}
-      >
-        {[
-          {
-            label: "Visible Staff",
-            value: staff.length,
-            hint: hasActiveFilters ? `Filtered from ${totalItems}` : "Current page results",
-            icon: "Users",
-            tone: "bg-primary/10 text-primary",
-          },
-          {
-            label: "Active Members",
-            value: activeCount,
-            hint: "Currently enabled accounts",
-            icon: "UserCheck",
-            tone: "bg-emerald-500/10 text-emerald-600",
-          },
-          {
-            label: "Branch Managers",
-            value: managerCount,
-            hint: "Leadership accounts in the current result set",
-            icon: "BriefcaseBusiness",
-            tone: "bg-violet-500/10 text-violet-600",
-          },
-          {
-            label: "Inactive Members",
-            value: inactiveCount,
-            hint: "Needs review or reactivation",
-            icon: "UserX",
-            tone: "bg-amber-500/10 text-amber-600",
-          },
-        ].map((item) => (
-          <div
-            key={item.label}
-            className="rounded-2xl border border-border bg-card p-5 shadow-sm"
+      <StaffSectionTabs
+        activeTab={activeTab}
+        onTabChange={(tab) => setSearchParams({ tab })}
+      />
+
+      {activeTab === "directory" ? (
+        <>
+          <AnimatedSection
+            className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4"
+            delay={80}
           >
-            <div className="mb-4 flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  {item.label}
-                </p>
-                <p className="mt-2 text-3xl font-semibold text-foreground">
-                  {item.value}
-                </p>
-              </div>
+            {[
+              {
+                label: "Visible Staff",
+                value: staff.length,
+                hint: hasActiveFilters ? `Filtered from ${totalItems}` : "Current page results",
+                icon: "Users",
+                tone: "bg-primary/10 text-primary",
+              },
+              {
+                label: "Active Members",
+                value: activeCount,
+                hint: "Currently enabled accounts",
+                icon: "UserCheck",
+                tone: "bg-emerald-500/10 text-emerald-600",
+              },
+              {
+                label: "Branch Managers",
+                value: managerCount,
+                hint: "Leadership accounts in the current result set",
+                icon: "BriefcaseBusiness",
+                tone: "bg-violet-500/10 text-violet-600",
+              },
+              {
+                label: "Inactive Members",
+                value: inactiveCount,
+                hint: "Needs review or reactivation",
+                icon: "UserX",
+                tone: "bg-amber-500/10 text-amber-600",
+              },
+            ].map((item) => (
               <div
-                className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.tone}`}
+                key={item.label}
+                className="rounded-2xl border border-border bg-card p-5 shadow-sm"
               >
-                <Icon name={item.icon} size={20} />
+                <div className="mb-4 flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {item.label}
+                    </p>
+                    <p className="mt-2 text-3xl font-semibold text-foreground">
+                      {item.value}
+                    </p>
+                  </div>
+                  <div
+                    className={`flex h-11 w-11 items-center justify-center rounded-2xl ${item.tone}`}
+                  >
+                    <Icon name={item.icon} size={20} />
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">{item.hint}</p>
               </div>
-            </div>
-            <p className="text-sm text-muted-foreground">{item.hint}</p>
-          </div>
-        ))}
-      </AnimatedSection>
+            ))}
+          </AnimatedSection>
 
-      <AnimatedSection delay={120}>
-        <StaffFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          totalStaff={totalItems}
-          filteredCount={staff.length}
-          showBranchFilter={user?.role === "ADMIN"}
-        />
-      </AnimatedSection>
+          <AnimatedSection delay={120}>
+            <StaffFilters
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              totalStaff={totalItems}
+              filteredCount={staff.length}
+              showBranchFilter={user?.role === "ADMIN"}
+            />
+          </AnimatedSection>
 
-      <AnimatedSection delay={160}>
-        <StaffTable
-          staff={staff}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          onSort={handleSort}
-          sortConfig={sortConfig}
-          onEdit={handleOpenEditModal}
-          onDelete={handleDeleteStaff}
-        />
-      </AnimatedSection>
+          <AnimatedSection delay={160}>
+            <StaffTable
+              staff={staff}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              onSort={handleSort}
+              sortConfig={sortConfig}
+              onEdit={handleOpenEditModal}
+              onDelete={handleDeleteStaff}
+            />
+          </AnimatedSection>
 
-      <AnimatedSection delay={220}>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          itemsPerPage={itemsPerPage}
-          onItemsPerPageChange={setItemsPerPage}
-          totalItems={totalItems}
-        />
-      </AnimatedSection>
+          <AnimatedSection delay={220}>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              onItemsPerPageChange={setItemsPerPage}
+              totalItems={totalItems}
+            />
+          </AnimatedSection>
+        </>
+      ) : null}
+
+      {activeTab === "attendance" ? (
+        <>
+          <AnimatedSection delay={90} className="relative z-[120]">
+            <StaffScopeFilters
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              showBranchFilter={user?.role === "ADMIN"}
+            />
+          </AnimatedSection>
+          <AnimatedSection delay={100}>
+            <StaffAttendancePanel staff={staff} />
+          </AnimatedSection>
+        </>
+      ) : null}
+
+      {activeTab === "salary" ? (
+        <>
+          <AnimatedSection delay={90} className="relative z-[120]">
+            <StaffScopeFilters
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              showBranchFilter={user?.role === "ADMIN"}
+            />
+          </AnimatedSection>
+          <AnimatedSection delay={100}>
+            <StaffSalaryPanel staff={staff} filters={filters} />
+          </AnimatedSection>
+        </>
+      ) : null}
 
       <AddStaffModal
         isOpen={isAddStaffModalOpen}

@@ -36,8 +36,19 @@ const STATUS_STYLES = {
   },
 };
 
-const PaymentScheduleTab = ({ loanId }) => {
+const PaymentScheduleTab = ({ loanId, loanStatus }) => {
+  const isApprovedLoan = !["PENDING_APPROVAL", "REJECTED", "CANCELLED"].includes(
+    loanStatus,
+  );
   const { data, isLoading, isError, error } = useLoanSchedule(loanId);
+
+  if (!isApprovedLoan) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-muted/20 p-6 text-sm text-muted-foreground">
+        Payment schedule will be available only after the loan is approved.
+      </div>
+    );
+  }
 
   const formatCurrency = (amount) =>
     new Intl.NumberFormat("en-IN", {

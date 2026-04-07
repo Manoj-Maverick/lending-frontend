@@ -4,6 +4,7 @@ import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import DocumentCaptureField from "../../../components/ui/DocumentCaptureField";
+import GuarantorFieldsSection from "../../../components/shared/GuarantorFieldsSection";
 import { useAuth } from "auth/AuthContext";
 import { useCreateLoan } from "hooks/loans/useCreateLoan";
 import { useToast } from "context/ToastContext";
@@ -1112,142 +1113,15 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
                 )}
 
                 {guarantorMode === "new" && (
-                  <div className="space-y-6 animate-fade-in">
-                    <Input
-                      label="Guarantor Full Name"
-                      value={formData.guarantorFullName}
-                      onChange={(e) =>
-                        handleChange("guarantorFullName", e.target.value)
-                      }
-                      error={errors.guarantorFullName}
+                  <div className="animate-fade-in">
+                    <GuarantorFieldsSection
+                      formData={formData}
+                      errors={errors}
+                      onChange={handleChange}
+                      relationOptions={relationOptions}
+                      addressMode="cityState"
+                      showDocuments
                     />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input
-                        label="Phone Number"
-                        type="tel"
-                        value={formData.guarantorPhone}
-                        onChange={(e) =>
-                          handleChange("guarantorPhone", e.target.value)
-                        }
-                        error={errors.guarantorPhone}
-                      />
-                      <Select
-                        label="Relation"
-                        options={relationOptions}
-                        value={formData.guarantorRelation}
-                        onChange={(v) => handleChange("guarantorRelation", v)}
-                        error={errors.guarantorRelation}
-                      />
-                    </div>
-                    <Input
-                      label="Address"
-                      value={formData.guarantorAddress}
-                      onChange={(e) =>
-                        handleChange("guarantorAddress", e.target.value)
-                      }
-                    />
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input
-                        label="Occupation"
-                        value={formData.guarantorOccupation}
-                        onChange={(e) =>
-                          handleChange("guarantorOccupation", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="Monthly Income (₹)"
-                        type="number"
-                        value={formData.guarantorMonthlyIncome}
-                        onChange={(e) =>
-                          handleChange("guarantorMonthlyIncome", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <Input
-                        label="City"
-                        value={formData.guarantorCity}
-                        onChange={(e) =>
-                          handleChange("guarantorCity", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="State"
-                        value={formData.guarantorState}
-                        onChange={(e) =>
-                          handleChange("guarantorState", e.target.value)
-                        }
-                      />
-                      <Input
-                        label="Pincode"
-                        value={formData.guarantorPincode}
-                        onChange={(e) =>
-                          handleChange("guarantorPincode", e.target.value)
-                        }
-                        maxLength={6}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input
-                        label="Aadhaar Number"
-                        value={formData.guarantorAadhaar}
-                        onChange={(e) =>
-                          handleChange("guarantorAadhaar", e.target.value)
-                        }
-                        maxLength={12}
-                      />
-                      <Input
-                        label="PAN Number"
-                        value={formData.guarantorPan}
-                        onChange={(e) =>
-                          handleChange("guarantorPan", e.target.value)
-                        }
-                        maxLength={10}
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <Input
-                        label="Alternate Phone"
-                        type="tel"
-                        value={formData.guarantorAlternatePhone}
-                        onChange={(e) =>
-                          handleChange(
-                            "guarantorAlternatePhone",
-                            e.target.value,
-                          )
-                        }
-                      />
-                      <Input
-                        label="Email"
-                        type="email"
-                        value={formData.guarantorEmail}
-                        onChange={(e) =>
-                          handleChange("guarantorEmail", e.target.value)
-                        }
-                      />
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                      <DocumentCaptureField
-                        label="Guarantor Photo (optional)"
-                        accept="image/*"
-                        value={formData.guarantor_photo}
-                        onChange={(f) => handleChange("guarantor_photo", f)}
-                      />
-                      <DocumentCaptureField
-                        label="Guarantor Aadhar Document (optional)"
-                        accept=".pdf,image/*"
-                        value={formData.guarantor_aadhar_doc}
-                        onChange={(f) =>
-                          handleChange("guarantor_aadhar_doc", f)
-                        }
-                      />
-                      <DocumentCaptureField
-                        label="Guarantor PAN Document (optional)"
-                        accept=".pdf,image/*"
-                        value={formData.guarantor_pan_doc}
-                        onChange={(f) => handleChange("guarantor_pan_doc", f)}
-                      />
-                    </div>
                   </div>
                 )}
               </div>

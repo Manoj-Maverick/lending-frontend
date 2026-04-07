@@ -1,23 +1,9 @@
 import React, { useState } from "react";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import { useFetchBranchStaffListById } from "hooks/branchDetails/useBranchStaff";
 import { Skeleton } from "components/ui/Skeleton";
-
-const hashString = (value = "") => {
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = value.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash);
-};
-
-const getAvatarUrl = (member) => {
-  if (member?.avatar) return member.avatar;
-  const seed = (hashString(`${member?.id || ""}-${member?.full_name || ""}`) % 70) + 1;
-  return `https://i.pravatar.cc/150?img=${seed}`;
-};
 
 const StaffManagement = ({ branchId, onAddStaff, onToggleStatus, onRemoveStaff }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,8 +88,8 @@ const StaffManagement = ({ branchId, onAddStaff, onToggleStatus, onRemoveStaff }
               >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Image
-                      src={getAvatarUrl(member)}
+                    <PersonAvatar
+                      person={member}
                       alt={member?.full_name}
                       className="w-11 h-11 md:w-12 md:h-12 rounded-full object-cover border border-border"
                     />

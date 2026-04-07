@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Icon from "../../components/AppIcon";
 import Button from "../../components/ui/Button";
@@ -7,12 +7,7 @@ import AnimatedSection from "components/ui/AnimatedSection";
 import EditStaffModal from "../staff-management/components/EditStaffModal";
 import DocumentSection from "../borrower-profile/components/DocumentSection";
 import { useUIContext } from "context/UIContext";
-import {
-  useSaveStaffAttendance,
-  useStaffAttendance,
-  useStaffDetail,
-  useUpdateStaff,
-} from "hooks/staff/useStaffList";
+import { useStaffDetail, useUpdateStaff } from "hooks/staff/useStaffList";
 import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
 import { useUploadWithProgress } from "hooks/docs/useUploadWithProgress";
 
@@ -21,32 +16,13 @@ const StaffProfile = () => {
   const { staffId } = useParams();
   const { showToast } = useUIContext();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toISOString().slice(0, 7),
-  );
 
   const { data: staffDetailResponse, isLoading } = useStaffDetail(staffId);
-  const { data: attendanceResponse } = useStaffAttendance(
-    staffId,
-    selectedMonth,
-    Boolean(staffId),
-  );
   const updateStaffMutation = useUpdateStaff();
-  const saveAttendanceMutation = useSaveStaffAttendance();
   const deleteDocumentMutation = useDeleteDocument();
   const { uploadDocument } = useUploadWithProgress();
 
   const staff = staffDetailResponse?.data;
-  const attendance = attendanceResponse?.data || [];
-
-  const attendanceSummary = useMemo(
-    () => ({
-      present: attendance.filter((item) => item.status === "PRESENT").length,
-      absent: attendance.filter((item) => item.status === "ABSENT").length,
-      leave: attendance.filter((item) => item.status === "LEAVE").length,
-    }),
-    [attendance],
-  );
   if (isLoading || !staff) {
     return (
       <PageShell className="pb-4">
@@ -83,8 +59,11 @@ const StaffProfile = () => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => navigate("/staff-attendance")}>
-            Attendance Page
+          <Button
+            variant="outline"
+            onClick={() => navigate("/staff-management?tab=attendance")}
+          >
+            Attendance Tab
           </Button>
           <Button iconName="Edit" iconPosition="left" onClick={() => setIsEditModalOpen(true)}>
             Edit Staff
@@ -185,84 +164,6 @@ const StaffProfile = () => {
               ))}
             </div>
           </div>
-        </div>
-      </AnimatedSection>
-
-      <AnimatedSection className="rounded-2xl border border-border bg-card shadow-sm" delay={180}>
-        <div className="flex flex-col gap-4 border-b border-border p-4 md:flex-row md:items-center md:justify-between md:p-5">
-          <h2 className="text-lg font-semibold text-foreground">Attendance Snapshot</h2>
-          <div className="flex items-center gap-3">
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-            />
-            <Button
-              variant="outline"
-              onClick={async () => {
-                try {
-                  await saveAttendanceMutation.mutateAsync({
-                    id: Number(staffId),
-                    attendanceDate: new Date().toISOString().slice(0, 10),
-                    status: "PRESENT",
-                  });
-                  showToast?.("Marked today as present", "success");
-                } catch (error) {
-                  showToast?.(error?.message || "Failed to save attendance", "error");
-                }
-              }}
-              loading={saveAttendanceMutation.isPending}
-            >
-              Mark Today Present
-            </Button>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 gap-4 border-b border-border p-4 md:grid-cols-3 md:p-5">
-          <div className="rounded-xl border border-border bg-background p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Present</p>
-            <p className="mt-1 text-2xl font-semibold text-foreground">{attendanceSummary.present}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-background p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Absent</p>
-            <p className="mt-1 text-2xl font-semibold text-foreground">{attendanceSummary.absent}</p>
-          </div>
-          <div className="rounded-xl border border-border bg-background p-4">
-            <p className="text-xs uppercase tracking-wide text-muted-foreground">Leave</p>
-            <p className="mt-1 text-2xl font-semibold text-foreground">{attendanceSummary.leave}</p>
-          </div>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted/40">
-              <tr>
-                {["Date", "Status", "Check In", "Check Out", "Notes"].map((heading) => (
-                  <th key={heading} className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    {heading}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {attendance.length > 0 ? (
-                attendance.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-4 py-3 text-sm text-foreground">{item.attendanceDate}</td>
-                    <td className="px-4 py-3 text-sm text-foreground">{item.status}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{item.checkInTime || "-"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{item.checkOutTime || "-"}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{item.notes || "-"}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
-                    No attendance records found for this month.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
         </div>
       </AnimatedSection>
 

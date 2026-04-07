@@ -1,31 +1,11 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import Button from "../../../components/ui/Button";
 
 const StaffTable = ({ staff, onSort, sortConfig, onEdit, onDelete }) => {
   const navigate = useNavigate();
-
-  const getAvatarUrl = (staffMember) => {
-    const id = staffMember?.id;
-    const gender =
-      staffMember?.gender ?? ["male", "female"][Math.floor(Math.random() * 2)];
-
-    if (!id) return "/images/avatar-placeholder.png";
-
-    const seed = Number(id) % 100 || 1;
-
-    if (gender?.toLowerCase() === "male") {
-      return `https://randomuser.me/api/portraits/men/${seed}.jpg`;
-    }
-
-    if (gender?.toLowerCase() === "female") {
-      return `https://randomuser.me/api/portraits/women/${seed}.jpg`;
-    }
-
-    return "/images/avatar-placeholder.png";
-  };
 
   const getStatusColor = (status) => {
     const colors = {
@@ -174,9 +154,9 @@ const StaffTable = ({ staff, onSort, sortConfig, onEdit, onDelete }) => {
               >
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
-                    <Image
-                      src={staffMember?.photo ?? getAvatarUrl(staffMember)}
-                      alt={staffMember?.photoAlt}
+                    <PersonAvatar
+                      person={staffMember}
+                      alt={staffMember?.name}
                       className="h-11 w-11 rounded-2xl object-cover ring-1 ring-border"
                     />
                     <div className="min-w-0">
@@ -280,9 +260,9 @@ const StaffTable = ({ staff, onSort, sortConfig, onEdit, onDelete }) => {
             className="p-4 transition-colors hover:bg-muted/20"
           >
             <div className="mb-3 flex gap-4">
-              <Image
-                src={staffMember?.photo ?? getAvatarUrl(staffMember)}
-                alt={staffMember?.photoAlt}
+              <PersonAvatar
+                person={staffMember}
+                alt={staffMember?.name}
                 className="h-14 w-14 flex-shrink-0 rounded-2xl object-cover ring-1 ring-border"
               />
               <div className="min-w-0 flex-1">

@@ -1,6 +1,6 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import Button from "../../../components/ui/Button";
 import DocumentSection from "./DocumentSection";
 import { useBorrowerGuarantors } from "hooks/borrowers/useBorrowerDetails";
@@ -52,12 +52,6 @@ const GuarantorsTab = ({
 
   const verifyPassword = async (password) => {
     return password === "admin123";
-  };
-
-  // ✅ Avatar per guarantor (FIXED)
-  const getAvatar = (id) => {
-    const seed = Number(id) % 100 || 1;
-    return `https://randomuser.me/api/portraits/men/${seed}.jpg`;
   };
 
   // Loading
@@ -137,8 +131,8 @@ const GuarantorsTab = ({
             >
               {/* Guarantor Info */}
               <div className="flex flex-col md:flex-row gap-6">
-                <Image
-                  src={guarantor.photo || getAvatar(guarantor.id)}
+                <PersonAvatar
+                  person={guarantor}
                   alt={guarantor.full_name}
                   className="w-24 h-24 rounded-lg object-cover"
                 />

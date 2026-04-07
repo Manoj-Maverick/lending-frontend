@@ -1,9 +1,8 @@
 import React from "react";
 import Icon from "../../../components/AppIcon";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import Button from "../../../components/ui/Button";
 import { useBorrowerDetails } from "hooks/borrowers/useBorrowerDetails";
-import { API_BASE_URL } from "api/client";
 import DocumentSection from "./DocumentSection";
 import { useDeleteDocument } from "hooks/docs/useDeleteDoc";
 import { useToggleBlock } from "hooks/borrowers/useBlockBorrower";
@@ -16,24 +15,6 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     isError,
     error,
   } = useBorrowerDetails(borrowerId);
-  const hashString = (value = "") => {
-    let hash = 0;
-    for (let i = 0; i < value.length; i += 1) {
-      hash = value.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    return Math.abs(hash);
-  };
-  const toApiAssetUrl = (path) => {
-    if (!path) return "";
-    if (/^https?:\/\//i.test(path)) return path;
-    return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-  };
-  const getBorrowerAvatar = (borrower) => {
-    if (borrower?.photo_url) return toApiAssetUrl(borrower.photo_url);
-    const base = `${borrower?.id || ""}-${borrower?.name || borrower?.client_name || ""}`;
-    const seed = (hashString(base) % 70) + 1;
-    return `https://i.pravatar.cc/150?img=${seed}`;
-  };
   const { mutateAsync: deleteDoc } = useDeleteDocument();
   const { mutate: toggleBlock, isPending: isBlocking } = useToggleBlock();
   const { uploadDocument } = useUploadWithProgress();
@@ -124,8 +105,6 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
     stats,
   } = borrower;
 
-  // 🔹 Stable random avatar based on gender + id
-
   return (
     <div className="space-y-6 md:space-y-8">
       {/* Profile Header */}
@@ -133,8 +112,8 @@ const PersonalInfoTab = ({ borrowerId, onEdit }) => {
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
           <div className="flex justify-center lg:justify-start">
             <div className="relative">
-              <Image
-                src={getBorrowerAvatar(borrower)}
+              <PersonAvatar
+                person={borrower}
                 alt="Borrower"
                 className="w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-lg object-cover"
               />

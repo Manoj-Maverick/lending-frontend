@@ -2,12 +2,11 @@ import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
 import { useFetchBranchCustomers as useBranchClients } from "hooks/branchDetails/useBranchCustomers";
-import { API_BASE_URL } from "api/client";
 import { queryConfig } from "query/queryConfig";
 import { prefetchQuery } from "query/prefetch";
 const statusOptions = [
@@ -27,22 +26,6 @@ const pageSizeOptions = [
   { value: "10", label: "10 per page" },
   { value: "25", label: "25 per page" },
 ];
-
-const hashString = (value = "") => {
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = value.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash);
-};
-
-const getClientAvatar = (client, test = true) => {
-  if (client?.avatar)
-    return test == true ? API_BASE_URL + client?.avatar : client?.avatar;
-  const base = `${client?.id || ""}-${client?.name || ""}`;
-  const seed = (hashString(base) % 70) + 1;
-  return `https://i.pravatar.cc/150?img=${seed}`;
-};
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -220,8 +203,8 @@ const BranchClients = () => {
                 >
                   <td className="px-4 py-3 rounded-l-lg">
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted ring-2 ring-background border border-border">
-                      <Image
-                        src={getClientAvatar(client, false)}
+                      <PersonAvatar
+                        person={client}
                         alt={client.name}
                         className="w-full h-full object-cover"
                       />
@@ -297,8 +280,8 @@ const BranchClients = () => {
               className="bg-background rounded-xl border border-border p-3 shadow-sm"
             >
               <div className="flex items-start gap-3">
-                <Image
-                  src={getClientAvatar(client, false)}
+                <PersonAvatar
+                  person={client}
                   alt={client.name}
                   className="w-11 h-11 rounded-full object-cover border border-border"
                 />

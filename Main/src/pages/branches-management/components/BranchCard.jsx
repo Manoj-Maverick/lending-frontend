@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Icon from "../../../components/AppIcon";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import { queryConfig } from "query/queryConfig";
 import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 
@@ -98,12 +98,13 @@ const BranchCard = ({ branch, onClick }) => {
         <div className="mb-4 pb-4 border-b border-border">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full overflow-hidden bg-muted flex-shrink-0">
-              <Image
-                src={
-                  branch?.manager?.avatar ??
-                  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQKu1w7TulWMUKGszjJlb7PDtn0LVSJgGnrog&s"
-                }
-                alt={branch?.manager?.avatarAlt}
+              <PersonAvatar
+                person={{
+                  name: branch?.mgr_name,
+                  gender: branch?.manager?.gender,
+                  avatar: branch?.manager?.avatar,
+                }}
+                alt={branch?.mgr_name}
                 className="w-full h-full object-cover"
               />
             </div>

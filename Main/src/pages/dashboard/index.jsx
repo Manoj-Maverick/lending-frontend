@@ -8,6 +8,7 @@ import MonthlyCollectionChart from "./components/MonthlyCollectionChart";
 import BranchComparisonChart from "./components/BranchComparisonChart";
 import NoBranchAssigned from "components/NoBranchAssigned";
 import { useDashboardSummary } from "hooks/dashboard/useDashboardSummary";
+import { useExpenseSummary } from "hooks/expenses/useExpenseSummary";
 import { useUIContext } from "context/UIContext";
 import { useAuth } from "auth/AuthContext";
 import PageShell from "components/ui/PageShell";
@@ -35,6 +36,16 @@ const Dashboard = () => {
   }
 
   const { data, isLoading, isError, error } = useDashboardSummary(branchId);
+  const today = new Date().toISOString().slice(0, 10);
+  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    .toISOString()
+    .slice(0, 10);
+  const { data: expenseSummaryResponse } = useExpenseSummary({
+    branch_id: branchId === "all" ? "" : branchId,
+    start_date: monthStart,
+    end_date: today,
+  });
+  const expenseSummary = expenseSummaryResponse?.data;
 
   if (isLoading || !data) {
     return (
@@ -129,6 +140,20 @@ const Dashboard = () => {
           value={`\u20B9${Math.floor(Number(data?.data.weekly_collection * 4)).toLocaleString("en-IN")}`}
           icon="BarChart"
           color="blue"
+        />
+        <StatCard
+          title="Monthly Expenses"
+          value={`\u20B9${Math.floor(Number(expenseSummary?.total_expense || 0)).toLocaleString("en-IN")}`}
+          icon="Receipt"
+          color="red"
+          navigateTo="/expenses"
+        />
+        <StatCard
+          title="Salary Expense"
+          value={`\u20B9${Math.floor(Number(expenseSummary?.salary_total || 0)).toLocaleString("en-IN")}`}
+          icon="Landmark"
+          color="green"
+          navigateTo="/expenses"
         />
       </div>
 

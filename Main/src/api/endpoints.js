@@ -76,6 +76,13 @@ export const ENDPOINTS = {
     attendance: (staffId) =>
       `/api/staffs-management/staffs/${staffId}/attendance`,
   },
+  EXPENSES: {
+    categories: "/api/expense-categories",
+    list: "/api/expenses",
+    create: "/api/expenses",
+    summary: "/api/expenses/summary",
+    monthlyTrend: "/api/expenses/monthly-trend",
+  },
 };
 
 export default ENDPOINTS;

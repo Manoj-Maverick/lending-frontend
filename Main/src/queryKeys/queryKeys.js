@@ -92,6 +92,13 @@ export const queryKeys = {
     detail: (staffId) => ["staff", "detail", staffId],
     attendance: (staffId, month) => ["staff", "attendance", staffId, month],
   },
+  expenses: {
+    all: ["expenses"],
+    categories: () => ["expenses", "categories"],
+    list: (filters = {}) => ["expenses", "list", filters],
+    summary: (filters = {}) => ["expenses", "summary", filters],
+    monthlyTrend: (filters = {}) => ["expenses", "monthly-trend", filters],
+  },
   documents: {
     all: ["documents"],
     customer: (customerId) => ["documents", "customer", customerId],

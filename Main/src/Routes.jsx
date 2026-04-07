@@ -23,6 +23,7 @@ import LoanDetails from "pages/loan-details";
 import StaffManagement from "pages/staff-management";
 import StaffProfile from "pages/staff-profile";
 import StaffAttendance from "pages/staff-attendance";
+import ExpensesPage from "pages/expenses";
 import Settings from "pages/settings";
 import Reports from "pages/reports";
 import PaymentsManagement from "pages/payments-management";
@@ -125,6 +126,14 @@ const Routes = () => {
               element={
                 <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
                   <Reports />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/expenses"
+              element={
+                <ProtectedRoute roles={["ADMIN", "BRANCH_MANAGER"]}>
+                  <ExpensesPage />
                 </ProtectedRoute>
               }
             />

@@ -3,11 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { useBorrowers } from "hooks/borrowers/useBorrowers";
 import { useUIContext } from "context/UIContext";
 import Icon from "../../../components/AppIcon";
-import Image from "../../../components/AppImage";
+import PersonAvatar from "../../../components/shared/PersonAvatar";
 import Button from "../../../components/ui/Button";
 import Input from "../../../components/ui/Input";
 import Select from "../../../components/ui/Select";
-import { API_BASE_URL } from "api/client";
 import { queryConfig } from "query/queryConfig";
 import { usePrefetchOnHover } from "query/usePrefetchOnHover";
 
@@ -39,27 +38,6 @@ const getInitials = (name) => {
   const parts = name.trim().split(" ");
   if (parts.length === 1) return parts[0][0].toUpperCase();
   return (parts[0][0] + parts[1][0]).toUpperCase();
-};
-
-const hashString = (value = "") => {
-  let hash = 0;
-  for (let i = 0; i < value.length; i += 1) {
-    hash = value.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash);
-};
-
-const toApiAssetUrl = (path) => {
-  if (!path) return "";
-  if (/^https?:\/\//i.test(path)) return path;
-  return `${API_BASE_URL}${path.startsWith("/") ? "" : "/"}${path}`;
-};
-
-const getBorrowerAvatar = (borrower) => {
-  if (borrower?.photo_url) return toApiAssetUrl(borrower.photo_url);
-  const base = `${borrower?.id || ""}-${borrower?.name || borrower?.client_name || ""}`;
-  const seed = (hashString(base) % 70) + 1;
-  return `https://i.pravatar.cc/150?img=${seed}`;
 };
 
 /* =========================
@@ -319,8 +297,8 @@ const BorrowersListPage = ({ branch, setBranch, canSelectBranch = true }) => {
                 >
                   <td className="px-4 py-3 rounded-l-lg">
                     <div className="w-11 h-11 rounded-full overflow-hidden bg-muted flex items-center justify-center ring-2 ring-background border border-border">
-                      <Image
-                        src={getBorrowerAvatar(borrower)}
+                      <PersonAvatar
+                        person={borrower}
                         alt={displayName}
                         className="w-full h-full object-cover"
                       />

@@ -56,7 +56,12 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
     principal: Number(l.principal_amount),
     interestRate: Number(l.interest_amount), // or compute % if needed
     totalPayable: Number(l.total_payable),
-    outstanding: Number(l.outstanding),
+    outstanding:
+      l.status === "REJECTED" ||
+      l.status === "PENDING_APPROVAL" ||
+      l.status === "CANCELLED"
+        ? 0
+        : Number(l.outstanding),
     repayment_type: l.repayment_type,
     status: l.status, // 'ACTIVE', 'CLOSED', 'FORECLOSED'
     startDate: l.start_date.split("T")[0], // format as YYYY-MM-DD
@@ -66,8 +71,10 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
     const colors = {
       ACTIVE: "bg-success/10 text-success",
       PENDING_APPROVAL: "bg-amber-500/10 text-amber-600",
+      REJECTED: "bg-rose-500/10 text-rose-600",
       CLOSED: "bg-primary/10 text-primary",
       DELAYED: "bg-warning/10 text-warning",
+      CANCELLED: "bg-slate-500/10 text-slate-600",
       FORECLOSED: "bg-destructive/10 text-destructive",
     };
     return colors?.[status] || "bg-muted/10 text-muted-foreground";
@@ -77,8 +84,10 @@ const LoansTab = ({ borrowerId, isBlocked, showToast }) => {
     const icons = {
       ACTIVE: "CheckCircle",
       PENDING_APPROVAL: "Clock3",
+      REJECTED: "CircleX",
       CLOSED: "Lock",
       DELAYED: "AlertCircle",
+      CANCELLED: "Ban",
       FORECLOSED: "XCircle",
     };
     return icons?.[status] || "Circle";

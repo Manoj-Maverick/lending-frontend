@@ -7,6 +7,7 @@ import BlocklistModal from "./components/BlocklistModal";
 import { useBorrowerStats } from "hooks/borrowers/useBorrowerStats";
 import { PageHeaderSkeleton, Skeleton, StatCardSkeleton } from "components/ui/Skeleton";
 import { useAuth } from "auth/AuthContext";
+import { useUIContext } from "context/UIContext";
 
 const BorrowersManagementSkeleton = () => (
   <>
@@ -56,9 +57,14 @@ const BorrowersManagementSkeleton = () => (
 
 const BorrowersManagement = () => {
   const { user } = useAuth();
+  const { selectedBranch } = useUIContext();
   const [isAddBorrowerModalOpen, setIsAddBorrowerModalOpen] = useState(false);
   const [branch, setBranch] = useState(
-    user?.role === "ADMIN" ? null : user?.branchId,
+    user?.role === "ADMIN"
+      ? (selectedBranch?.id && selectedBranch.id !== "all"
+          ? selectedBranch.id
+          : null)
+      : user?.branchId,
   );
   const [blocklistModal, setBlocklistModal] = useState({
     isOpen: false,
@@ -71,6 +77,16 @@ const BorrowersManagement = () => {
     () => (user?.role === "ADMIN" ? branch : user?.branchId),
     [branch, user?.branchId, user?.role],
   );
+
+  React.useEffect(() => {
+    if (user?.role === "ADMIN") {
+      setBranch(
+        selectedBranch?.id && selectedBranch.id !== "all"
+          ? selectedBranch.id
+          : null,
+      );
+    }
+  }, [selectedBranch?.id, user?.role]);
 
   const { data: stats, isLoading, isError } = useBorrowerStats(effectiveBranch);
 

@@ -131,6 +131,9 @@ const LoanDetails = () => {
   const canReviewLoan =
     (user?.role === "ADMIN" || user?.role === "BRANCH_MANAGER") &&
     data?.status === "PENDING_APPROVAL";
+  const isApprovedLoan = !["PENDING_APPROVAL", "REJECTED", "CANCELLED"].includes(
+    data?.status,
+  );
   const parms = new URLSearchParams(location.search);
   useEffect(() => {
     if (!isLoading && parms.get("pay") === "true") {
@@ -181,8 +184,16 @@ const LoanDetails = () => {
 
   const tabs = [
     { id: "info", label: "Loan Info", icon: "FileText" },
-    { id: "schedule", label: "Payment Schedule", icon: "Calendar" },
-    { id: "transactions", label: "Transaction History", icon: "History" },
+    ...(isApprovedLoan
+      ? [
+          { id: "schedule", label: "Payment Schedule", icon: "Calendar" },
+          {
+            id: "transactions",
+            label: "Transaction History",
+            icon: "History",
+          },
+        ]
+      : []),
     { id: "documents", label: "Documents", icon: "Paperclip" },
   ];
 
@@ -371,9 +382,11 @@ const LoanDetails = () => {
                 }}
               />
             )}
-            {activeTab === "schedule" && <PaymentScheduleTab loanId={loanId} />}
+            {activeTab === "schedule" && (
+              <PaymentScheduleTab loanId={loanId} loanStatus={loanData.status} />
+            )}
             {activeTab === "transactions" && (
-              <TransactionHistoryTab loanId={loanId} />
+              <TransactionHistoryTab loanStatus={loanData.status} />
             )}
             {activeTab === "documents" && <DocumentsTab loanId={loanId} />}
           </div>
