@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from "react";
+
 const ToastContext = createContext(null);
 
 const TOAST_STYLES = {
@@ -75,7 +76,7 @@ export function ToastProvider({ children }) {
 
           return (
             <div
-              key={crypto.randomUUID()}
+              key={toast.id}
               className={`
                 w-[340px]
                 rounded-xl border-l-4 ${style.border}

@@ -2,8 +2,16 @@
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 14%, rgba(45, 212, 191, 0.24), transparent 38%),
-    radial-gradient(circle at 84% 86%, rgba(59, 130, 246, 0.22), transparent 42%),
+    radial-gradient(
+      circle at 18% 14%,
+      rgba(45, 212, 191, 0.24),
+      transparent 38%
+    ),
+    radial-gradient(
+      circle at 84% 86%,
+      rgba(59, 130, 246, 0.22),
+      transparent 42%
+    ),
     linear-gradient(150deg, #050d1f 0%, #0b1f45 52%, #13366b 100%);
 }
 
@@ -22,14 +30,13 @@
 .login-aurora {
   position: absolute;
   inset: -28%;
-  background:
-    conic-gradient(
-      from 140deg,
-      rgba(34, 211, 238, 0.2),
-      rgba(59, 130, 246, 0.12),
-      rgba(99, 102, 241, 0.16),
-      rgba(34, 211, 238, 0.2)
-    );
+  background: conic-gradient(
+    from 140deg,
+    rgba(34, 211, 238, 0.2),
+    rgba(59, 130, 246, 0.12),
+    rgba(99, 102, 241, 0.16),
+    rgba(34, 211, 238, 0.2)
+  );
   filter: blur(34px);
   animation: auroraShift 12s ease-in-out infinite;
   pointer-events: none;
@@ -38,7 +45,10 @@
 .login-noise {
   position: absolute;
   inset: 0;
-  background-image: radial-gradient(rgba(255, 255, 255, 0.1) 0.6px, transparent 0.6px);
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.1) 0.6px,
+    transparent 0.6px
+  );
   background-size: 3px 3px;
   opacity: 0.05;
   pointer-events: none;
@@ -61,7 +71,11 @@
   padding: 0 16px;
   border-radius: 999px;
   border: 1px solid rgba(186, 230, 253, 0.5);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.26), rgba(191, 219, 254, 0.08));
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.26),
+    rgba(191, 219, 254, 0.08)
+  );
   color: #e0f2fe;
   font-size: 1.45rem;
   font-weight: 700;
@@ -144,7 +158,11 @@
   height: 280px;
   left: -80px;
   top: -70px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.52), rgba(14, 165, 233, 0.04));
+  background: radial-gradient(
+    circle,
+    rgba(14, 165, 233, 0.52),
+    rgba(14, 165, 233, 0.04)
+  );
 }
 
 .login-orb-two {
@@ -152,7 +170,11 @@
   height: 360px;
   right: -100px;
   bottom: -160px;
-  background: radial-gradient(circle, rgba(45, 212, 191, 0.35), rgba(45, 212, 191, 0.04));
+  background: radial-gradient(
+    circle,
+    rgba(45, 212, 191, 0.35),
+    rgba(45, 212, 191, 0.04)
+  );
   animation-delay: -3s;
 }
 
@@ -161,13 +183,21 @@
   height: 180px;
   right: 22%;
   top: 22%;
-  background: radial-gradient(circle, rgba(186, 230, 253, 0.22), rgba(186, 230, 253, 0.03));
+  background: radial-gradient(
+    circle,
+    rgba(186, 230, 253, 0.22),
+    rgba(186, 230, 253, 0.03)
+  );
   animation-delay: -6s;
 }
 
 .login-info-panel {
   border: 1px solid rgba(186, 230, 253, 0.24);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(191, 219, 254, 0.08));
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.16),
+    rgba(191, 219, 254, 0.08)
+  );
   backdrop-filter: blur(14px);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
@@ -177,7 +207,7 @@
 
 .login-typing {
   display: inline-block;
-  max-width: 100%;
+  max-width: 550px;
   white-space: nowrap;
   overflow: hidden;
   min-height: 1.2em;
@@ -212,7 +242,11 @@
 .login-form-panel {
   position: relative;
   border: 1px solid rgba(224, 242, 254, 0.5);
-  background: linear-gradient(160deg, rgba(255, 255, 255, 0.23), rgba(226, 232, 240, 0.11));
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.23),
+    rgba(226, 232, 240, 0.11)
+  );
   backdrop-filter: blur(18px);
   box-shadow:
     0 28px 60px rgba(3, 10, 24, 0.42),
@@ -231,7 +265,11 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: linear-gradient(115deg, rgba(255, 255, 255, 0.3), transparent 36%);
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0.3),
+    transparent 36%
+  );
   pointer-events: none;
 }
 
@@ -254,7 +292,10 @@
   color: #0f172a;
   caret-color: #0f172a;
   -webkit-text-fill-color: #0f172a;
-  transition: border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.22s ease;
+  transition:
+    border-color 0.22s ease,
+    box-shadow 0.22s ease,
+    background-color 0.22s ease;
 }
 
 .login-input:hover {
@@ -286,7 +327,10 @@
   border-radius: 10px;
   color: #64748b;
   padding: 6px;
-  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .login-eye-btn:hover {
@@ -299,9 +343,16 @@
   border: none;
   border-radius: 13px;
   font-weight: 700;
-  background: linear-gradient(122deg, rgba(14, 165, 233, 0.95), rgba(37, 99, 235, 0.95));
+  background: linear-gradient(
+    122deg,
+    rgba(14, 165, 233, 0.95),
+    rgba(37, 99, 235, 0.95)
+  );
   box-shadow: 0 12px 24px rgba(37, 99, 235, 0.34);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+  transition:
+    transform 0.22s ease,
+    box-shadow 0.22s ease,
+    filter 0.22s ease;
 }
 
 .login-submit-btn:hover {

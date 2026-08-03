@@ -37,7 +37,11 @@ const Dashboard = () => {
 
   const { data, isLoading, isError, error } = useDashboardSummary(branchId);
   const today = new Date().toISOString().slice(0, 10);
-  const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  const monthStart = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1,
+  )
     .toISOString()
     .slice(0, 10);
   const { data: expenseSummaryResponse } = useExpenseSummary({

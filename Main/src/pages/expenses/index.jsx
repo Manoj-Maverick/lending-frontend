@@ -5,8 +5,8 @@ import Button from "components/ui/Button";
 import { useAuth } from "auth/AuthContext";
 import { useUIContext } from "context/UIContext";
 import { useExpenses } from "hooks/expenses/useExpenses";
-import { useExpenseSummary } from "hooks/expenses/useExpenseSummary";
 import { useExpenseCategories } from "hooks/expenses/useExpenseCategories";
+import { useExpenseSummary } from "hooks/expenses/useExpenseSummary";
 import ExpenseForm from "./components/ExpenseForm";
 import ExpenseFilters from "./components/ExpenseFilters";
 import ExpenseSummary from "./components/ExpenseSummary";
@@ -60,8 +60,12 @@ const ExpensesPage = () => {
   };
 
   const { data: categoriesResponse } = useExpenseCategories();
-  const { data: expensesResponse, isLoading, isError, error } =
-    useExpenses(expenseFilters);
+  const {
+    data: expensesResponse,
+    isLoading,
+    isError,
+    error,
+  } = useExpenses(expenseFilters);
   const { data: summaryResponse, isLoading: isSummaryLoading } =
     useExpenseSummary(filters);
 

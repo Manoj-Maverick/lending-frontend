@@ -626,7 +626,7 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[96vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
+      <div className="bg-white dark:bg-gray-900 rounded-xl sm:rounded-2xl shadow-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
         {/* Header */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 dark:border-gray-700">
           <div>
@@ -710,8 +710,9 @@ const CreateLoanModal = ({ borrowerId, isOpen, onClose, oldLoanId }) => {
                     <Input
                       label="Selected Branch"
                       value={
-                        branchOptions.find((branch) => branch.value === selectedBranchId)?.label ||
-                        ""
+                        branchOptions.find(
+                          (branch) => branch.value === selectedBranchId,
+                        )?.label || ""
                       }
                       disabled
                       readOnly

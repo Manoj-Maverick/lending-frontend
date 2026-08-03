@@ -2,8 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../../../components/AppIcon";
 import Button from "../../../components/ui/Button";
-import { useExpenseSummary } from "hooks/expenses/useExpenseSummary";
 import { useExpenses } from "hooks/expenses/useExpenses";
+import { useExpenseSummary } from "hooks/expenses/useExpenseSummary";
 
 const getMonthStart = () => {
   const now = new Date();
